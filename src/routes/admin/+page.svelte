@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { actionsStore, pageStore, ACTION_TYPES, type QuickAction, type ActionType } from '$lib/actions-store.svelte';
+	import { actionsStore, pageStore, hoursStore, ACTION_TYPES, type QuickAction, type ActionType, type BusinessDay } from '$lib/actions-store.svelte';
 	import ActionGrid from '$lib/components/ActionGrid.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 
@@ -49,6 +49,28 @@
 		}
 		drafts = fresh;
 		editOpen = true;
+	}
+
+	// Business hours editing
+	let editHoursOpen = $state(false);
+	let draftHours = $state<BusinessDay[]>([]);
+
+	function openEditHours() {
+		draftHours = hoursStore.items.map(d => ({ ...d }));
+		editHoursOpen = true;
+	}
+
+	function saveHours() {
+		hoursStore.items = draftHours;
+		editHoursOpen = false;
+	}
+
+	function formatTime(t: string): string {
+		if (!t) return '';
+		const [h, m] = t.split(':').map(Number);
+		const ampm = h >= 12 ? 'PM' : 'AM';
+		const hr = h % 12 || 12;
+		return `${hr}:${m.toString().padStart(2, '0')} ${ampm}`;
 	}
 
 	function saveActions() {
@@ -101,6 +123,53 @@
 </div>
 
 <ActionGrid items={actionsStore.items} {columns} />
+
+<div class="grid-header">
+	<span class="grid-label">Business Hours</span>
+	<button class="btn-edit" onclick={openEditHours} aria-label="Edit business hours">
+		<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+	</button>
+</div>
+
+<ul class="hours-list">
+	{#each hoursStore.items as day}
+		<li class="hours-row">
+			<span class="hours-day">{day.day}</span>
+			<span class="hours-time" class:closed={day.closed}>
+				{day.closed ? 'Closed' : `${formatTime(day.open)} – ${formatTime(day.close)}`}
+			</span>
+		</li>
+	{/each}
+</ul>
+
+<Popup open={editHoursOpen} title="Edit Business Hours" onclose={() => (editHoursOpen = false)} fullscreen>
+	<ul class="type-list">
+		{#each draftHours as day, i}
+			<li class="type-item">
+				<label class="type-check">
+					<input type="checkbox" checked={!day.closed} onchange={() => { draftHours[i].closed = !draftHours[i].closed; }} />
+					<span class="type-label">{day.day}</span>
+				</label>
+				{#if !day.closed}
+					<div class="type-fields hours-fields">
+						<label class="field"><span>Open</span>
+							<input type="time" bind:value={draftHours[i].open} />
+						</label>
+						<label class="field"><span>Close</span>
+							<input type="time" bind:value={draftHours[i].close} />
+						</label>
+					</div>
+				{/if}
+			</li>
+		{/each}
+	</ul>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn primary" onclick={saveHours}>Save</button>
+			<button class="btn secondary" onclick={() => (editHoursOpen = false)}>Cancel</button>
+		</div>
+	{/snippet}
+</Popup>
 
 <Popup open={editOpen} title="Edit Actions" onclose={() => (editOpen = false)} fullscreen>
 	<ul class="type-list">
@@ -240,6 +309,34 @@
 	}
 
 	.btn.secondary:hover { background: #f0f0f0; }
+
+	/* Business hours */
+	.hours-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		max-width: 500px;
+	}
+
+	.hours-row {
+		display: flex;
+		justify-content: space-between;
+		padding: 0.5rem 0;
+		border-bottom: 1px solid #f0f0f0;
+		font-size: 0.9rem;
+	}
+
+	.hours-row:last-child { border-bottom: none; }
+	.hours-day { font-weight: 500; color: #333; }
+	.hours-time { color: #555; }
+	.hours-time.closed { color: #e74c3c; font-weight: 500; }
+
+	.hours-fields {
+		flex-direction: row;
+		gap: 0.75rem;
+	}
+
+	.hours-fields .field { flex: 1; }
 
 	/* Type checklist */
 	.type-list {

@@ -57,6 +57,50 @@ export function buildHref(type: ActionType, value: string): string {
 	}
 }
 
+// Business hours
+const HOURS_KEY = 'business-hours';
+
+export interface BusinessDay {
+	day: string;
+	open: string;
+	close: string;
+	closed: boolean;
+}
+
+const defaultHours: BusinessDay[] = [
+	{ day: 'Monday', open: '09:00', close: '17:00', closed: false },
+	{ day: 'Tuesday', open: '09:00', close: '17:00', closed: false },
+	{ day: 'Wednesday', open: '09:00', close: '17:00', closed: false },
+	{ day: 'Thursday', open: '09:00', close: '17:00', closed: false },
+	{ day: 'Friday', open: '09:00', close: '17:00', closed: false },
+	{ day: 'Saturday', open: '10:00', close: '14:00', closed: false },
+	{ day: 'Sunday', open: '', close: '', closed: true }
+];
+
+function loadHours(): BusinessDay[] {
+	if (typeof localStorage === 'undefined') return defaultHours;
+	const raw = localStorage.getItem(HOURS_KEY);
+	if (!raw) return defaultHours;
+	try {
+		const parsed = JSON.parse(raw);
+		if (Array.isArray(parsed) && parsed.length === 7) return parsed;
+		return defaultHours;
+	} catch { return defaultHours; }
+}
+
+function saveHours(h: BusinessDay[]) {
+	if (typeof localStorage !== 'undefined') {
+		localStorage.setItem(HOURS_KEY, JSON.stringify(h));
+	}
+}
+
+let hours = $state<BusinessDay[]>(loadHours());
+
+export const hoursStore = {
+	get items() { return hours; },
+	set items(v: BusinessDay[]) { hours = v; saveHours(v); }
+};
+
 const STORAGE_KEY = 'quick-actions';
 const PAGE_KEY = 'quick-actions-page';
 
