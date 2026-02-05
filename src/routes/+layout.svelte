@@ -24,7 +24,7 @@
 		]},
 		{ label: 'QR Barcode', href: '/scanner', icon: icons.barcode, filled: true, sublinks: [
 			{ label: 'Scan', href: '/scanner' },
-			{ label: 'History', href: '/scanner/history' }
+			{ label: 'Cards', href: '/scanner/cards' }
 		]},
 		{ label: 'Dashboard', href: '/dashboard', icon: icons.dashboard, sublinks: [
 			{ label: 'Overview', href: '/dashboard' },
