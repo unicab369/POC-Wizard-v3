@@ -22,49 +22,48 @@
 		editingPage = false;
 	}
 
-	// Action editing
-	let editingAction = $state<QuickAction | null>(null);
-	let showActionForm = $state(false);
-	let pickerOpen = $state(false);
-	let formType = $state<ActionType>('phone');
-	let formLabel = $state('');
-	let formValue = $state('');
+	let editOpen = $state(false);
 
 	const typeEntries = Object.entries(ACTION_TYPES) as [ActionType, typeof ACTION_TYPES[ActionType]][];
 
-	function pickType(type: ActionType) {
-		pickerOpen = false;
-		formType = type;
-		formLabel = ACTION_TYPES[type].label;
-		formValue = '';
-		editingAction = null;
-		showActionForm = true;
-	}
+	interface Draft { checked: boolean; label: string; value: string; existingId?: number; }
+	let drafts = $state<Record<ActionType, Draft>>({
+		phone: { checked: false, label: '', value: '' },
+		navigation: { checked: false, label: '', value: '' },
+		link: { checked: false, label: '', value: '' },
+		social: { checked: false, label: '', value: '' }
+	});
 
-	function openEdit(action: QuickAction) {
-		editingAction = action;
-		formType = action.type;
-		formLabel = action.label;
-		formValue = action.value;
-		showActionForm = true;
-	}
-
-	function handleSave() {
-		if (!formLabel.trim()) return;
-		if (editingAction) {
-			actionsStore.update(editingAction.id, { label: formLabel, value: formValue });
-		} else {
-			actionsStore.add(formType, formLabel, formValue);
+	function openEditActions() {
+		// Pre-populate from existing actions
+		const fresh: Record<ActionType, Draft> = {
+			phone: { checked: false, label: ACTION_TYPES.phone.label, value: '' },
+			navigation: { checked: false, label: ACTION_TYPES.navigation.label, value: '' },
+			link: { checked: false, label: ACTION_TYPES.link.label, value: '' },
+			social: { checked: false, label: ACTION_TYPES.social.label, value: '' }
+		};
+		for (const action of actionsStore.items) {
+			if (action.type in fresh) {
+				fresh[action.type] = { checked: true, label: action.label, value: action.value, existingId: action.id };
+			}
 		}
-		showActionForm = false;
-		editingAction = null;
+		drafts = fresh;
+		editOpen = true;
 	}
 
-	function handleDelete() {
-		if (!editingAction) return;
-		actionsStore.remove(editingAction.id);
-		showActionForm = false;
-		editingAction = null;
+	function saveActions() {
+		for (const [type, draft] of Object.entries(drafts) as [ActionType, Draft][]) {
+			if (draft.checked && draft.label.trim()) {
+				if (draft.existingId != null) {
+					actionsStore.update(draft.existingId, { label: draft.label, value: draft.value });
+				} else {
+					actionsStore.add(type, draft.label, draft.value);
+				}
+			} else if (!draft.checked && draft.existingId != null) {
+				actionsStore.remove(draft.existingId);
+			}
+		}
+		editOpen = false;
 	}
 </script>
 
@@ -96,60 +95,41 @@
 
 <div class="grid-header">
 	<span class="grid-label">Quick Actions</span>
-	<button class="btn-edit" onclick={() => (pickerOpen = true)} aria-label="Add action">
-		<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+	<button class="btn-edit" onclick={openEditActions} aria-label="Edit actions">
+		<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
 	</button>
 </div>
 
-{#if showActionForm}
-	{@const typeDef = ACTION_TYPES[formType]}
-	<div class="action-form">
-		<div class="form-header">
-			<svg viewBox="0 0 24 24" class="form-icon">{@html typeDef.icon}</svg>
-			<h2 class="form-title">{editingAction ? 'Edit' : 'New'} {typeDef.label}</h2>
-		</div>
+<ActionGrid items={actionsStore.items} {columns} />
 
-		<label class="field"><span>Label</span>
-			<input type="text" bind:value={formLabel} placeholder={typeDef.label} />
-		</label>
-
-		<label class="field"><span>{typeDef.inputLabel}</span>
-			<input type={typeDef.inputType} bind:value={formValue} placeholder={typeDef.placeholder} />
-		</label>
-
-		<div class="inline-actions">
-			<button class="btn secondary" onclick={() => { showActionForm = false; editingAction = null; }}>Cancel</button>
-			{#if editingAction}
-				<button class="btn danger" onclick={handleDelete}>Delete</button>
-			{/if}
-			<button class="btn primary" onclick={handleSave}>{editingAction ? 'Save' : 'Add'}</button>
-		</div>
-
-		{#if editingAction}
-			<div class="reorder">
-				<span class="reorder-label">Reorder</span>
-				<button class="btn-icon" onclick={() => actionsStore.moveUp(editingAction!.id)} aria-label="Move up">
-					<svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6" /></svg>
-				</button>
-				<button class="btn-icon" onclick={() => actionsStore.moveDown(editingAction!.id)} aria-label="Move down">
-					<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
-				</button>
-			</div>
-		{/if}
-	</div>
-{:else}
-	<ActionGrid items={actionsStore.items} {columns} onselect={openEdit} />
-{/if}
-
-<Popup open={pickerOpen} title="Choose Type" onclose={() => (pickerOpen = false)}>
-	<div class="options">
+<Popup open={editOpen} title="Edit Actions" onclose={() => (editOpen = false)} fullscreen>
+	<ul class="type-list">
 		{#each typeEntries as [type, def]}
-			<button class="option" onclick={() => pickType(type)}>
-				<svg viewBox="0 0 24 24">{@html def.icon}</svg>
-				<span>{def.label}</span>
-			</button>
+			<li class="type-item">
+				<label class="type-check">
+					<input type="checkbox" bind:checked={drafts[type].checked} />
+					<span class="type-label">{def.label}</span>
+					<svg viewBox="0 0 24 24" class="type-icon">{@html def.icon}</svg>
+				</label>
+				{#if drafts[type].checked}
+					<div class="type-fields">
+						<label class="field"><span>Label</span>
+							<input type="text" bind:value={drafts[type].label} placeholder={def.label} />
+						</label>
+						<label class="field"><span>{def.inputLabel}</span>
+							<input type={def.inputType} bind:value={drafts[type].value} placeholder={def.placeholder} />
+						</label>
+					</div>
+				{/if}
+			</li>
 		{/each}
-	</div>
+	</ul>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn primary" onclick={saveActions}>Save</button>
+			<button class="btn secondary" onclick={() => (editOpen = false)}>Cancel</button>
+		</div>
+	{/snippet}
 </Popup>
 
 <style>
@@ -221,31 +201,6 @@
 
 	.footer-buttons .btn { flex: 1; }
 
-	.action-form {
-		max-width: 450px;
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-
-	.form-header {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.form-icon {
-		width: 1.5rem;
-		height: 1.5rem;
-		fill: none;
-		stroke: #6c63ff;
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-
-	.form-title { font-size: 1.1rem; margin: 0; }
-
 	.field {
 		display: flex;
 		flex-direction: column;
@@ -261,19 +216,6 @@
 		font-size: 0.95rem;
 		font-family: inherit;
 	}
-
-	.inline-actions {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	.reorder {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.reorder-label { font-size: 0.8rem; color: #888; }
 
 	.btn.primary {
 		padding: 0.55rem 1.2rem;
@@ -299,59 +241,62 @@
 
 	.btn.secondary:hover { background: #f0f0f0; }
 
-	.btn.danger {
-		padding: 0.55rem 1.2rem;
-		background: #e74c3c;
-		color: #fff;
-		border: none;
-		border-radius: 6px;
-		font-size: 0.9rem;
-		cursor: pointer;
-	}
-
-	.btn.danger:hover { background: #c0392b; }
-
-	.btn-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		background: none;
-		border: 1px solid #e0e0e0;
-		border-radius: 4px;
-		cursor: pointer;
-		color: #555;
-		transition: background 0.15s, color 0.15s;
-	}
-
-	.btn-icon:hover { background: #f0f0f0; color: #333; }
-	.btn-icon svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-	/* Type picker popup */
-	.options {
-		display: flex;
-		gap: 0.75rem;
-		padding: 0.5rem 0;
-	}
-
-	.option {
-		flex: 1;
+	/* Type checklist */
+	.type-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
 		display: flex;
 		flex-direction: column;
-		align-items: center;
 		gap: 0.5rem;
-		padding: 1rem 0.5rem;
-		background: #f9f9fb;
-		border: 1px solid #e0e0e0;
-		border-radius: 10px;
-		cursor: pointer;
-		font-size: 0.85rem;
-		color: #555;
-		transition: background 0.15s, border-color 0.15s;
 	}
 
-	.option:hover { background: #f0eeff; border-color: #6c63ff; color: #6c63ff; }
-	.option:active { background: #e8e5ff; }
-	.option svg { width: 1.5rem; height: 1.5rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+	.type-item {
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		overflow: hidden;
+	}
+
+	.type-check {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.75rem 1rem;
+		cursor: pointer;
+	}
+
+	.type-check .type-icon { margin-left: auto; }
+
+	.type-check input[type="checkbox"] {
+		width: 1.1rem;
+		height: 1.1rem;
+		accent-color: #6c63ff;
+		flex-shrink: 0;
+	}
+
+	.type-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		flex-shrink: 0;
+	}
+
+	.type-label {
+		font-size: 0.95rem;
+		font-weight: 500;
+	}
+
+	.type-fields {
+		padding: 0 1rem 0.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		border-top: 1px solid #f0f0f0;
+		padding-top: 0.75rem;
+		margin-top: -0.25rem;
+	}
 </style>
