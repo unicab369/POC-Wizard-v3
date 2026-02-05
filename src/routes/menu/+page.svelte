@@ -2,6 +2,7 @@
 	import { menuStore, cartStore, type MenuItem } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 	import QRCode from 'qrcode';
+	import defaultPurchases from '$lib/test-data/purchases.json';
 
 	let columns = $state(1);
 	let selected = $state<MenuItem | null>(null);
@@ -9,6 +10,15 @@
 	let cartOpen = $state(false);
 	let checkoutOpen = $state(false);
 	let qrDataUrl = $state('');
+	let purchasesOpen = $state(false);
+
+	interface Order {
+		items: { id: number; name: string; qty: number; price: string }[];
+		total: string;
+		date: string;
+	}
+
+	let orders = $state<Order[]>(defaultPurchases);
 
 	async function startCheckout() {
 		const totalCents = Math.round(cartStore.total * 100);
@@ -16,6 +26,19 @@
 		qrDataUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		cartOpen = false;
 		checkoutOpen = true;
+	}
+
+	function submitOrder() {
+		orders = [
+			{
+				items: cartStore.items.map(c => ({ id: c.item.id, name: c.item.name, qty: c.qty, price: c.item.price })),
+				total: cartStore.total.toFixed(2),
+				date: new Date().toLocaleString()
+			},
+			...orders
+		];
+		cartStore.clear();
+		checkoutOpen = false;
 	}
 
 	function backToCart() {
@@ -131,6 +154,10 @@
 <Popup open={cartOpen} title="Cart" onclose={() => (cartOpen = false)} fullscreen>
 	{#if cartStore.items.length === 0}
 		<p class="cart-empty">Your cart is empty</p>
+		<p class="cart-hint">Tap an item to add it to your cart</p>
+		{#if orders.length > 0}
+			<button class="btn-purchases" onclick={() => { cartOpen = false; purchasesOpen = true; }}>Last Purchases</button>
+		{/if}
 	{:else}
 		<ul class="cart-list">
 			{#each cartStore.items as entry (entry.item.id)}
@@ -150,6 +177,9 @@
 			<span>Total</span>
 			<span class="cart-total-price">${cartStore.total.toFixed(2)}</span>
 		</div>
+		{#if orders.length > 0}
+			<button class="btn-purchases" onclick={() => { cartOpen = false; purchasesOpen = true; }}>Last Purchases</button>
+		{/if}
 		<button class="btn-remove-all" onclick={() => { cartStore.clear(); }}>Remove All</button>
 	{/if}
 	{#snippet footer()}
@@ -177,18 +207,41 @@
 	{#snippet footer()}
 		<div class="footer-buttons">
 			<button class="btn secondary" onclick={backToCart}>Back</button>
-			<button class="btn primary" onclick={() => (checkoutOpen = false)}>Done</button>
+			<button class="btn primary" onclick={submitOrder}>Submit</button>
 		</div>
 	{/snippet}
 </Popup>
 
+<!-- Purchases history modal -->
+<Popup open={purchasesOpen} title="Last Purchases" onclose={() => (purchasesOpen = false)} fullscreen>
+	{#if orders.length === 0}
+		<p class="cart-empty">No previous purchases</p>
+	{:else}
+		<div class="purchases-list">
+			{#each orders as order}
+				<div class="purchase-card">
+					<div class="purchase-header">
+						<span class="purchase-date">{order.date}</span>
+						<span class="cart-total-price">${order.total}</span>
+					</div>
+					<ul class="purchase-items">
+						{#each order.items as item}
+							<li>{item.qty} x {item.name} <span class="purchase-item-price">${item.price}</span></li>
+						{/each}
+					</ul>
+				</div>
+			{/each}
+		</div>
+	{/if}
+</Popup>
+
 <!-- Floating cart button -->
-{#if cartStore.count > 0}
-	<button class="cart-fab" onclick={() => (cartOpen = true)}>
-		<svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" /></svg>
+<button class="cart-fab" onclick={() => (cartOpen = true)}>
+	<svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" /></svg>
+	{#if cartStore.count > 0}
 		<span class="cart-badge">{cartStore.count}</span>
-	</button>
-{/if}
+	{/if}
+</button>
 
 <style>
 	.page-header {
@@ -534,7 +587,15 @@
 	.cart-empty {
 		text-align: center;
 		color: #999;
-		padding: 2rem 0;
+		padding: 1.5rem 0 0;
+		margin: 0;
+	}
+
+	.cart-hint {
+		text-align: center;
+		color: #bbb;
+		font-size: 0.85rem;
+		margin: 0.25rem 0 0;
 	}
 
 	.cart-list {
@@ -637,6 +698,72 @@
 	.btn-remove-all:hover {
 		background: #e74c3c;
 		color: #fff;
+	}
+
+	.btn-purchases {
+		width: 100%;
+		padding: 0.5rem;
+		margin-top: 0.5rem;
+		background: none;
+		border: 1px solid #6c63ff;
+		border-radius: 6px;
+		color: #6c63ff;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background 0.15s, color 0.15s;
+	}
+
+	.btn-purchases:hover {
+		background: #6c63ff;
+		color: #fff;
+	}
+
+	/* Purchases */
+	.purchases-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.purchase-card {
+		border: 1px solid #e8e8e8;
+		border-radius: 10px;
+		overflow: hidden;
+	}
+
+	.purchase-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.6rem 0.75rem;
+		background: #f9f9fb;
+		border-bottom: 1px solid #f0f0f0;
+	}
+
+	.purchase-date {
+		font-size: 0.8rem;
+		color: #888;
+	}
+
+	.purchase-items {
+		list-style: none;
+		padding: 0.5rem 0.75rem;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		font-size: 0.85rem;
+		color: #555;
+	}
+
+	.purchase-items li {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	.purchase-item-price {
+		color: #888;
 	}
 
 	/* Checkout */

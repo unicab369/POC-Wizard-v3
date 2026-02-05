@@ -1,0 +1,36 @@
+[
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 2, "price": "4.50" },
+			{ "id": 6, "name": "Croissant", "qty": 1, "price": "3.00" },
+			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": "6.50" },
+			{ "id": 5, "name": "Matcha Latte", "qty": 1, "price": "5.50" },
+			{ "id": 10, "name": "Granola Bowl", "qty": 2, "price": "5.50" }
+		],
+		"total": "35.00",
+		"date": "2/4/2026, 10:32:15 AM"
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 1, "price": "5.00" },
+			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": "6.50" },
+			{ "id": 5, "name": "Matcha Latte", "qty": 1, "price": "5.50" },
+			{ "id": 7, "name": "Bagel", "qty": 2, "price": "4.00" },
+			{ "id": 8, "name": "Muffin", "qty": 1, "price": "3.50" },
+			{ "id": 4, "name": "Iced Americano", "qty": 1, "price": "4.00" }
+		],
+		"total": "32.50",
+		"date": "2/3/2026, 2:15:40 PM"
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 3, "price": "3.50" },
+			{ "id": 8, "name": "Muffin", "qty": 2, "price": "3.50" },
+			{ "id": 6, "name": "Croissant", "qty": 2, "price": "3.00" },
+			{ "id": 3, "name": "Latte", "qty": 1, "price": "5.00" },
+			{ "id": 10, "name": "Granola Bowl", "qty": 1, "price": "5.50" }
+		],
+		"total": "33.00",
+		"date": "2/2/2026, 9:05:22 AM"
+	}
+]
