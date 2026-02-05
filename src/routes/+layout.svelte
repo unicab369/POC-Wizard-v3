@@ -12,13 +12,18 @@
 		settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z',
 		profile: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
 		profileFilled: 'M12 11a4 4 0 100-8 4 4 0 000 8zm0 2c-5 0-9 2.5-9 6v1h18v-1c0-3.5-4-6-9-6z',
-		bell: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
+		bell: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+		barcode: 'M1 1h7v7H1zM2 2h5v5H2zM3 3h3v3H3zM15 1h7v7h-7zM16 2h5v5h-5zM17 3h3v3h-3zM1 15h7v7H1zM2 16h5v5H2zM3 17h3v3H3zM10 1h2v2h-2zM12 3h2v2h-2zM1 10h2v2H1zM3 12h2v2H3zM10 10h2v2h-2zM14 10h2v2h-2zM18 10h2v2h-2zM12 12h2v2h-2zM16 12h2v2h-2zM20 12h2v2h-2zM10 14h2v2h-2zM14 14h2v2h-2zM18 14h2v2h-2zM12 16h2v2h-2zM16 16h2v2h-2zM20 16h2v2h-2zM10 18h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2zM12 20h2v2h-2zM16 20h2v2h-2zM20 20h2v2h-2z'
 	};
 
 	const links = [
 		{ label: 'Home', href: '/', icon: icons.home, sublinks: [
 			{ label: 'Home1', href: '/' },
 			{ label: 'Home2', href: '/home2' }
+		]},
+		{ label: 'Scanner', href: '/scanner', icon: icons.barcode, filled: true, sublinks: [
+			{ label: 'Scan', href: '/scanner' },
+			{ label: 'History', href: '/scanner/history' }
 		]},
 		{ label: 'Dashboard', href: '/dashboard', icon: icons.dashboard, sublinks: [
 			{ label: 'Overview', href: '/dashboard' },
@@ -52,7 +57,7 @@
 		<a href={link.href} class:active={link.href === '/' ? 
 			page.url.pathname === '/' : page.url.pathname.startsWith(link.href)} onclick={() => (open = false)}
 		>
-			<svg viewBox="0 0 24 24"><path d={link.icon} /></svg>
+			<svg viewBox="0 0 24 24" class:filled={link.filled}><path d={link.icon} /></svg>
 			{link.label}
 		</a>
 	{/each}
@@ -126,6 +131,7 @@
 	.sidebar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
 	.sidebar a.active { background: rgba(108, 99, 255, 0.2); color: #fff; border-right: 3px solid #6c63ff; }
 	.sidebar a svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+	.sidebar a svg.filled { fill: currentColor; stroke: none; fill-rule: evenodd; }
 
 	.backdrop { display: none; }
 
