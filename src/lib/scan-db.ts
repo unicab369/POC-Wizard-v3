@@ -83,6 +83,20 @@ export async function getCards(): Promise<Card[]> {
 	});
 }
 
+export async function updateCard(id: number, fields: Partial<Pick<Card, 'label' | 'data'>>): Promise<void> {
+	const db = await openDB();
+	const tx = db.transaction('cards', 'readwrite');
+	const store = tx.objectStore('cards');
+	const existing: Card = await new Promise((resolve, reject) => {
+		const req = store.get(id);
+		req.onsuccess = () => resolve(req.result);
+		req.onerror = () => reject(req.error);
+	});
+	store.put({ ...existing, ...fields });
+	await new Promise<void>((resolve) => { tx.oncomplete = () => resolve(); });
+	db.close();
+}
+
 export async function deleteCard(id: number): Promise<void> {
 	const db = await openDB();
 	const tx = db.transaction('cards', 'readwrite');
