@@ -2,16 +2,20 @@
 	import { onMount } from 'svelte';
 	import { type Card, type CardType, addCard, getCards, deleteCard, updateCard } from '$lib/scan-db';
 	import { toDataURL } from '$lib/qr';
+	import QRList, { type ListItem } from '$lib/components/QRList.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 
 	let cards = $state<Card[]>([]);
 	let newCardOpen = $state(false);
 	let formType = $state<CardType | null>(null);
-
-	// Detail popup
-	let selectedCard = $state<Card | null>(null);
-	let qrDataUrl = $state('');
 	let editing = $state(false);
+	let editingCardId = $state<number | null>(null);
+
+	let items = $derived<ListItem[]>(
+		cards.map(c => ({ id: c.id, label: c.label, data: c.data, badge: c.type.toUpperCase(), timestamp: c.timestamp }))
+	);
+
+	let listRef: { closePopup: () => void } | undefined;
 
 	// Form fields
 	let urlValue = $state('');
@@ -40,6 +44,8 @@
 
 	function resetForm() {
 		formType = null;
+		editing = false;
+		editingCardId = null;
 		resetFields();
 	}
 
@@ -78,7 +84,7 @@
 		} else if (card.type === 'wifi') {
 			const m = card.data.match(/WIFI:T:([^;]*);S:([^;]*);P:([^;]*)/);
 			if (m) {
-				wifiEncryption = (m[1] as 'WPA' | 'WEP' | 'nopass');
+				wifiEncryption = m[1] as 'WPA' | 'WEP' | 'nopass';
 				wifiSsid = m[2];
 				wifiPassword = m[3];
 			}
@@ -93,45 +99,28 @@
 		resetForm();
 	}
 
-	async function openCard(card: Card) {
-		selectedCard = card;
-		editing = false;
-		qrDataUrl = await toDataURL(card.data);
-	}
-
-	function closeCard() {
-		selectedCard = null;
-		qrDataUrl = '';
-		editing = false;
-		resetFields();
-	}
-
-	function startEdit() {
-		if (!selectedCard) return;
-		loadFieldsFromCard(selectedCard);
+	function startEdit(item: ListItem) {
+		const card = cards.find(c => c.id === item.id);
+		if (!card) return;
+		listRef?.closePopup();
+		loadFieldsFromCard(card);
 		editing = true;
+		editingCardId = card.id;
 	}
 
 	async function saveEdit() {
-		if (!selectedCard) return;
+		if (editingCardId == null) return;
 		const { label, data } = buildData();
 		if (!data) return;
-		await updateCard(selectedCard.id, { label, data });
+		await updateCard(editingCardId, { label, data });
 		cards = (await getCards()).reverse();
-		const updated = cards.find(c => c.id === selectedCard!.id);
-		if (updated) {
-			selectedCard = updated;
-			qrDataUrl = await toDataURL(updated.data);
-		}
-		editing = false;
-		resetFields();
+		resetForm();
 	}
 
-	async function handleDelete() {
-		if (!selectedCard) return;
-		await deleteCard(selectedCard.id);
-		cards = cards.filter(c => c.id !== selectedCard!.id);
-		closeCard();
+	async function handleDelete(id: number) {
+		await deleteCard(id);
+		cards = cards.filter(c => c.id !== id);
+		listRef?.closePopup();
 	}
 
 	onMount(async () => {
@@ -141,41 +130,34 @@
 
 <h1>Custom Cards</h1>
 
-{#if formType && !editing}
+{#if formType}
 	<div class="form-card">
 		<h2 class="form-title">
-			{formType === 'url' ? 'URL' : formType === 'vcard' ? 'vCard' : 'WiFi'}
+			{editing ? 'Edit' : ''} {formType === 'url' ? 'URL' : formType === 'vcard' ? 'vCard' : 'WiFi'}
 		</h2>
 
 		{#if formType === 'url'}
-			<label class="field">
-				<span>URL</span>
+			<label class="field"><span>URL</span>
 				<input type="url" bind:value={urlValue} placeholder="https://example.com" />
 			</label>
 		{:else if formType === 'vcard'}
-			<label class="field">
-				<span>Name</span>
+			<label class="field"><span>Name</span>
 				<input type="text" bind:value={vcardName} placeholder="John Doe" />
 			</label>
-			<label class="field">
-				<span>Phone</span>
+			<label class="field"><span>Phone</span>
 				<input type="tel" bind:value={vcardPhone} placeholder="+1 234 567 890" />
 			</label>
-			<label class="field">
-				<span>Email</span>
+			<label class="field"><span>Email</span>
 				<input type="email" bind:value={vcardEmail} placeholder="john@example.com" />
 			</label>
 		{:else if formType === 'wifi'}
-			<label class="field">
-				<span>SSID</span>
+			<label class="field"><span>SSID</span>
 				<input type="text" bind:value={wifiSsid} placeholder="Network name" />
 			</label>
-			<label class="field">
-				<span>Password</span>
+			<label class="field"><span>Password</span>
 				<input type="text" bind:value={wifiPassword} placeholder="Password" />
 			</label>
-			<label class="field">
-				<span>Encryption</span>
+			<label class="field"><span>Encryption</span>
 				<select bind:value={wifiEncryption}>
 					<option value="WPA">WPA/WPA2</option>
 					<option value="WEP">WEP</option>
@@ -186,30 +168,26 @@
 
 		<div class="form-actions">
 			<button class="btn secondary" onclick={resetForm}>Cancel</button>
-			<button class="btn primary" onclick={handleGenerate}>Generate</button>
+			{#if editing}
+				<button class="btn primary" onclick={saveEdit}>Save</button>
+			{:else}
+				<button class="btn primary" onclick={handleGenerate}>Generate</button>
+			{/if}
 		</div>
 	</div>
-{:else if cards.length === 0}
-	<p class="empty">No custom cards yet. Tap + to create one.</p>
 {:else}
-	<ul class="list">
-		{#each cards as card (card.id)}
-			<li>
-				<button class="card-item" onclick={() => openCard(card)}>
-					<span class="badge">{card.type.toUpperCase()}</span>
-					<span class="card-label">{card.label}</span>
-					<span class="card-date">{new Date(card.timestamp).toLocaleString()}</span>
-				</button>
-			</li>
-		{/each}
-	</ul>
+	<QRList bind:this={listRef} {items} emptyText="No custom cards yet. Tap + to create one.">
+		{#snippet actions({ item, close })}
+			<button class="btn secondary" onclick={() => startEdit(item)}>Edit</button>
+			<button class="btn danger" onclick={() => handleDelete(item.id)}>Remove</button>
+		{/snippet}
+	</QRList>
+
+	<button class="fab" onclick={() => (newCardOpen = true)} aria-label="Add custom card">
+		<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+	</button>
 {/if}
 
-<button class="fab" onclick={() => (newCardOpen = true)} aria-label="Add custom card">
-	<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
-</button>
-
-<!-- New card type picker -->
 <Popup open={newCardOpen} title="New Card" onclose={() => (newCardOpen = false)}>
 	<div class="options">
 		<button class="option" onclick={() => handleSelectType('url')}>
@@ -227,89 +205,9 @@
 	</div>
 </Popup>
 
-<!-- Card detail with QR -->
-<Popup open={!!selectedCard} title={selectedCard?.label ?? ''} onclose={closeCard}>
-	{#if editing}
-		<div class="edit-form">
-			{#if formType === 'url'}
-				<label class="field"><span>URL</span><input type="url" bind:value={urlValue} /></label>
-			{:else if formType === 'vcard'}
-				<label class="field"><span>Name</span><input type="text" bind:value={vcardName} /></label>
-				<label class="field"><span>Phone</span><input type="tel" bind:value={vcardPhone} /></label>
-				<label class="field"><span>Email</span><input type="email" bind:value={vcardEmail} /></label>
-			{:else if formType === 'wifi'}
-				<label class="field"><span>SSID</span><input type="text" bind:value={wifiSsid} /></label>
-				<label class="field"><span>Password</span><input type="text" bind:value={wifiPassword} /></label>
-				<label class="field">
-					<span>Encryption</span>
-					<select bind:value={wifiEncryption}>
-						<option value="WPA">WPA/WPA2</option>
-						<option value="WEP">WEP</option>
-						<option value="nopass">None</option>
-					</select>
-				</label>
-			{/if}
-			<div class="form-actions">
-				<button class="btn secondary" onclick={() => { editing = false; resetFields(); }}>Cancel</button>
-				<button class="btn primary" onclick={saveEdit}>Save</button>
-			</div>
-		</div>
-	{:else}
-		<div class="qr-container">
-			{#if qrDataUrl}
-				<img src={qrDataUrl} alt="QR code for {selectedCard?.label}" class="qr-image" />
-			{/if}
-		</div>
-		<div class="detail-actions">
-			<button class="btn secondary" onclick={startEdit}>Edit</button>
-			<button class="btn danger" onclick={handleDelete}>Remove</button>
-		</div>
-	{/if}
-</Popup>
-
 <style>
-	.empty { color: #888; }
-
-	.list {
-		list-style: none;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.card-item {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 0.15rem;
-		width: 100%;
-		padding: 0.75rem 1rem;
-		background: #fff;
-		border: 1px solid #e0e0e0;
-		border-radius: 6px;
-		cursor: pointer;
-		text-align: left;
-		transition: border-color 0.15s;
-	}
-
-	.card-item:hover { border-color: #6c63ff; }
-
-	.badge {
-		font-size: 0.65rem;
-		font-weight: 700;
-		letter-spacing: 0.04em;
-		padding: 0.1rem 0.4rem;
-		border-radius: 4px;
-		background: #ede9fe;
-		color: #6c63ff;
-	}
-
-	.card-label { word-break: break-all; font-size: 0.95rem; }
-	.card-date { font-size: 0.75rem; color: #888; }
-
 	/* Form */
-	.form-card, .edit-form {
+	.form-card {
 		max-width: 400px;
 		display: flex;
 		flex-direction: column;
@@ -333,15 +231,10 @@
 		font-size: 0.95rem;
 	}
 
-	.form-actions, .detail-actions {
+	.form-actions {
 		display: flex;
 		gap: 0.5rem;
 		margin-top: 0.25rem;
-	}
-
-	.detail-actions {
-		justify-content: center;
-		padding-top: 0.5rem;
 	}
 
 	.btn.primary {
@@ -379,18 +272,6 @@
 	}
 
 	.btn.danger:hover { background: #c0392b; }
-
-	/* QR */
-	.qr-container {
-		display: flex;
-		justify-content: center;
-		padding: 0.5rem 0;
-	}
-
-	.qr-image {
-		width: 200px;
-		height: 200px;
-	}
 
 	/* FAB */
 	.fab {
