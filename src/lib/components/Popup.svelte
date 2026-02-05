@@ -6,14 +6,16 @@
 		title?: string;
 		onclose: () => void;
 		children: Snippet;
+		footer?: Snippet;
+		fullscreen?: boolean;
 	}
 
-	let { open, title, onclose, children }: Props = $props();
+	let { open, title, onclose, children, footer, fullscreen = false }: Props = $props();
 </script>
 
 {#if open}
 	<div class="popup-overlay" role="presentation" onclick={onclose}></div>
-	<div class="popup" role="dialog" aria-modal="true">
+	<div class="popup" class:fullscreen role="dialog" aria-modal="true">
 		{#if title}
 			<div class="popup-header">
 				<span class="popup-title">{title}</span>
@@ -23,7 +25,11 @@
 			{@render children()}
 		</div>
 		<div class="popup-footer">
-			<button class="popup-close" onclick={onclose}>CLOSE</button>
+			{#if footer}
+				{@render footer()}
+			{:else}
+				<button class="popup-close" onclick={onclose}>CLOSE</button>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -47,6 +53,17 @@
 		z-index: 101;
 		min-width: 260px;
 		max-width: 90vw;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.popup.fullscreen {
+		width: 100%;
+		height: 80%;
+		max-width: 100%;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 	}
 
 	.popup-header {
@@ -62,6 +79,8 @@
 
 	.popup-body {
 		padding: 0.5rem;
+		flex: 1;
+		overflow-y: auto;
 	}
 
 	.popup-footer {

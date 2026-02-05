@@ -69,28 +69,30 @@
 </script>
 
 <!-- Mirror home page layout -->
-{#if editingPage}
-	<div class="inline-form">
+<div class="title-row">
+	<h1>{pageStore.title}</h1>
+	<button class="btn-edit" onclick={startEditPage} aria-label="Edit title and description">
+		<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+	</button>
+</div>
+<p>{pageStore.description}</p>
+
+<Popup open={editingPage} title="Edit Page" onclose={() => (editingPage = false)} fullscreen>
+	<div class="popup-form">
 		<label class="field"><span>Title</span>
 			<input type="text" bind:value={draftTitle} />
 		</label>
 		<label class="field"><span>Description</span>
-			<input type="text" bind:value={draftDesc} />
+			<textarea bind:value={draftDesc}></textarea>
 		</label>
-		<div class="inline-actions">
-			<button class="btn secondary" onclick={() => (editingPage = false)}>Cancel</button>
+	</div>
+	{#snippet footer()}
+		<div class="footer-buttons">
 			<button class="btn primary" onclick={savePage}>Save</button>
+			<button class="btn secondary" onclick={() => (editingPage = false)}>Cancel</button>
 		</div>
-	</div>
-{:else}
-	<div class="editable-row">
-		<h1>{pageStore.title}</h1>
-		<button class="btn-edit" onclick={startEditPage} aria-label="Edit title and description">
-			<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-		</button>
-	</div>
-	<p>{pageStore.description}</p>
-{/if}
+	{/snippet}
+</Popup>
 
 <div class="grid-header">
 	<span class="grid-label">Quick Actions</span>
@@ -151,7 +153,7 @@
 </Popup>
 
 <style>
-	.editable-row {
+	.title-row {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
@@ -188,7 +190,38 @@
 		font-size: 1rem;
 	}
 
-	.inline-form, .action-form {
+	.popup-form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		height: 100%;
+	}
+
+	.popup-form .field:last-child {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.popup-form textarea {
+		padding: 0.5rem 0.75rem;
+		border: 1px solid #ccc;
+		border-radius: 6px;
+		font-size: 0.95rem;
+		font-family: inherit;
+		resize: none;
+		flex: 1;
+	}
+
+	.footer-buttons {
+		display: flex;
+		width: 100%;
+		gap: 0.5rem;
+	}
+
+	.footer-buttons .btn { flex: 1; }
+
+	.action-form {
 		max-width: 450px;
 		display: flex;
 		flex-direction: column;
