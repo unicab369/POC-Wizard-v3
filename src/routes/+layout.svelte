@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { base } from '$app/paths';
 	import { auth } from '$lib/auth.svelte';
 
 	let { children } = $props();
@@ -41,8 +42,8 @@
 
 	const currentSublinks = $derived(
 		links.find(l =>
-			l.sublinks.some(s => page.url.pathname === s.href) ||
-			(l.href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(l.href))
+			l.sublinks.some(s => page.url.pathname === base + s.href) ||
+			(l.href === '/' ? page.url.pathname === base + '/' : page.url.pathname.startsWith(base + l.href))
 		)?.sublinks ?? []
 	);
 </script>
@@ -54,8 +55,8 @@
 <nav class="sidebar" class:open>
 	<div class="header">MyApp</div>
 	{#each links as link}
-		<a href={link.href} class:active={link.href === '/' ? 
-			page.url.pathname === '/' : page.url.pathname.startsWith(link.href)} onclick={() => (open = false)}
+		<a href="{base}{link.href}" class:active={link.href === '/' ?
+			page.url.pathname === base + '/' : page.url.pathname.startsWith(base + link.href)} onclick={() => (open = false)}
 		>
 			<svg viewBox="0 0 24 24" class:filled={link.filled}><path d={link.icon} /></svg>
 			{link.label}
@@ -69,14 +70,14 @@
 	</button>
 	<nav class="sublinks">
 		{#each currentSublinks as sub}
-			<a href={sub.href}>{sub.label}</a>
+			<a href="{base}{sub.href}">{sub.label}</a>
 		{/each}
 	</nav>
 	<nav class="topbar-links">
-		<a href="/notifications" aria-label="Notifications" class:active={page.url.pathname.startsWith('/notifications')}>
+		<a href="{base}/notifications" aria-label="Notifications" class:active={page.url.pathname.startsWith(base + '/notifications')}>
 			<svg viewBox="0 0 24 24"><path d={icons.bell} /></svg>
 		</a>
-		<a href="/profile" aria-label="Profile" class:active={page.url.pathname.startsWith('/profile')}>
+		<a href="{base}/profile" aria-label="Profile" class:active={page.url.pathname.startsWith(base + '/profile')}>
 			{#if auth.value}
 				<svg viewBox="0 0 24 24" class="filled"><path d={icons.profileFilled} /></svg>
 			{:else}
