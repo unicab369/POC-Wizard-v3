@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { auth } from '$lib/auth.svelte';
 
 	let { children } = $props();
 	let open = $state(false);
@@ -10,6 +11,7 @@
 		folder: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z',
 		settings: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z',
 		profile: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+		profileFilled: 'M12 11a4 4 0 100-8 4 4 0 000 8zm0 2c-5 0-9 2.5-9 6v1h18v-1c0-3.5-4-6-9-6z',
 		bell: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
 	};
 
@@ -70,7 +72,11 @@
 			<svg viewBox="0 0 24 24"><path d={icons.bell} /></svg>
 		</a>
 		<a href="/profile" aria-label="Profile" class:active={page.url.pathname.startsWith('/profile')}>
-			<svg viewBox="0 0 24 24"><path d={icons.profile} /></svg>
+			{#if auth.value}
+				<svg viewBox="0 0 24 24" class="filled"><path d={icons.profileFilled} /></svg>
+			{:else}
+				<svg viewBox="0 0 24 24"><path d={icons.profile} /></svg>
+			{/if}
 		</a>
 	</nav>
 </header>
@@ -172,10 +178,11 @@
 	}
 
 	.topbar-links a:hover { background: #f0f0f0; color: #111; }
+	.topbar-links a svg.filled { fill: currentColor; stroke: none; }
 	.topbar-links a.active { background: rgba(108, 99, 255, 0.1); color: #6c63ff; }
 	.topbar-links a svg { width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-	.content { margin-left: 250px; padding: 5rem 2rem 2rem; }
+	.content { margin-left: 250px; padding: 3rem 2rem 2rem; }
 
 	.hamburger {
 		display: none;

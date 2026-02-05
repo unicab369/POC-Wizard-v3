@@ -1,20 +1,20 @@
 <script lang="ts">
-	let view = $state<'signin' | 'forgot' | 'profile'>('signin');
+	import { auth } from '$lib/auth.svelte';
+
+	let view = $state<'signin' | 'forgot'>('signin');
 	let email = $state('');
 	let password = $state('');
-	let user = $state<string | null>(null);
 
 	function signin() {
 		if (email && password) {
-			user = email;
-			view = 'profile';
+			auth.value = email;
 			email = '';
 			password = '';
 		}
 	}
 
 	function signout() {
-		user = null;
+		auth.value = null;
 		view = 'signin';
 	}
 
@@ -28,9 +28,9 @@
 
 <h1>Profile</h1>
 
-{#if view === 'profile' && user}
+{#if auth.value}
 	<div class="card">
-		<p>Signed in as <strong>{user}</strong></p>
+		<p>Signed in as <strong>{auth.value}</strong></p>
 		<button class="btn" onclick={signout}>Sign out</button>
 	</div>
 {:else if view === 'forgot'}
