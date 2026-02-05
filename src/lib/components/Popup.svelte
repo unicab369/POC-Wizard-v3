@@ -8,14 +8,15 @@
 		children: Snippet;
 		footer?: Snippet;
 		fullscreen?: boolean;
+		wide?: boolean;
 	}
 
-	let { open, title, onclose, children, footer, fullscreen = false }: Props = $props();
+	let { open, title, onclose, children, footer, fullscreen = false, wide = false }: Props = $props();
 </script>
 
 {#if open}
 	<div class="popup-overlay" role="presentation" onclick={onclose}></div>
-	<div class="popup" class:fullscreen role="dialog" aria-modal="true">
+	<div class="popup" class:fullscreen class:wide role="dialog" aria-modal="true">
 		{#if title}
 			<div class="popup-header">
 				<span class="popup-title">{title}</span>
@@ -55,6 +56,11 @@
 		max-width: 90vw;
 		display: flex;
 		flex-direction: column;
+	}
+
+	.popup.wide {
+		width: 85vw;
+		max-width: 400px;
 	}
 
 	.popup.fullscreen {

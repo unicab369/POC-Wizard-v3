@@ -297,7 +297,7 @@
 </Popup>
 
 <!-- Confirm Remove All modal -->
-<Popup open={confirmClearOpen} title="Remove All" onclose={() => (confirmClearOpen = false)}>
+<Popup open={confirmClearOpen} title="Remove All" onclose={() => (confirmClearOpen = false)} wide>
 	<p class="confirm-text">Are you sure you want to remove all items from your cart?</p>
 	{#snippet footer()}
 		<div class="footer-buttons">

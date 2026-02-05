@@ -203,6 +203,10 @@
 		</div>
 	</div>
 {:else if view === 'home'}
+	<button class="back-btn" onclick={() => (view = 'select')}>
+		<svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+		Back
+	</button>
 
 	<!-- Edit Home Page -->
 	<div class="title-row">
@@ -247,8 +251,6 @@
 	</div>
 
 	<BusinessHours items={hoursStore.items} />
-
-	<button class="btn secondary back-btn" onclick={() => (view = 'select')}>Back</button>
 
 	<Popup open={editHoursOpen} title="Edit Business Hours" onclose={() => (editHoursOpen = false)} fullscreen>
 		<ul class="type-list">
@@ -310,11 +312,18 @@
 	</Popup>
 
 {:else if view === 'menu'}
+	<button class="back-btn" onclick={() => (view = 'select')}>
+		<svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+		Back
+	</button>
 	<h2>Edit Menu</h2>
 	<p>Menu editing coming soon.</p>
-	<button class="btn secondary back-btn" onclick={() => (view = 'select')}>Back</button>
 
 {:else if view === 'tables'}
+	<button class="back-btn" onclick={() => (view = 'select')}>
+		<svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+		Back
+	</button>
 	<div class="grid-header">
 		<span class="grid-label">Tables</span>
 		<button class="btn-add" onclick={startAddTable}>+ Add Table</button>
@@ -339,8 +348,6 @@
 			</li>
 		{/each}
 	</ul>
-
-	<button class="btn secondary back-btn" onclick={() => (view = 'select')}>Back</button>
 
 	<!-- Edit table popup -->
 	<Popup open={editingTable !== null} title="Edit Table" onclose={() => (editingTable = null)} fullscreen>
@@ -569,8 +576,30 @@
 	}
 
 	.back-btn {
-		margin-top: 1.5rem;
-		margin-bottom: 3rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin-top: 1rem;
+		background: #f0eeff;
+		border: none;
+		border-radius: 8px;
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: #6c63ff;
+		cursor: pointer;
+		font-family: inherit;
+	}
+
+	.back-btn:hover { background: #e4e0ff; }
+
+	.back-btn svg {
+		width: 1rem;
+		height: 1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 
 	.title-row {
