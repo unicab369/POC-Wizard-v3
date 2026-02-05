@@ -1,0 +1,44 @@
+[
+	{
+		"id": 1,
+		"type": "url",
+		"label": "Company Website",
+		"data": "https://example.com",
+		"timestamp": 1738540800000
+	},
+	{
+		"id": 2,
+		"type": "url",
+		"label": "Online Menu",
+		"data": "https://example.com/menu",
+		"timestamp": 1738540700000
+	},
+	{
+		"id": 3,
+		"type": "vcard",
+		"label": "John Smith",
+		"data": "BEGIN:VCARD\nVERSION:3.0\nFN:John Smith\nTEL:+1234567890\nEMAIL:john@example.com\nEND:VCARD",
+		"timestamp": 1738540600000
+	},
+	{
+		"id": 4,
+		"type": "vcard",
+		"label": "Jane Doe",
+		"data": "BEGIN:VCARD\nVERSION:3.0\nFN:Jane Doe\nTEL:+0987654321\nEMAIL:jane@example.com\nEND:VCARD",
+		"timestamp": 1738540500000
+	},
+	{
+		"id": 5,
+		"type": "wifi",
+		"label": "Guest WiFi",
+		"data": "WIFI:T:WPA;S:CafeGuest;P:welcome2026;;",
+		"timestamp": 1738540400000
+	},
+	{
+		"id": 6,
+		"type": "wifi",
+		"label": "Staff WiFi",
+		"data": "WIFI:T:WPA;S:CafeStaff;P:staffonly123;;",
+		"timestamp": 1738540300000
+	}
+]

@@ -4,6 +4,7 @@
 	import { toDataURL } from '$lib/qr';
 	import QRList, { type ListItem } from '$lib/components/QRList.svelte';
 	import Popup from '$lib/components/Popup.svelte';
+	import defaultCards from '$lib/test-data/custom-cards.json';
 
 	let cards = $state<Card[]>([]);
 	let newCardOpen = $state(false);
@@ -124,7 +125,15 @@
 	}
 
 	onMount(async () => {
-		cards = (await getCards()).reverse();
+		let stored = await getCards();
+		if (stored.length === 0) {
+			// Seed from test data
+			for (const c of defaultCards) {
+				await addCard(c.type as CardType, c.label, c.data);
+			}
+			stored = await getCards();
+		}
+		cards = stored.reverse();
 	});
 </script>
 
