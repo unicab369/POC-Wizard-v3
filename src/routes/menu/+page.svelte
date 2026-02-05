@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { menuStore } from '$lib/actions-store.svelte';
+	import { menuStore, type MenuItem } from '$lib/actions-store.svelte';
 
 	let columns = $state(1);
 
 	const categories = $derived(
-		[...new Set(menuStore.items.map(i => i.category))]
+		[...new Set(menuStore.items.map((i: MenuItem) => i.category))]
 	);
 </script>
 
@@ -33,8 +33,8 @@
 {#each categories as category}
 	<h2 class="category-title">{category}</h2>
 	<div class="menu-grid" class:two-col={columns === 2}>
-		{#each menuStore.items.filter(i => i.category === category) as item (item.id)}
-			<div class="menu-card">
+		{#each menuStore.items.filter((i: MenuItem) => i.category === category) as item (item.id)}
+			<div class="menu-card" class:grid-card={columns === 2}>
 				<div class="card-info">
 					<span class="card-name">{item.name}</span>
 					<span class="card-desc">{item.description}</span>
@@ -163,5 +163,15 @@
 		color: #6c63ff;
 		white-space: nowrap;
 		flex-shrink: 0;
+	}
+
+	.menu-card.grid-card {
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 0.75rem;
+	}
+
+	.menu-card.grid-card .card-desc {
+		white-space: normal;
 	}
 </style>
