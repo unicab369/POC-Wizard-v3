@@ -1,11 +1,27 @@
 <script lang="ts">
 	import { menuStore, cartStore, type MenuItem } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
+	import QRCode from 'qrcode';
 
 	let columns = $state(1);
 	let selected = $state<MenuItem | null>(null);
 	let quantity = $state(1);
 	let cartOpen = $state(false);
+	let checkoutOpen = $state(false);
+	let qrDataUrl = $state('');
+
+	async function startCheckout() {
+		const totalCents = Math.round(cartStore.total * 100);
+		const orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(', ') + `, ${totalCents}`;
+		qrDataUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
+		cartOpen = false;
+		checkoutOpen = true;
+	}
+
+	function backToCart() {
+		checkoutOpen = false;
+		cartOpen = true;
+	}
 
 	const categories = $derived(
 		[...new Set(menuStore.items.map((i: MenuItem) => i.category))]
@@ -136,6 +152,34 @@
 		</div>
 		<button class="btn-remove-all" onclick={() => { cartStore.clear(); }}>Remove All</button>
 	{/if}
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={() => (cartOpen = false)}>Cancel</button>
+			{#if cartStore.items.length > 0}
+				<button class="btn primary" onclick={startCheckout}>Checkout</button>
+			{/if}
+		</div>
+	{/snippet}
+</Popup>
+
+<!-- Checkout QR modal -->
+<Popup open={checkoutOpen} title="Order QR Code" onclose={() => (checkoutOpen = false)} fullscreen>
+	<div class="checkout-content">
+		{#if qrDataUrl}
+			<img src={qrDataUrl} alt="Order QR Code" class="checkout-qr" />
+		{/if}
+		<p class="checkout-hint">Scan this QR code to complete your order</p>
+		<div class="checkout-summary">
+			<span>{cartStore.count} item{cartStore.count !== 1 ? 's' : ''}</span>
+			<span class="cart-total-price">${cartStore.total.toFixed(2)}</span>
+		</div>
+	</div>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={backToCart}>Back</button>
+			<button class="btn primary" onclick={() => (checkoutOpen = false)}>Done</button>
+		</div>
+	{/snippet}
 </Popup>
 
 <!-- Floating cart button -->
@@ -593,5 +637,36 @@
 	.btn-remove-all:hover {
 		background: #e74c3c;
 		color: #fff;
+	}
+
+	/* Checkout */
+	.checkout-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		padding: 1rem 0.5rem;
+		text-align: center;
+	}
+
+	.checkout-qr {
+		width: 200px;
+		height: 200px;
+		border-radius: 10px;
+	}
+
+	.checkout-hint {
+		font-size: 0.9rem;
+		color: #888;
+		margin: 0;
+	}
+
+	.checkout-summary {
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
+		max-width: 250px;
+		font-weight: 600;
+		font-size: 1rem;
 	}
 </style>
