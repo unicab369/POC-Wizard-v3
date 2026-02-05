@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { actionsStore, pageStore, hoursStore, ACTION_TYPES, type QuickAction, type ActionType, type BusinessDay } from '$lib/actions-store.svelte';
 	import ActionGrid from '$lib/components/ActionGrid.svelte';
+	import BusinessHours from '$lib/components/BusinessHours.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 
 	let columns = $state(4);
@@ -65,14 +66,6 @@
 		editHoursOpen = false;
 	}
 
-	function formatTime(t: string): string {
-		if (!t) return '';
-		const [h, m] = t.split(':').map(Number);
-		const ampm = h >= 12 ? 'PM' : 'AM';
-		const hr = h % 12 || 12;
-		return `${hr}:${m.toString().padStart(2, '0')} ${ampm}`;
-	}
-
 	function saveActions() {
 		for (const [type, draft] of Object.entries(drafts) as [ActionType, Draft][]) {
 			if (draft.checked && draft.label.trim()) {
@@ -131,16 +124,7 @@
 	</button>
 </div>
 
-<ul class="hours-list">
-	{#each hoursStore.items as day}
-		<li class="hours-row">
-			<span class="hours-day">{day.day}</span>
-			<span class="hours-time" class:closed={day.closed}>
-				{day.closed ? 'Closed' : `${formatTime(day.open)} – ${formatTime(day.close)}`}
-			</span>
-		</li>
-	{/each}
-</ul>
+<BusinessHours items={hoursStore.items} />
 
 <Popup open={editHoursOpen} title="Edit Business Hours" onclose={() => (editHoursOpen = false)} fullscreen>
 	<ul class="type-list">
@@ -309,27 +293,6 @@
 	}
 
 	.btn.secondary:hover { background: #f0f0f0; }
-
-	/* Business hours */
-	.hours-list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		max-width: 500px;
-	}
-
-	.hours-row {
-		display: flex;
-		justify-content: space-between;
-		padding: 0.5rem 0;
-		border-bottom: 1px solid #f0f0f0;
-		font-size: 0.9rem;
-	}
-
-	.hours-row:last-child { border-bottom: none; }
-	.hours-day { font-weight: 500; color: #333; }
-	.hours-time { color: #555; }
-	.hours-time.closed { color: #e74c3c; font-weight: 500; }
 
 	.hours-fields {
 		flex-direction: row;

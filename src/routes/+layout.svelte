@@ -20,8 +20,8 @@
 
 	const links = [
 		{ label: 'Home', href: '/', icon: icons.home, sublinks: [
-			{ label: 'Home1', href: '/' },
-			{ label: 'Home2', href: '/home2' }
+			{ label: 'Home', href: '/' },
+			{ label: 'Menu', href: '/menu' }
 		]},
 		{ label: 'QR Barcode', href: '/scanner', icon: icons.barcode, filled: true, sublinks: [
 			{ label: 'Scan', href: '/scanner' },
