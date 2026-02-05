@@ -19,7 +19,7 @@
 
 	function openItem(item: MenuItem) {
 		selected = item;
-		quantity = 1;
+		quantity = cartQty(item.id) || 1;
 	}
 
 	function addToCart(item: MenuItem, qty: number) {
@@ -34,8 +34,22 @@
 
 	function submitItem() {
 		if (selected) {
-			addToCart(selected, quantity);
+			setCartQty(selected, quantity);
 			selected = null;
+		}
+	}
+
+	function setCartQty(item: MenuItem, qty: number) {
+		if (qty <= 0) {
+			cart = cart.filter(c => c.item.id !== item.id);
+			return;
+		}
+		const existing = cart.find(c => c.item.id === item.id);
+		if (existing) {
+			existing.qty = qty;
+			cart = [...cart];
+		} else {
+			cart = [...cart, { item, qty }];
 		}
 	}
 
@@ -121,7 +135,7 @@
 			<p class="detail-desc">{selected.description}</p>
 			<span class="detail-price">${selected.price}</span>
 			<div class="qty-row">
-				<button class="qty-btn" onclick={() => { if (quantity > 1) quantity--; }}>-</button>
+				<button class="qty-btn" onclick={() => { if (quantity > 0) quantity--; }}>-</button>
 				<span class="qty-value">{quantity}</span>
 				<button class="qty-btn" onclick={() => quantity++}>+</button>
 			</div>
@@ -158,6 +172,7 @@
 			<span>Total</span>
 			<span class="cart-total-price">${cartTotal.toFixed(2)}</span>
 		</div>
+		<button class="btn-remove-all" onclick={() => { cart = []; }}>Remove All</button>
 	{/if}
 </Popup>
 
@@ -597,5 +612,24 @@
 		color: #6c63ff;
 		font-size: 1.15rem;
 		font-weight: 700;
+	}
+
+	.btn-remove-all {
+		width: 100%;
+		padding: 0.5rem;
+		margin-top: 0.5rem;
+		background: none;
+		border: 1px solid #e74c3c;
+		border-radius: 6px;
+		color: #e74c3c;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background 0.15s, color 0.15s;
+	}
+
+	.btn-remove-all:hover {
+		background: #e74c3c;
+		color: #fff;
 	}
 </style>
