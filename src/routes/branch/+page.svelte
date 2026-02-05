@@ -840,6 +840,7 @@
 		padding: 0.2rem 0.5rem;
 		border-radius: 4px;
 		flex-shrink: 0;
+		margin-right: 10px;
 	}
 
 	.shape-picker {

@@ -203,15 +203,16 @@
 		<div class="detail">
 			<div class="detail-img">
 				<svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>
-				<span>No image</span>
 			</div>
 			<span class="detail-category">{selected.category}</span>
 			<p class="detail-desc">{selected.description}</p>
-			<span class="detail-price">${selected.price}</span>
-			<div class="qty-row">
-				<button class="qty-btn" onclick={() => { if (quantity > 0) quantity--; }}>-</button>
-				<span class="qty-value">{quantity}</span>
-				<button class="qty-btn" onclick={() => quantity++}>+</button>
+			<div class="detail-bottom">
+				<span class="detail-price">${selected.price}</span>
+				<div class="qty-row">
+					<button class="qty-btn" onclick={() => { if (quantity > 0) quantity--; }}>-</button>
+					<span class="qty-value">{quantity}</span>
+					<button class="qty-btn" onclick={() => quantity++}>+</button>
+				</div>
 			</div>
 		</div>
 	{/if}
@@ -290,9 +291,7 @@
 	{#snippet footer()}
 		<div class="footer-buttons">
 			<button class="btn secondary" onclick={() => (cartOpen = false)}>Cancel</button>
-			{#if cartStore.items.length > 0}
-				<button class="btn primary" onclick={startCheckout}>Checkout</button>
-			{/if}
+			<button class="btn primary" onclick={startCheckout} disabled={cartStore.items.length === 0}>Checkout</button>
 		</div>
 	{/snippet}
 </Popup>
@@ -303,7 +302,7 @@
 	{#snippet footer()}
 		<div class="footer-buttons">
 			<button class="btn secondary" onclick={() => (confirmClearOpen = false)}>Cancel</button>
-			<button class="btn danger" onclick={() => { cartStore.clear(); confirmClearOpen = false; }}>Remove All</button>
+			<button class="btn danger" onclick={() => { cartStore.clear(); confirmClearOpen = false; cartOpen = false; }}>Remove All</button>
 		</div>
 	{/snippet}
 </Popup>
@@ -612,28 +611,24 @@
 	.detail {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.5rem;
-		text-align: center;
+		gap: 1rem;
+		padding: 0.25rem;
 	}
 
 	.detail-img {
 		width: 100%;
-		aspect-ratio: 16 / 10;
-		background: #f0f0f0;
-		border-radius: 10px;
+		aspect-ratio: 16 / 9;
+		background: linear-gradient(135deg, #f0eeff 0%, #e8e8f0 100%);
+		border-radius: 12px;
 		display: flex;
-		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 0.4rem;
-		color: #bbb;
+		color: #c4c0e0;
 	}
 
 	.detail-img svg {
-		width: 2.5rem;
-		height: 2.5rem;
+		width: 3rem;
+		height: 3rem;
 		fill: none;
 		stroke: currentColor;
 		stroke-width: 1.5;
@@ -641,31 +636,34 @@
 		stroke-linejoin: round;
 	}
 
-	.detail-img span {
-		font-size: 0.8rem;
-		font-weight: 500;
-	}
-
 	.detail-category {
-		font-size: 0.75rem;
+		font-size: 0.7rem;
 		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: #999;
-		background: #f0f0f0;
+		letter-spacing: 0.06em;
+		color: #6c63ff;
+		background: #f0eeff;
 		padding: 0.2rem 0.6rem;
 		border-radius: 4px;
+		align-self: flex-start;
 	}
 
 	.detail-desc {
 		font-size: 0.95rem;
-		color: #555;
+		color: #666;
 		margin: 0;
-		line-height: 1.5;
+		line-height: 1.6;
+	}
+
+	.detail-bottom {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: 0.5rem;
 	}
 
 	.detail-price {
-		font-size: 1.5rem;
+		font-size: 1.6rem;
 		font-weight: 700;
 		color: #6c63ff;
 	}
@@ -673,14 +671,17 @@
 	.qty-row {
 		display: flex;
 		align-items: center;
-		gap: 1rem;
+		gap: 0.75rem;
+		background: #f5f5f7;
+		padding: 0.35rem 0.5rem;
+		border-radius: 25px;
 	}
 
 	.qty-btn {
 		width: 2.25rem;
 		height: 2.25rem;
 		border-radius: 50%;
-		border: 1px solid #ddd;
+		border: none;
 		background: #fff;
 		font-size: 1.2rem;
 		font-weight: 600;
@@ -689,18 +690,19 @@
 		align-items: center;
 		justify-content: center;
 		color: #6c63ff;
-		transition: background 0.15s, border-color 0.15s;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+		transition: background 0.15s, box-shadow 0.15s;
 	}
 
 	.qty-btn:hover {
 		background: #f0eeff;
-		border-color: #6c63ff;
+		box-shadow: 0 2px 6px rgba(108, 99, 255, 0.2);
 	}
 
 	.qty-value {
-		font-size: 1.25rem;
+		font-size: 1.2rem;
 		font-weight: 700;
-		min-width: 2rem;
+		min-width: 1.5rem;
 		text-align: center;
 	}
 
@@ -719,18 +721,19 @@
 		color: #fff;
 		border: none;
 		border-radius: 6px;
-		font-size: 0.9rem;
+		font-size: 1.1rem;
 		cursor: pointer;
 	}
 
-	.btn.primary:hover { background: #5a52d5; }
+	.btn.primary:hover:not(:disabled) { background: #5a52d5; }
+	.btn.primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
 	.btn.secondary {
 		padding: 0.55rem 1.2rem;
 		background: none;
 		border: 1px solid #ccc;
 		border-radius: 6px;
-		font-size: 0.9rem;
+		font-size: 1.1rem;
 		cursor: pointer;
 		color: #555;
 	}
@@ -900,7 +903,7 @@
 		color: #fff;
 		border: none;
 		border-radius: 6px;
-		font-size: 0.9rem;
+		font-size: 1.1rem;
 		font-weight: 600;
 		cursor: pointer;
 	}
