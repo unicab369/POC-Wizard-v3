@@ -51,6 +51,11 @@
 		align-items: center;
 		justify-content: space-between;
 		margin-top: 20px;
+		position: sticky;
+		top: 0;
+		background: #f5f5f5;
+		z-index: 10;
+		padding-bottom: 0.5rem;
 	}
 
 	.page-header h1 {

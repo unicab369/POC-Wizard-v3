@@ -112,14 +112,7 @@ export interface MenuItem {
 	category: string;
 }
 
-const defaultMenu: MenuItem[] = [
-	{ id: 1, name: 'Espresso', description: 'Rich and bold single shot', price: '3.50', category: 'Drinks' },
-	{ id: 2, name: 'Cappuccino', description: 'Espresso with steamed milk foam', price: '4.50', category: 'Drinks' },
-	{ id: 3, name: 'Latte', description: 'Smooth espresso with milk', price: '5.00', category: 'Drinks' },
-	{ id: 4, name: 'Croissant', description: 'Buttery, flaky pastry', price: '3.00', category: 'Food' },
-	{ id: 5, name: 'Bagel', description: 'Toasted with cream cheese', price: '4.00', category: 'Food' },
-	{ id: 6, name: 'Muffin', description: 'Blueberry or chocolate chip', price: '3.50', category: 'Food' }
-];
+import defaultMenu from '$lib/test-data/menu-items.json';
 
 function loadMenu(): MenuItem[] {
 	if (typeof localStorage === 'undefined') return defaultMenu;
