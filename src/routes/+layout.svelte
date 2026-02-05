@@ -26,10 +26,8 @@
 <nav class="sidebar" class:open>
 	<div class="header">MyApp</div>
 	{#each links as link}
-		<a
-			href={link.href}
-			class:active={link.href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(link.href)}
-			onclick={() => (open = false)}
+		<a href={link.href} class:active={link.href === '/' ? 
+			page.url.pathname === '/' : page.url.pathname.startsWith(link.href)} onclick={() => (open = false)}
 		>
 			<svg viewBox="0 0 24 24"><path d={link.icon} /></svg>
 			{link.label}
