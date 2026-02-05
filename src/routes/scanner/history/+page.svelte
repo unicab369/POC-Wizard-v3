@@ -1,49 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-
-	interface Scan { id: number; text: string; timestamp: number; }
+	import { type Scan, getScans, deleteScan, clearScans } from '$lib/scan-db';
 
 	let scans = $state<Scan[]>([]);
 
-	function openDB(): Promise<IDBDatabase> {
-		return new Promise((resolve, reject) => {
-			const req = indexedDB.open('scanner-db', 1);
-			req.onupgradeneeded = () => {
-				const db = req.result;
-				if (!db.objectStoreNames.contains('scans')) {
-					db.createObjectStore('scans', { keyPath: 'id', autoIncrement: true });
-				}
-			};
-			req.onsuccess = () => resolve(req.result);
-			req.onerror = () => reject(req.error);
-		});
-	}
-
-	async function getScans(): Promise<Scan[]> {
-		const db = await openDB();
-		return new Promise((resolve, reject) => {
-			const tx = db.transaction('scans', 'readonly');
-			const req = tx.objectStore('scans').getAll();
-			req.onsuccess = () => { db.close(); resolve(req.result); };
-			req.onerror = () => { db.close(); reject(req.error); };
-		});
-	}
-
-	async function deleteScan(id: number) {
-		const db = await openDB();
-		const tx = db.transaction('scans', 'readwrite');
-		tx.objectStore('scans').delete(id);
-		await new Promise<void>((resolve) => { tx.oncomplete = () => resolve(); });
-		db.close();
+	async function handleDelete(id: number) {
+		await deleteScan(id);
 		scans = scans.filter((s) => s.id !== id);
 	}
 
-	async function clearAll() {
-		const db = await openDB();
-		const tx = db.transaction('scans', 'readwrite');
-		tx.objectStore('scans').clear();
-		await new Promise<void>((resolve) => { tx.oncomplete = () => resolve(); });
-		db.close();
+	async function handleClearAll() {
+		await clearScans();
 		scans = [];
 	}
 
@@ -57,7 +24,7 @@
 {#if scans.length === 0}
 	<p class="empty">No scans yet. Go scan something!</p>
 {:else}
-	<button class="btn danger" onclick={clearAll}>Clear all</button>
+	<button class="btn danger" onclick={handleClearAll}>Clear all</button>
 	<ul class="list">
 		{#each scans as scan (scan.id)}
 			<li class="entry">
@@ -65,7 +32,7 @@
 					<span class="text">{scan.text}</span>
 					<span class="date">{new Date(scan.timestamp).toLocaleString()}</span>
 				</div>
-				<button class="btn-delete" onclick={() => deleteScan(scan.id)}>Delete</button>
+				<button class="btn-delete" onclick={() => handleDelete(scan.id)}>Delete</button>
 			</li>
 		{/each}
 	</ul>
