@@ -4,9 +4,31 @@
 	import QRCode from 'qrcode';
 	import defaultPurchases from '$lib/test-data/purchases.json';
 	import defaultCustomers from '$lib/test-data/customers.json';
+	import defaultTables from '$lib/test-data/tables.json';
 
 	interface Customer { id: number; name: string; phone: string; }
 	const customers: Customer[] = defaultCustomers;
+
+	interface Table { id: number; label: string; seats: number; }
+	const tables: Table[] = defaultTables;
+
+	// Check if employee is signed in via Branch
+	const isEmployee = $derived(
+		typeof sessionStorage !== 'undefined' && sessionStorage.getItem('employee-auth') !== null
+	);
+
+	let tableSelectOpen = $state(false);
+	let selectedTable = $state<Table | null>(null);
+
+	function selectTable(t: Table) {
+		selectedTable = t;
+		tableSelectOpen = false;
+		cartOpen = true;
+	}
+
+	function clearTable() {
+		selectedTable = null;
+	}
 
 	let columns = $state(1);
 	let selected = $state<MenuItem | null>(null);
@@ -195,8 +217,40 @@
 	{/snippet}
 </Popup>
 
+<!-- Table selection modal -->
+<Popup open={tableSelectOpen} title="Select Table" onclose={() => { tableSelectOpen = false; cartOpen = true; }} fullscreen>
+	<div class="table-grid">
+		{#each tables as t (t.id)}
+			<button class="table-card" class:selected={selectedTable?.id === t.id} onclick={() => selectTable(t)}>
+				<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 16v4M17 16v4" /></svg>
+				<span class="table-label">{t.label}</span>
+				<span class="table-seats">{t.seats} seat{t.seats !== 1 ? 's' : ''}</span>
+			</button>
+		{/each}
+	</div>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={() => { tableSelectOpen = false; cartOpen = true; }}>Back</button>
+		</div>
+	{/snippet}
+</Popup>
+
 <!-- Cart modal -->
 <Popup open={cartOpen} title="Cart" onclose={() => (cartOpen = false)} fullscreen>
+	{#if isEmployee}
+		<div class="table-row">
+			{#if selectedTable}
+				<span class="table-tag">
+					<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 16v4M17 16v4" /></svg>
+					{selectedTable.label}
+					<button class="table-clear" onclick={clearTable}>&times;</button>
+				</span>
+			{/if}
+			<button class="btn-table" onclick={() => { cartOpen = false; tableSelectOpen = true; }}>
+				{selectedTable ? 'Change Table' : 'Table'}
+			</button>
+		</div>
+	{/if}
 	{#if cartStore.items.length === 0}
 		<p class="cart-empty">Your cart is empty</p>
 		<p class="cart-hint">Tap an item to add it to your cart</p>
@@ -1063,5 +1117,116 @@
 		stroke-width: 2;
 		stroke-linecap: round;
 		stroke-linejoin: round;
+	}
+
+	/* Table selection */
+	.table-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.25rem;
+		border-bottom: 1px solid #f0f0f0;
+		margin-bottom: 0.25rem;
+	}
+
+	.btn-table {
+		margin-left: auto;
+		padding: 0.35rem 0.75rem;
+		background: #6c63ff;
+		color: #fff;
+		border: none;
+		border-radius: 6px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		cursor: pointer;
+		white-space: nowrap;
+	}
+
+	.btn-table:hover { background: #5a52d5; }
+
+	.table-tag {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.3rem 0.6rem;
+		background: #f0eeff;
+		border-radius: 20px;
+		color: #6c63ff;
+		font-size: 0.8rem;
+		font-weight: 500;
+	}
+
+	.table-tag svg {
+		width: 0.85rem;
+		height: 0.85rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.table-clear {
+		background: none;
+		border: none;
+		color: #6c63ff;
+		font-size: 1rem;
+		cursor: pointer;
+		padding: 0 0.15rem;
+		line-height: 1;
+	}
+
+	.table-clear:hover { color: #e74c3c; }
+
+	.table-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.5rem;
+		padding: 0.25rem;
+	}
+
+	.table-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 1rem 0.5rem;
+		background: #fff;
+		border: 1px solid #e0e0e0;
+		border-radius: 10px;
+		cursor: pointer;
+		transition: border-color 0.15s, box-shadow 0.15s;
+		font-family: inherit;
+	}
+
+	.table-card:hover {
+		border-color: #6c63ff;
+		box-shadow: 0 2px 8px rgba(108, 99, 255, 0.15);
+	}
+
+	.table-card.selected {
+		border-color: #6c63ff;
+		background: #f0eeff;
+	}
+
+	.table-card svg {
+		width: 1.75rem;
+		height: 1.75rem;
+		fill: none;
+		stroke: #6c63ff;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.table-label {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: #333;
+	}
+
+	.table-seats {
+		font-size: 0.7rem;
+		color: #999;
 	}
 </style>
