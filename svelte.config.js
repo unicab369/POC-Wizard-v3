@@ -9,7 +9,7 @@ const config = {
 			fallback: '404.html'
 		}),
 		paths: {
-			base: dev ? '' : '/Poc-Wizard-v3'
+			base: dev ? '' : '/POC-Wizard-v3'
 		}
 	}
 };
