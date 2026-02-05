@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { actionsStore, pageStore, hoursStore, tablesStore, ACTION_TYPES, TABLE_SHAPES, tableShapeLabel, tableShapeCss, type QuickAction, type ActionType, type BusinessDay, type TableItem } from '$lib/actions-store.svelte';
+	import { actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, ACTION_TYPES, TABLE_SHAPES, tableShapeLabel, tableShapeCss, type QuickAction, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode } from '$lib/actions-store.svelte';
 	import ActionGrid from '$lib/components/ActionGrid.svelte';
 	import BusinessHours from '$lib/components/BusinessHours.svelte';
 	import Popup from '$lib/components/Popup.svelte';
@@ -80,6 +80,42 @@
 	}
 
 	let columns = $state(4);
+
+	// Menu import/export
+	let fileInput = $state<HTMLInputElement | null>(null);
+
+	function exportMenuToExcel() {
+		const items = menuStore.items;
+		const header = 'Name\tDescription\tPrice\tCategory';
+		const rows = items.map(i => `${i.name}\t${i.description}\t${i.price}\t${i.category}`);
+		const tsv = [header, ...rows].join('\n');
+		const blob = new Blob([tsv], { type: 'text/tab-separated-values' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = 'menu.tsv';
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function importMenuFromFile(e: Event) {
+		const file = (e.target as HTMLInputElement).files?.[0];
+		if (!file) return;
+		const reader = new FileReader();
+		reader.onload = () => {
+			const text = reader.result as string;
+			const lines = text.trim().split('\n');
+			if (lines.length < 2) return;
+			const sep = lines[0].includes('\t') ? '\t' : ',';
+			const imported = lines.slice(1).map((line, i) => {
+				const cols = line.split(sep).map(c => c.trim());
+				return { id: i + 1, name: cols[0] || '', description: cols[1] || '', price: cols[2] || '0', category: cols[3] || 'Other' };
+			}).filter(item => item.name);
+			if (imported.length > 0) menuStore.items = imported;
+		};
+		reader.readAsText(file);
+		if (fileInput) fileInput.value = '';
+	}
 
 	// Page editing
 	let editingPage = $state(false);
@@ -317,7 +353,33 @@
 		Back
 	</button>
 	<h2>Edit Menu</h2>
-	<p>Menu editing coming soon.</p>
+
+	<div class="menu-edit-section">
+		<span class="section-label">Menu Data</span>
+		<div class="menu-edit-buttons">
+			<button class="menu-edit-btn" onclick={exportMenuToExcel}>
+				<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
+				Export Menu to Excel
+			</button>
+			<button class="menu-edit-btn" onclick={() => fileInput?.click()}>
+				<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" /></svg>
+				Import Excel Menu
+			</button>
+			<input type="file" accept=".csv,.tsv,.txt" bind:this={fileInput} onchange={importMenuFromFile} hidden />
+		</div>
+	</div>
+
+	<div class="menu-edit-section">
+		<span class="section-label">Display Mode</span>
+		<div class="radio-list">
+			{#each ['list', 'grid', 'both'] as mode}
+				<label class="radio-option">
+					<input type="radio" name="displayMode" value={mode} checked={menuDisplayStore.mode === mode} onchange={() => (menuDisplayStore.mode = mode as MenuDisplayMode)} />
+					<span>{mode.charAt(0).toUpperCase() + mode.slice(1)}</span>
+				</label>
+			{/each}
+		</div>
+	</div>
 
 {:else if view === 'tables'}
 	<button class="back-btn" onclick={() => (view = 'select')}>
@@ -914,4 +976,94 @@
 	.shape-round { border-radius: 50%; }
 	.shape-rectangle { width: 2.2rem; height: 1.2rem; border-radius: 3px; }
 	.shape-bar { width: 2.5rem; height: 0.7rem; border-radius: 3px; }
+
+	/* Menu edit */
+	.menu-edit-section {
+		margin-top: 1.25rem;
+		max-width: 400px;
+	}
+
+	.section-label {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: #999;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.menu-edit-buttons {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+	}
+
+	.menu-edit-btn {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.65rem 1rem;
+		background: #fff;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: #333;
+		cursor: pointer;
+		font-family: inherit;
+		transition: border-color 0.15s, background 0.15s;
+	}
+
+	.menu-edit-btn:hover {
+		border-color: #6c63ff;
+		background: #f0eeff;
+		color: #6c63ff;
+	}
+
+	.menu-edit-btn svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		flex-shrink: 0;
+	}
+
+	.radio-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		margin-top: 0.5rem;
+	}
+
+	.radio-option {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		background: #fff;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		cursor: pointer;
+		transition: border-color 0.15s, background 0.15s;
+	}
+
+	.radio-option:has(input:checked) {
+		border-color: #6c63ff;
+		background: #f0eeff;
+	}
+
+	.radio-option input[type="radio"] {
+		accent-color: #6c63ff;
+		width: 1rem;
+		height: 1rem;
+	}
+
+	.radio-option span {
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: #333;
+	}
 </style>

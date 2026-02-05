@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { menuStore, cartStore, tablesStore, tableShapeCss, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
+	import { menuStore, cartStore, tablesStore, menuDisplayStore, tableShapeCss, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 	import QRCode from 'qrcode';
 	import defaultPurchases from '$lib/test-data/purchases.json';
@@ -26,7 +26,8 @@
 		selectedTable = null;
 	}
 
-	let columns = $state(1);
+	let columns = $state(menuDisplayStore.mode === 'grid' ? 2 : 1);
+	const effectiveColumns = $derived(menuDisplayStore.mode === 'list' ? 1 : menuDisplayStore.mode === 'grid' ? 2 : columns);
 	let selected = $state<MenuItem | null>(null);
 	let quantity = $state(1);
 	let cartOpen = $state(false);
@@ -160,30 +161,34 @@
 <div class="page-header">
 	<h1>Menu</h1>
 	<div class="view-toggle">
-		<button
-			class="toggle-btn"
-			class:active={columns === 1}
-			onclick={() => (columns = 1)}
-			aria-label="List view"
-		>
-			<svg viewBox="0 0 24 24"><path d="M3 4h18M3 12h18M3 20h18" /></svg>
-		</button>
-		<button
-			class="toggle-btn"
-			class:active={columns === 2}
-			onclick={() => (columns = 2)}
-			aria-label="Grid view"
-		>
-			<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
-		</button>
+		{#if menuDisplayStore.mode === 'list' || menuDisplayStore.mode === 'both'}
+			<button
+				class="toggle-btn"
+				class:active={effectiveColumns === 1}
+				onclick={() => (columns = 1)}
+				aria-label="List view"
+			>
+				<svg viewBox="0 0 24 24"><path d="M3 4h18M3 12h18M3 20h18" /></svg>
+			</button>
+		{/if}
+		{#if menuDisplayStore.mode === 'grid' || menuDisplayStore.mode === 'both'}
+			<button
+				class="toggle-btn"
+				class:active={effectiveColumns === 2}
+				onclick={() => (columns = 2)}
+				aria-label="Grid view"
+			>
+				<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+			</button>
+		{/if}
 	</div>
 </div>
 
 {#each categories as category}
 	<h2 class="category-title">{category}</h2>
-	<div class="menu-grid" class:two-col={columns === 2}>
+	<div class="menu-grid" class:two-col={effectiveColumns === 2}>
 		{#each menuStore.items.filter((i: MenuItem) => i.category === category) as item (item.id)}
-			<button class="menu-card" class:grid-card={columns === 2} onclick={() => handleTap(item)}>
+			<button class="menu-card" class:grid-card={effectiveColumns === 2} onclick={() => handleTap(item)}>
 				{#if cartStore.qtyOf(item.id) > 0}
 					<span class="card-qty">{cartStore.qtyOf(item.id)}</span>
 				{/if}

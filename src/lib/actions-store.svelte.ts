@@ -154,6 +154,24 @@ export const menuStore = {
 	}
 };
 
+// Menu display mode
+export type MenuDisplayMode = 'list' | 'grid' | 'both';
+const DISPLAY_MODE_KEY = 'menu-display-mode';
+
+function loadDisplayMode(): MenuDisplayMode {
+	if (typeof localStorage === 'undefined') return 'both';
+	const raw = localStorage.getItem(DISPLAY_MODE_KEY);
+	if (raw === 'list' || raw === 'grid' || raw === 'both') return raw;
+	return 'both';
+}
+
+let displayMode = $state<MenuDisplayMode>(loadDisplayMode());
+
+export const menuDisplayStore = {
+	get mode() { return displayMode; },
+	set mode(v: MenuDisplayMode) { displayMode = v; if (typeof localStorage !== 'undefined') localStorage.setItem(DISPLAY_MODE_KEY, v); }
+};
+
 // Tables
 const TABLES_KEY = 'tables';
 
