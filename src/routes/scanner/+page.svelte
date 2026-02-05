@@ -7,6 +7,27 @@
 	let scanning = $state(false);
 	let scanner: Html5Qrcode | null = null;
 
+	function openDB(): Promise<IDBDatabase> {
+		return new Promise((resolve, reject) => {
+			const req = indexedDB.open('scanner-db', 1);
+			req.onupgradeneeded = () => {
+				const db = req.result;
+				if (!db.objectStoreNames.contains('scans')) {
+					db.createObjectStore('scans', { keyPath: 'id', autoIncrement: true });
+				}
+			};
+			req.onsuccess = () => resolve(req.result);
+			req.onerror = () => reject(req.error);
+		});
+	}
+
+	async function addScan(text: string) {
+		const db = await openDB();
+		const tx = db.transaction('scans', 'readwrite');
+		tx.objectStore('scans').add({ text, timestamp: Date.now() });
+		db.close();
+	}
+
 	onMount(() => {
 		return () => {
 			if (scanner?.isScanning) scanner.stop();
@@ -24,10 +45,11 @@
 			await scanner.start(
 				{ facingMode: 'environment' },
 				{ fps: 10, qrbox: { width: 250, height: 250 } },
-				(text) => {
+				async (text) => {
 					result = text;
 					scanner?.stop();
 					scanning = false;
+					await addScan(text);
 				},
 				() => {}
 			);
