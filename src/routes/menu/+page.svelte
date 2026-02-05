@@ -249,26 +249,31 @@
 
 <!-- Cart modal -->
 <Popup open={cartOpen} title="Cart" onclose={() => (cartOpen = false)} fullscreen>
-	{#if isEmployee}
-		<div class="table-row">
-			{#if selectedTable}
-				<span class="table-tag">
-					<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 16v4M17 16v4" /></svg>
-					{selectedTable.label}
-					<button class="table-clear" onclick={clearTable}>&times;</button>
-				</span>
-			{/if}
+	<!-- Top action bar -->
+	<div class="cart-action-bar">
+		{#if isEmployee}
 			<button class="btn-table" onclick={() => { cartOpen = false; tableSelectOpen = true; }}>
-				{selectedTable ? 'Change Table' : 'Table'}
+				<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 16v4M17 16v4" /></svg>
+				{selectedTable ? selectedTable.label : 'Select Table'}
 			</button>
-		</div>
-	{/if}
-	{#if cartStore.items.length === 0}
-		<p class="cart-empty">Your cart is empty</p>
-		<p class="cart-hint">Tap an item to add it to your cart</p>
-		{#if orders.length > 0}
-			<button class="btn-purchases" onclick={() => { cartOpen = false; purchasesOpen = true; }}>Last Purchases</button>
+		{:else}
+			<span></span>
 		{/if}
+		{#if cartStore.items.length > 0}
+			<button class="btn-clear" onclick={() => (confirmClearOpen = true)}>
+				<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z" /></svg>
+				Clear
+			</button>
+		{/if}
+	</div>
+
+	<!-- Cart content -->
+	{#if cartStore.items.length === 0}
+		<div class="cart-empty-state">
+			<svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" /></svg>
+			<p class="cart-empty">Your cart is empty</p>
+			<p class="cart-hint">Tap an item to add it to your cart</p>
+		</div>
 	{:else}
 		<ul class="cart-list">
 			{#each cartStore.items as entry (entry.item.id)}
@@ -288,11 +293,16 @@
 			<span>Total</span>
 			<span class="cart-total-price">${cartStore.total.toFixed(2)}</span>
 		</div>
-		{#if orders.length > 0}
-			<button class="btn-purchases" onclick={() => { cartOpen = false; purchasesOpen = true; }}>Last Purchases</button>
-		{/if}
-		<button class="btn-remove-all" onclick={() => (confirmClearOpen = true)}>Remove All</button>
 	{/if}
+
+	<!-- Last Purchases link -->
+	{#if orders.length > 0}
+		<button class="btn-purchases" onclick={() => { cartOpen = false; purchasesOpen = true; }}>
+			<svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+			Last Purchases
+		</button>
+	{/if}
+
 	{#snippet footer()}
 		<div class="footer-buttons">
 			<button class="btn secondary" onclick={() => (cartOpen = false)}>Cancel</button>
@@ -915,42 +925,98 @@
 
 	.btn.danger:hover { background: #c0392b; }
 
-	.btn-remove-all {
-		width: 100%;
-		padding: 0.5rem;
-		margin-top: 0.5rem;
+	.cart-action-bar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.5rem 0;
+		border-bottom: 1px solid #f0f0f0;
+		margin-bottom: 0.5rem;
+		gap: 0.5rem;
+	}
+
+	.btn-clear {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.4rem 0.75rem;
 		background: none;
 		border: 1px solid #e74c3c;
 		border-radius: 6px;
 		color: #e74c3c;
-		font-size: 0.85rem;
+		font-size: 0.8rem;
 		font-weight: 600;
 		cursor: pointer;
 		transition: background 0.15s, color 0.15s;
 	}
 
-	.btn-remove-all:hover {
+	.btn-clear:hover {
 		background: #e74c3c;
 		color: #fff;
 	}
 
+	.btn-clear svg {
+		width: 0.9rem;
+		height: 0.9rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.cart-empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 2rem 1rem;
+		color: #999;
+	}
+
+	.cart-empty-state svg {
+		width: 3rem;
+		height: 3rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		margin-bottom: 0.75rem;
+		opacity: 0.5;
+	}
+
 	.btn-purchases {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
 		width: 100%;
-		padding: 0.5rem;
-		margin-top: 0.5rem;
-		background: none;
-		border: 1px solid #6c63ff;
-		border-radius: 6px;
-		color: #6c63ff;
+		padding: 0.6rem;
+		margin-top: 0.75rem;
+		background: #f9f9fb;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		color: #666;
 		font-size: 0.85rem;
-		font-weight: 600;
+		font-weight: 500;
 		cursor: pointer;
-		transition: background 0.15s, color 0.15s;
+		transition: background 0.15s, border-color 0.15s;
 	}
 
 	.btn-purchases:hover {
-		background: #6c63ff;
-		color: #fff;
+		background: #f0eeff;
+		border-color: #6c63ff;
+		color: #6c63ff;
+	}
+
+	.btn-purchases svg {
+		width: 1rem;
+		height: 1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 
 	/* Purchases */
@@ -1197,45 +1263,26 @@
 	}
 
 	/* Table selection */
-	.table-row {
+	.btn-table {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.65rem 0.5rem;
-		border-bottom: 1px solid #f0f0f0;
-		margin-bottom: 0.25rem;
-	}
-
-	.btn-table {
-		margin-left: auto;
-		padding: 0.5rem 1rem;
-		background: #6c63ff;
-		color: #fff;
-		border: none;
-		border-radius: 8px;
-		font-size: 0.95rem;
+		gap: 0.4rem;
+		padding: 0.4rem 0.75rem;
+		background: #f0eeff;
+		color: #6c63ff;
+		border: 1px solid #d8d4ff;
+		border-radius: 6px;
+		font-size: 0.85rem;
 		font-weight: 600;
 		cursor: pointer;
 		white-space: nowrap;
 	}
 
-	.btn-table:hover { background: #5a52d5; }
+	.btn-table:hover { background: #e4e0ff; }
 
-	.table-tag {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.45rem 0.85rem;
-		background: #f0eeff;
-		border-radius: 20px;
-		color: #6c63ff;
-		font-size: 0.95rem;
-		font-weight: 600;
-	}
-
-	.table-tag svg {
-		width: 1.1rem;
-		height: 1.1rem;
+	.btn-table svg {
+		width: 1rem;
+		height: 1rem;
 		fill: none;
 		stroke: currentColor;
 		stroke-width: 2;
@@ -1243,17 +1290,6 @@
 		stroke-linejoin: round;
 	}
 
-	.table-clear {
-		background: none;
-		border: none;
-		color: #6c63ff;
-		font-size: 1.2rem;
-		cursor: pointer;
-		padding: 0 0.2rem;
-		line-height: 1;
-	}
-
-	.table-clear:hover { color: #e74c3c; }
 
 	.table-grid {
 		display: grid;
