@@ -60,13 +60,15 @@
 		total: string;
 		date: string;
 		customer?: { name: string; phone: string };
+		table?: { id: number; label: string };
 	}
 
 	let orders = $state<Order[]>(defaultPurchases as Order[]);
 
 	async function startCheckout() {
 		const totalCents = Math.round(cartStore.total * 100);
-		const orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(',') + `, ${totalCents}`;
+		let orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(',') + `, ${totalCents}`;
+		if (selectedTable) orderStr += `, T${selectedTable.id}`;
 		qrDataUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		showCustomerForm = false;
 		customerSearch = '';
@@ -83,16 +85,21 @@
 		if (customerName.trim()) {
 			order.customer = { name: customerName.trim(), phone: customerPhone.trim() };
 		}
+		if (selectedTable) {
+			order.table = { id: selectedTable.id, label: selectedTable.label };
+		}
 		orders = [order, ...orders];
 		cartStore.clear();
 		customerName = '';
 		customerPhone = '';
+		selectedTable = null;
 		checkoutOpen = false;
 	}
 
 	async function viewPurchaseQr(order: Order) {
 		const totalCents = Math.round(parseFloat(order.total) * 100);
-		const orderStr = order.items.map(i => `${i.id}:${i.qty}`).join(',') + `, ${totalCents}`;
+		let orderStr = order.items.map(i => `${i.id}:${i.qty}`).join(',') + `, ${totalCents}`;
+		if (order.table) orderStr += `, T${order.table.id}`;
 		purchaseQrUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		purchaseQrOrder = order;
 		purchasesOpen = false;
@@ -299,6 +306,13 @@
 			<span class="cart-total-price">${cartStore.total.toFixed(2)}</span>
 		</div>
 
+		{#if selectedTable}
+			<div class="customer-tag">
+				<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 16v4M17 16v4" /></svg>
+				<span>{selectedTable.label}</span>
+			</div>
+		{/if}
+
 		{#if showCustomerForm}
 			<div class="customer-form">
 				<label class="field"><span>Search Customer</span>
@@ -359,6 +373,9 @@
 							{#if order.customer}
 								<span class="purchase-customer">{order.customer.name}</span>
 							{/if}
+							{#if order.table}
+								<span class="purchase-table">{order.table.label}</span>
+							{/if}
 						</div>
 						<span class="cart-total-price">${order.total}</span>
 					</div>
@@ -394,6 +411,12 @@
 				<div class="customer-tag">
 					<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
 					<span>{purchaseQrOrder.customer.name}{purchaseQrOrder.customer.phone ? ` \u2022 ${purchaseQrOrder.customer.phone}` : ''}</span>
+				</div>
+			{/if}
+			{#if purchaseQrOrder.table}
+				<div class="customer-tag">
+					<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 16v4M17 16v4" /></svg>
+					<span>{purchaseQrOrder.table.label}</span>
 				</div>
 			{/if}
 		{/if}
@@ -941,6 +964,12 @@
 		color: #6c63ff;
 	}
 
+	.purchase-table {
+		font-size: 0.7rem;
+		font-weight: 600;
+		color: #888;
+	}
+
 	.purchase-items {
 		list-style: none;
 		padding: 0.5rem 0.75rem;
@@ -1119,20 +1148,20 @@
 	.table-row {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 0.25rem;
+		gap: 0.75rem;
+		padding: 0.65rem 0.5rem;
 		border-bottom: 1px solid #f0f0f0;
 		margin-bottom: 0.25rem;
 	}
 
 	.btn-table {
 		margin-left: auto;
-		padding: 0.35rem 0.75rem;
+		padding: 0.5rem 1rem;
 		background: #6c63ff;
 		color: #fff;
 		border: none;
-		border-radius: 6px;
-		font-size: 0.8rem;
+		border-radius: 8px;
+		font-size: 0.95rem;
 		font-weight: 600;
 		cursor: pointer;
 		white-space: nowrap;
@@ -1143,18 +1172,18 @@
 	.table-tag {
 		display: flex;
 		align-items: center;
-		gap: 0.35rem;
-		padding: 0.3rem 0.6rem;
+		gap: 0.5rem;
+		padding: 0.45rem 0.85rem;
 		background: #f0eeff;
 		border-radius: 20px;
 		color: #6c63ff;
-		font-size: 0.8rem;
-		font-weight: 500;
+		font-size: 0.95rem;
+		font-weight: 600;
 	}
 
 	.table-tag svg {
-		width: 0.85rem;
-		height: 0.85rem;
+		width: 1.1rem;
+		height: 1.1rem;
 		fill: none;
 		stroke: currentColor;
 		stroke-width: 2;
@@ -1166,9 +1195,9 @@
 		background: none;
 		border: none;
 		color: #6c63ff;
-		font-size: 1rem;
+		font-size: 1.2rem;
 		cursor: pointer;
-		padding: 0 0.15rem;
+		padding: 0 0.2rem;
 		line-height: 1;
 	}
 
