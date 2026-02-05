@@ -101,6 +101,66 @@ export const hoursStore = {
 	set items(v: BusinessDay[]) { hours = v; saveHours(v); }
 };
 
+// Menu items
+const MENU_KEY = 'menu-items';
+
+export interface MenuItem {
+	id: number;
+	name: string;
+	description: string;
+	price: string;
+	category: string;
+}
+
+const defaultMenu: MenuItem[] = [
+	{ id: 1, name: 'Espresso', description: 'Rich and bold single shot', price: '3.50', category: 'Drinks' },
+	{ id: 2, name: 'Cappuccino', description: 'Espresso with steamed milk foam', price: '4.50', category: 'Drinks' },
+	{ id: 3, name: 'Latte', description: 'Smooth espresso with milk', price: '5.00', category: 'Drinks' },
+	{ id: 4, name: 'Croissant', description: 'Buttery, flaky pastry', price: '3.00', category: 'Food' },
+	{ id: 5, name: 'Bagel', description: 'Toasted with cream cheese', price: '4.00', category: 'Food' },
+	{ id: 6, name: 'Muffin', description: 'Blueberry or chocolate chip', price: '3.50', category: 'Food' }
+];
+
+function loadMenu(): MenuItem[] {
+	if (typeof localStorage === 'undefined') return defaultMenu;
+	const raw = localStorage.getItem(MENU_KEY);
+	if (!raw) return defaultMenu;
+	try {
+		const parsed = JSON.parse(raw);
+		if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].name) return parsed;
+		return defaultMenu;
+	} catch { return defaultMenu; }
+}
+
+function saveMenu(m: MenuItem[]) {
+	if (typeof localStorage !== 'undefined') {
+		localStorage.setItem(MENU_KEY, JSON.stringify(m));
+	}
+}
+
+let menuItems = $state<MenuItem[]>(loadMenu());
+
+export const menuStore = {
+	get items() { return menuItems; },
+	set items(v: MenuItem[]) { menuItems = v; saveMenu(v); },
+
+	add(item: Omit<MenuItem, 'id'>) {
+		const id = menuItems.length > 0 ? Math.max(...menuItems.map(m => m.id)) + 1 : 1;
+		menuItems = [...menuItems, { id, ...item }];
+		saveMenu(menuItems);
+	},
+
+	update(id: number, fields: Partial<Omit<MenuItem, 'id'>>) {
+		menuItems = menuItems.map(m => m.id === id ? { ...m, ...fields } : m);
+		saveMenu(menuItems);
+	},
+
+	remove(id: number) {
+		menuItems = menuItems.filter(m => m.id !== id);
+		saveMenu(menuItems);
+	}
+};
+
 const STORAGE_KEY = 'quick-actions';
 const PAGE_KEY = 'quick-actions-page';
 

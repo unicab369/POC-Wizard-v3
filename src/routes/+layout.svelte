@@ -32,10 +32,6 @@
 			{ label: 'Overview', href: '/dashboard' },
 			{ label: 'Analytics', href: '/dashboard/analytics' }
 		]},
-		{ label: 'Projects', href: '/projects', icon: icons.folder, sublinks: [
-			{ label: 'All', href: '/projects' },
-			{ label: 'Archived', href: '/projects/archived' }
-		]},
 		{ label: 'Admin', href: '/admin', icon: icons.admin, sublinks: [
 			{ label: 'Quick Actions', href: '/admin' }
 		]},
