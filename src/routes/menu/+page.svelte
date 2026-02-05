@@ -304,7 +304,12 @@
 			{#each orders as order}
 				<button class="purchase-card" onclick={() => viewPurchaseQr(order)}>
 					<div class="purchase-header">
-						<span class="purchase-date">{order.date}</span>
+						<div class="purchase-header-left">
+							<span class="purchase-date">{order.date}</span>
+							{#if order.customer}
+								<span class="purchase-customer">{order.customer.name}</span>
+							{/if}
+						</div>
 						<span class="cart-total-price">${order.total}</span>
 					</div>
 					<ul class="purchase-items">
@@ -335,6 +340,12 @@
 				<span>{purchaseQrOrder.items.length} item{purchaseQrOrder.items.length !== 1 ? 's' : ''}</span>
 				<span class="cart-total-price">${purchaseQrOrder.total}</span>
 			</div>
+			{#if purchaseQrOrder.customer}
+				<div class="customer-tag">
+					<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+					<span>{purchaseQrOrder.customer.name}{purchaseQrOrder.customer.phone ? ` \u2022 ${purchaseQrOrder.customer.phone}` : ''}</span>
+				</div>
+			{/if}
 		{/if}
 	</div>
 	{#snippet footer()}
@@ -863,9 +874,21 @@
 		border-bottom: 1px solid #f0f0f0;
 	}
 
+	.purchase-header-left {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+
 	.purchase-date {
 		font-size: 0.8rem;
 		color: #888;
+	}
+
+	.purchase-customer {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: #6c63ff;
 	}
 
 	.purchase-items {
