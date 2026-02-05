@@ -93,8 +93,10 @@
 
 <style>
 	:global(*) { box-sizing: border-box; }
-	:global(body) {
+	:global(html, body) {
 		margin: 0;
+		height: 100%;
+		overflow: hidden;
 		font-family: system-ui, sans-serif;
 		background: #f5f5f5;
 		color: #333;
@@ -189,7 +191,7 @@
 	.topbar-links a.active { background: rgba(108, 99, 255, 0.1); color: #6c63ff; }
 	.topbar-links a svg { width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-	.content { margin-left: 250px; padding: 3rem 2rem 2rem; }
+	.content { margin-left: 250px; padding: 3rem 2rem 2rem; height: 100dvh; overflow-y: auto; }
 
 	.hamburger {
 		display: none;
