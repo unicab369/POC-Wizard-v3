@@ -1,16 +1,12 @@
 <script lang="ts">
-	import { menuStore, cartStore, type MenuItem } from '$lib/actions-store.svelte';
+	import { menuStore, cartStore, tablesStore, tableShapeCss, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 	import QRCode from 'qrcode';
 	import defaultPurchases from '$lib/test-data/purchases.json';
 	import defaultCustomers from '$lib/test-data/customers.json';
-	import defaultTables from '$lib/test-data/tables.json';
 
 	interface Customer { id: number; name: string; phone: string; }
 	const customers: Customer[] = defaultCustomers;
-
-	interface Table { id: number; label: string; seats: number; }
-	const tables: Table[] = defaultTables;
 
 	// Check if employee is signed in via Branch
 	const isEmployee = $derived(
@@ -18,9 +14,9 @@
 	);
 
 	let tableSelectOpen = $state(false);
-	let selectedTable = $state<Table | null>(null);
+	let selectedTable = $state<TableItem | null>(null);
 
-	function selectTable(t: Table) {
+	function selectTable(t: TableItem) {
 		selectedTable = t;
 		tableSelectOpen = false;
 		cartOpen = true;
@@ -220,9 +216,9 @@
 <!-- Table selection modal -->
 <Popup open={tableSelectOpen} title="Select Table" onclose={() => { tableSelectOpen = false; cartOpen = true; }} fullscreen>
 	<div class="table-grid">
-		{#each tables as t (t.id)}
+		{#each tablesStore.items as t (t.id)}
 			<button class="table-card" class:selected={selectedTable?.id === t.id} onclick={() => selectTable(t)}>
-				<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 16v4M17 16v4" /></svg>
+				<span class="table-shape-icon table-shape-{tableShapeCss(t.shape)}"></span>
 				<span class="table-label">{t.label}</span>
 				<span class="table-seats">{t.seats} seat{t.seats !== 1 ? 's' : ''}</span>
 			</button>
@@ -1209,15 +1205,17 @@
 		background: #f0eeff;
 	}
 
-	.table-card svg {
+	.table-shape-icon {
+		display: block;
 		width: 1.75rem;
 		height: 1.75rem;
-		fill: none;
-		stroke: #6c63ff;
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
+		border: 2px solid #6c63ff;
 	}
+
+	.table-shape-square { border-radius: 2px; }
+	.table-shape-round { border-radius: 50%; }
+	.table-shape-rectangle { width: 2.5rem; height: 1.2rem; border-radius: 3px; }
+	.table-shape-bar { width: 2.8rem; height: 0.7rem; border-radius: 3px; }
 
 	.table-label {
 		font-size: 0.85rem;

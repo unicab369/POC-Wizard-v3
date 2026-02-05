@@ -154,6 +154,73 @@ export const menuStore = {
 	}
 };
 
+// Tables
+const TABLES_KEY = 'tables';
+
+export const TABLE_SHAPES: { value: number; label: string; css: string }[] = [
+	{ value: 0, label: 'Square', css: 'square' },
+	{ value: 1, label: 'Round', css: 'round' },
+	{ value: 2, label: 'Rectangle', css: 'rectangle' },
+	{ value: 3, label: 'Bar', css: 'bar' }
+];
+
+export function tableShapeLabel(shape: number): string {
+	return TABLE_SHAPES.find(s => s.value === shape)?.label ?? 'Unknown';
+}
+
+export function tableShapeCss(shape: number): string {
+	return TABLE_SHAPES.find(s => s.value === shape)?.css ?? 'square';
+}
+
+export interface TableItem {
+	id: number;
+	label: string;
+	seats: number;
+	shape: number;
+}
+
+import defaultTables from '$lib/test-data/tables.json';
+
+function loadTables(): TableItem[] {
+	if (typeof localStorage === 'undefined') return defaultTables;
+	const raw = localStorage.getItem(TABLES_KEY);
+	if (!raw) return defaultTables;
+	try {
+		const parsed = JSON.parse(raw);
+		if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].label) return parsed;
+		return defaultTables;
+	} catch { return defaultTables; }
+}
+
+function saveTables(t: TableItem[]) {
+	if (typeof localStorage !== 'undefined') {
+		localStorage.setItem(TABLES_KEY, JSON.stringify(t));
+	}
+}
+
+let tableItems = $state<TableItem[]>(loadTables());
+
+export const tablesStore = {
+	get items() { return tableItems; },
+	set items(v: TableItem[]) { tableItems = v; saveTables(v); },
+
+	add(item: Omit<TableItem, 'id'>) {
+		const id = tableItems.length > 0 ? Math.max(...tableItems.map(t => t.id)) + 1 : 1;
+		tableItems = [...tableItems, { id, ...item }];
+		saveTables(tableItems);
+	},
+
+	update(id: number, fields: Partial<Omit<TableItem, 'id'>>) {
+		tableItems = tableItems.map(t => t.id === id ? { ...t, ...fields } : t);
+		saveTables(tableItems);
+	},
+
+	remove(id: number) {
+		tableItems = tableItems.filter(t => t.id !== id);
+		saveTables(tableItems);
+	}
+};
+
 // Cart
 export interface CartItem { item: MenuItem; qty: number; }
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { actionsStore, pageStore, hoursStore, ACTION_TYPES, type QuickAction, type ActionType, type BusinessDay } from '$lib/actions-store.svelte';
+	import { actionsStore, pageStore, hoursStore, tablesStore, ACTION_TYPES, TABLE_SHAPES, tableShapeLabel, tableShapeCss, type QuickAction, type ActionType, type BusinessDay, type TableItem } from '$lib/actions-store.svelte';
 	import ActionGrid from '$lib/components/ActionGrid.svelte';
 	import BusinessHours from '$lib/components/BusinessHours.svelte';
 	import Popup from '$lib/components/Popup.svelte';
@@ -41,8 +41,43 @@
 		loginPassword = '';
 	}
 
-	type View = 'select' | 'home' | 'menu';
+	type View = 'select' | 'home' | 'menu' | 'tables';
 	let view = $state<View>('select');
+
+	// Table editing
+	let editingTable = $state<TableItem | null>(null);
+	let draftTableLabel = $state('');
+	let draftTableSeats = $state(2);
+	let draftTableShape = $state<number>(-1);
+	let addingTable = $state(false);
+
+	function startEditTable(t: TableItem) {
+		editingTable = t;
+		draftTableLabel = t.label;
+		draftTableSeats = t.seats;
+		draftTableShape = t.shape;
+	}
+
+	function saveTable() {
+		if (!editingTable || !canSaveTable) return;
+		tablesStore.update(editingTable.id, { label: draftTableLabel.trim(), seats: draftTableSeats, shape: draftTableShape });
+		editingTable = null;
+	}
+
+	const canSaveTable = $derived(draftTableLabel.trim() !== '' && draftTableSeats >= 1 && draftTableShape >= 0);
+
+	function startAddTable() {
+		draftTableLabel = '';
+		draftTableSeats = 2;
+		draftTableShape = -1;
+		addingTable = true;
+	}
+
+	function addTable() {
+		if (!canSaveTable) return;
+		tablesStore.add({ label: draftTableLabel.trim(), seats: draftTableSeats, shape: draftTableShape });
+		addingTable = false;
+	}
 
 	let columns = $state(4);
 
@@ -161,6 +196,10 @@
 				<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
 				<span>Edit Menu</span>
 			</button>
+			<button class="select-btn" onclick={() => (view = 'tables')}>
+				<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 16v4M17 16v4" /></svg>
+				<span>Edit Tables</span>
+			</button>
 		</div>
 	</div>
 {:else if view === 'home'}
@@ -274,6 +313,98 @@
 	<h2>Edit Menu</h2>
 	<p>Menu editing coming soon.</p>
 	<button class="btn secondary back-btn" onclick={() => (view = 'select')}>Back</button>
+
+{:else if view === 'tables'}
+	<div class="grid-header">
+		<span class="grid-label">Tables</span>
+		<button class="btn-add" onclick={startAddTable}>+ Add Table</button>
+	</div>
+
+	<ul class="table-list">
+		{#each tablesStore.items as t (t.id)}
+			<li class="table-item">
+				<div class="table-item-info">
+					<span class="table-item-label">{t.label}</span>
+					<span class="table-item-seats">{t.seats} seat{t.seats !== 1 ? 's' : ''}</span>
+				</div>
+				<span class="table-item-shape">{tableShapeLabel(t.shape)}</span>
+				<div class="table-item-actions">
+					<button class="btn-edit" onclick={() => startEditTable(t)} aria-label="Edit table">
+						<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+					</button>
+					<button class="btn-delete" onclick={() => tablesStore.remove(t.id)} aria-label="Remove table">
+						<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>
+					</button>
+				</div>
+			</li>
+		{/each}
+	</ul>
+
+	<button class="btn secondary back-btn" onclick={() => (view = 'select')}>Back</button>
+
+	<!-- Edit table popup -->
+	<Popup open={editingTable !== null} title="Edit Table" onclose={() => (editingTable = null)} fullscreen>
+		<div class="popup-form-inline">
+			<label class="field"><span>Label</span>
+				<input type="text" bind:value={draftTableLabel} />
+			</label>
+			<label class="field"><span>Seats</span>
+				<input type="number" min="1" bind:value={draftTableSeats} />
+			</label>
+			<div class="field"><span>Shape</span>
+				<div class="shape-picker">
+					{#each TABLE_SHAPES as s}
+						<button
+							class="shape-option"
+							class:active={draftTableShape === s.value}
+							onclick={() => (draftTableShape = s.value)}
+						>
+							<span class="shape-icon shape-{s.css}"></span>
+							<span>{s.label}</span>
+						</button>
+					{/each}
+				</div>
+			</div>
+		</div>
+		{#snippet footer()}
+			<div class="footer-buttons">
+				<button class="btn primary" onclick={saveTable} disabled={!canSaveTable}>Save</button>
+				<button class="btn secondary" onclick={() => (editingTable = null)}>Cancel</button>
+			</div>
+		{/snippet}
+	</Popup>
+
+	<!-- Add table popup -->
+	<Popup open={addingTable} title="Add Table" onclose={() => (addingTable = false)} fullscreen>
+		<div class="popup-form-inline">
+			<label class="field"><span>Label</span>
+				<input type="text" bind:value={draftTableLabel} placeholder="e.g. Table 9" />
+			</label>
+			<label class="field"><span>Seats</span>
+				<input type="number" min="1" bind:value={draftTableSeats} />
+			</label>
+			<div class="field"><span>Shape</span>
+				<div class="shape-picker">
+					{#each TABLE_SHAPES as s}
+						<button
+							class="shape-option"
+							class:active={draftTableShape === s.value}
+							onclick={() => (draftTableShape = s.value)}
+						>
+							<span class="shape-icon shape-{s.css}"></span>
+							<span>{s.label}</span>
+						</button>
+					{/each}
+				</div>
+			</div>
+		</div>
+		{#snippet footer()}
+			<div class="footer-buttons">
+				<button class="btn primary" onclick={addTable} disabled={!canSaveTable}>Add</button>
+				<button class="btn secondary" onclick={() => (addingTable = false)}>Cancel</button>
+			</div>
+		{/snippet}
+	</Popup>
 {/if}
 
 <div class="emp-bar">
@@ -389,9 +520,17 @@
 
 	.select-buttons {
 		display: flex;
+		flex-wrap: wrap;
 		gap: 1rem;
 		width: 100%;
-		max-width: 400px;
+		max-width: 550px;
+	}
+
+	@media (max-width: 768px) {
+		.select-buttons {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 
 	.select-btn {
@@ -528,7 +667,8 @@
 		cursor: pointer;
 	}
 
-	.btn.primary:hover { background: #5a52d5; }
+	.btn.primary:hover:not(:disabled) { background: #5a52d5; }
+	.btn.primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
 	.btn.secondary {
 		padding: 0.55rem 1.2rem;
@@ -607,4 +747,141 @@
 		padding-top: 0.75rem;
 		margin-top: -0.25rem;
 	}
+
+	/* Tables editing */
+	.btn-add {
+		padding: 0.35rem 0.75rem;
+		background: #6c63ff;
+		color: #fff;
+		border: none;
+		border-radius: 6px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.btn-add:hover { background: #5a52d5; }
+
+	.table-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		max-width: 500px;
+	}
+
+	.table-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.65rem 0.75rem;
+		background: #fff;
+		border: 1px solid #e8e8e8;
+		border-radius: 8px;
+	}
+
+	.table-item-info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.table-item-label {
+		font-weight: 600;
+		font-size: 0.9rem;
+		color: #222;
+	}
+
+	.table-item-seats {
+		font-size: 0.75rem;
+		color: #999;
+	}
+
+	.table-item-actions {
+		display: flex;
+		gap: 0.25rem;
+	}
+
+	.btn-delete {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		background: none;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		cursor: pointer;
+		color: #ccc;
+		transition: color 0.15s, border-color 0.15s;
+	}
+
+	.btn-delete:hover { color: #e74c3c; border-color: #e74c3c; }
+	.btn-delete svg { width: 0.9rem; height: 0.9rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+	.popup-form-inline {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding: 0.5rem;
+	}
+
+	.table-item-shape {
+		font-size: 0.7rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+		color: #6c63ff;
+		background: #f0eeff;
+		padding: 0.2rem 0.5rem;
+		border-radius: 4px;
+		flex-shrink: 0;
+	}
+
+	.shape-picker {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+
+	.shape-option {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.6rem 0.75rem;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		background: #fff;
+		cursor: pointer;
+		font-family: inherit;
+		font-size: 0.85rem;
+		color: #666;
+		transition: border-color 0.15s, background 0.15s;
+	}
+
+	.shape-option:hover { border-color: #6c63ff; }
+
+	.shape-option.active {
+		border-color: #6c63ff;
+		background: #f0eeff;
+		color: #6c63ff;
+		font-weight: 600;
+	}
+
+	.shape-icon {
+		display: block;
+		width: 1.5rem;
+		height: 1.5rem;
+		border: 2px solid currentColor;
+	}
+
+	.shape-square { border-radius: 2px; }
+	.shape-round { border-radius: 50%; }
+	.shape-rectangle { width: 2.2rem; height: 1.2rem; border-radius: 3px; }
+	.shape-bar { width: 2.5rem; height: 0.7rem; border-radius: 3px; }
 </style>
