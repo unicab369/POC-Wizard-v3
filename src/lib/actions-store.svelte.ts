@@ -154,6 +154,55 @@ export const menuStore = {
 	}
 };
 
+// Cart
+export interface CartItem { item: MenuItem; qty: number; }
+
+let cartItems = $state<CartItem[]>([]);
+
+export const cartStore = {
+	get items() { return cartItems; },
+	set items(v: CartItem[]) { cartItems = v; },
+
+	get count() { return cartItems.reduce((sum, c) => sum + c.qty, 0); },
+	get total() { return cartItems.reduce((sum, c) => sum + c.qty * parseFloat(c.item.price), 0); },
+
+	add(item: MenuItem, qty: number) {
+		const existing = cartItems.find(c => c.item.id === item.id);
+		if (existing) {
+			existing.qty += qty;
+			cartItems = [...cartItems];
+		} else {
+			cartItems = [...cartItems, { item, qty }];
+		}
+	},
+
+	set(item: MenuItem, qty: number) {
+		if (qty <= 0) {
+			cartItems = cartItems.filter(c => c.item.id !== item.id);
+			return;
+		}
+		const existing = cartItems.find(c => c.item.id === item.id);
+		if (existing) {
+			existing.qty = qty;
+			cartItems = [...cartItems];
+		} else {
+			cartItems = [...cartItems, { item, qty }];
+		}
+	},
+
+	qtyOf(id: number): number {
+		return cartItems.find(c => c.item.id === id)?.qty ?? 0;
+	},
+
+	remove(id: number) {
+		cartItems = cartItems.filter(c => c.item.id !== id);
+	},
+
+	clear() {
+		cartItems = [];
+	}
+};
+
 const STORAGE_KEY = 'quick-actions';
 const PAGE_KEY = 'quick-actions-page';
 

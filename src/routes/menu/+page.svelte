@@ -1,17 +1,11 @@
 <script lang="ts">
-	import { menuStore, type MenuItem } from '$lib/actions-store.svelte';
+	import { menuStore, cartStore, type MenuItem } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 
 	let columns = $state(1);
 	let selected = $state<MenuItem | null>(null);
 	let quantity = $state(1);
-
-	interface CartItem { item: MenuItem; qty: number; }
-	let cart = $state<CartItem[]>([]);
 	let cartOpen = $state(false);
-
-	const cartCount = $derived(cart.reduce((sum, c) => sum + c.qty, 0));
-	const cartTotal = $derived(cart.reduce((sum, c) => sum + c.qty * parseFloat(c.item.price), 0));
 
 	const categories = $derived(
 		[...new Set(menuStore.items.map((i: MenuItem) => i.category))]
@@ -19,46 +13,14 @@
 
 	function openItem(item: MenuItem) {
 		selected = item;
-		quantity = cartQty(item.id) || 1;
-	}
-
-	function addToCart(item: MenuItem, qty: number) {
-		const existing = cart.find(c => c.item.id === item.id);
-		if (existing) {
-			existing.qty += qty;
-			cart = [...cart];
-		} else {
-			cart = [...cart, { item, qty }];
-		}
+		quantity = cartStore.qtyOf(item.id) || 1;
 	}
 
 	function submitItem() {
 		if (selected) {
-			setCartQty(selected, quantity);
+			cartStore.set(selected, quantity);
 			selected = null;
 		}
-	}
-
-	function setCartQty(item: MenuItem, qty: number) {
-		if (qty <= 0) {
-			cart = cart.filter(c => c.item.id !== item.id);
-			return;
-		}
-		const existing = cart.find(c => c.item.id === item.id);
-		if (existing) {
-			existing.qty = qty;
-			cart = [...cart];
-		} else {
-			cart = [...cart, { item, qty }];
-		}
-	}
-
-	function removeFromCart(id: number) {
-		cart = cart.filter(c => c.item.id !== id);
-	}
-
-	function cartQty(id: number): number {
-		return cart.find(c => c.item.id === id)?.qty ?? 0;
 	}
 
 	// Double-tap detection
@@ -68,7 +30,7 @@
 		const now = Date.now();
 		if (lastTap.id === item.id && now - lastTap.time < 350) {
 			// Double tap — add 1 to cart directly
-			addToCart(item, 1);
+			cartStore.add(item, 1);
 			lastTap = { id: 0, time: 0 };
 		} else {
 			lastTap = { id: item.id, time: now };
@@ -110,8 +72,8 @@
 	<div class="menu-grid" class:two-col={columns === 2}>
 		{#each menuStore.items.filter((i: MenuItem) => i.category === category) as item (item.id)}
 			<button class="menu-card" class:grid-card={columns === 2} onclick={() => handleTap(item)}>
-				{#if cartQty(item.id) > 0}
-					<span class="card-qty">{cartQty(item.id)}</span>
+				{#if cartStore.qtyOf(item.id) > 0}
+					<span class="card-qty">{cartStore.qtyOf(item.id)}</span>
 				{/if}
 				<div class="card-info">
 					<span class="card-name">{item.name}</span>
@@ -151,18 +113,18 @@
 
 <!-- Cart modal -->
 <Popup open={cartOpen} title="Cart" onclose={() => (cartOpen = false)} fullscreen>
-	{#if cart.length === 0}
+	{#if cartStore.items.length === 0}
 		<p class="cart-empty">Your cart is empty</p>
 	{:else}
 		<ul class="cart-list">
-			{#each cart as entry (entry.item.id)}
+			{#each cartStore.items as entry (entry.item.id)}
 				<li class="cart-item">
 					<div class="cart-item-info">
 						<span class="cart-item-name">{entry.item.name}</span>
 						<span class="cart-item-meta">{entry.qty} x ${entry.item.price}</span>
 					</div>
 					<span class="cart-item-total">${(entry.qty * parseFloat(entry.item.price)).toFixed(2)}</span>
-					<button class="cart-remove" onclick={() => removeFromCart(entry.item.id)} aria-label="Remove">
+					<button class="cart-remove" onclick={() => cartStore.remove(entry.item.id)} aria-label="Remove">
 						<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>
 					</button>
 				</li>
@@ -170,17 +132,17 @@
 		</ul>
 		<div class="cart-total-row">
 			<span>Total</span>
-			<span class="cart-total-price">${cartTotal.toFixed(2)}</span>
+			<span class="cart-total-price">${cartStore.total.toFixed(2)}</span>
 		</div>
-		<button class="btn-remove-all" onclick={() => { cart = []; }}>Remove All</button>
+		<button class="btn-remove-all" onclick={() => { cartStore.clear(); }}>Remove All</button>
 	{/if}
 </Popup>
 
 <!-- Floating cart button -->
-{#if cartCount > 0}
+{#if cartStore.count > 0}
 	<button class="cart-fab" onclick={() => (cartOpen = true)}>
 		<svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" /></svg>
-		<span class="cart-badge">{cartCount}</span>
+		<span class="cart-badge">{cartStore.count}</span>
 	</button>
 {/if}
 
