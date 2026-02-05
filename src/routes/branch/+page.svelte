@@ -41,6 +41,9 @@
 		loginPassword = '';
 	}
 
+	type View = 'select' | 'home' | 'menu';
+	let view = $state<View>('select');
+
 	let columns = $state(4);
 
 	// Page editing
@@ -146,108 +149,132 @@
 	</div>
 {:else}
 
-<!-- Mirror home page layout -->
-<div class="title-row">
-	<h1>{pageStore.title}</h1>
-	<button class="btn-edit" onclick={startEditPage} aria-label="Edit title and description">
-		<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-	</button>
-</div>
-<p>{pageStore.description}</p>
-
-<Popup open={editingPage} title="Edit Page" onclose={() => (editingPage = false)} fullscreen>
-	<div class="popup-form">
-		<label class="field"><span>Title</span>
-			<input type="text" bind:value={draftTitle} />
-		</label>
-		<label class="field"><span>Description</span>
-			<textarea bind:value={draftDesc}></textarea>
-		</label>
+{#if view === 'select'}
+	<div class="select-wrapper">
+		<h2 class="select-title">What would you like to edit?</h2>
+		<div class="select-buttons">
+			<button class="select-btn" onclick={() => (view = 'home')}>
+				<svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" /></svg>
+				<span>Edit Home Page</span>
+			</button>
+			<button class="select-btn" onclick={() => (view = 'menu')}>
+				<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+				<span>Edit Menu</span>
+			</button>
+		</div>
 	</div>
-	{#snippet footer()}
-		<div class="footer-buttons">
-			<button class="btn primary" onclick={savePage}>Save</button>
-			<button class="btn secondary" onclick={() => (editingPage = false)}>Cancel</button>
+{:else if view === 'home'}
+
+	<!-- Edit Home Page -->
+	<div class="title-row">
+		<h1>{pageStore.title}</h1>
+		<button class="btn-edit" onclick={startEditPage} aria-label="Edit title and description">
+			<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+		</button>
+	</div>
+	<p>{pageStore.description}</p>
+
+	<Popup open={editingPage} title="Edit Page" onclose={() => (editingPage = false)} fullscreen>
+		<div class="popup-form">
+			<label class="field"><span>Title</span>
+				<input type="text" bind:value={draftTitle} />
+			</label>
+			<label class="field"><span>Description</span>
+				<textarea bind:value={draftDesc}></textarea>
+			</label>
 		</div>
-	{/snippet}
-</Popup>
+		{#snippet footer()}
+			<div class="footer-buttons">
+				<button class="btn primary" onclick={savePage}>Save</button>
+				<button class="btn secondary" onclick={() => (editingPage = false)}>Cancel</button>
+			</div>
+		{/snippet}
+	</Popup>
 
-<div class="grid-header">
-	<span class="grid-label">Quick Actions</span>
-	<button class="btn-edit" onclick={openEditActions} aria-label="Edit actions">
-		<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-	</button>
-</div>
+	<div class="grid-header">
+		<span class="grid-label">Quick Actions</span>
+		<button class="btn-edit" onclick={openEditActions} aria-label="Edit actions">
+			<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+		</button>
+	</div>
 
-<ActionGrid items={actionsStore.items} {columns} />
+	<ActionGrid items={actionsStore.items} {columns} />
 
-<div class="grid-header">
-	<span class="grid-label">Business Hours</span>
-	<button class="btn-edit" onclick={openEditHours} aria-label="Edit business hours">
-		<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-	</button>
-</div>
+	<div class="grid-header">
+		<span class="grid-label">Business Hours</span>
+		<button class="btn-edit" onclick={openEditHours} aria-label="Edit business hours">
+			<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+		</button>
+	</div>
 
-<BusinessHours items={hoursStore.items} />
+	<BusinessHours items={hoursStore.items} />
 
-<Popup open={editHoursOpen} title="Edit Business Hours" onclose={() => (editHoursOpen = false)} fullscreen>
-	<ul class="type-list">
-		{#each draftHours as day, i}
-			<li class="type-item">
-				<label class="type-check">
-					<input type="checkbox" checked={!day.closed} onchange={() => { draftHours[i].closed = !draftHours[i].closed; }} />
-					<span class="type-label">{day.day}</span>
-				</label>
-				{#if !day.closed}
-					<div class="type-fields hours-fields">
-						<label class="field"><span>Open</span>
-							<input type="time" bind:value={draftHours[i].open} />
-						</label>
-						<label class="field"><span>Close</span>
-							<input type="time" bind:value={draftHours[i].close} />
-						</label>
-					</div>
-				{/if}
-			</li>
-		{/each}
-	</ul>
-	{#snippet footer()}
-		<div class="footer-buttons">
-			<button class="btn primary" onclick={saveHours}>Save</button>
-			<button class="btn secondary" onclick={() => (editHoursOpen = false)}>Cancel</button>
-		</div>
-	{/snippet}
-</Popup>
+	<button class="btn secondary back-btn" onclick={() => (view = 'select')}>Back</button>
 
-<Popup open={editOpen} title="Edit Actions" onclose={() => (editOpen = false)} fullscreen>
-	<ul class="type-list">
-		{#each typeEntries as [type, def]}
-			<li class="type-item">
-				<label class="type-check">
-					<input type="checkbox" bind:checked={drafts[type].checked} />
-					<span class="type-label">{def.label}</span>
-					<svg viewBox="0 0 24 24" class="type-icon">{@html def.icon}</svg>
-				</label>
-				{#if drafts[type].checked}
-					<div class="type-fields">
-						<label class="field"><span>Label</span>
-							<input type="text" bind:value={drafts[type].label} placeholder={def.label} />
-						</label>
-						<label class="field"><span>{def.inputLabel}</span>
-							<input type={def.inputType} bind:value={drafts[type].value} placeholder={def.placeholder} />
-						</label>
-					</div>
-				{/if}
-			</li>
-		{/each}
-	</ul>
-	{#snippet footer()}
-		<div class="footer-buttons">
-			<button class="btn primary" onclick={saveActions}>Save</button>
-			<button class="btn secondary" onclick={() => (editOpen = false)}>Cancel</button>
-		</div>
-	{/snippet}
-</Popup>
+	<Popup open={editHoursOpen} title="Edit Business Hours" onclose={() => (editHoursOpen = false)} fullscreen>
+		<ul class="type-list">
+			{#each draftHours as day, i}
+				<li class="type-item">
+					<label class="type-check">
+						<input type="checkbox" checked={!day.closed} onchange={() => { draftHours[i].closed = !draftHours[i].closed; }} />
+						<span class="type-label">{day.day}</span>
+					</label>
+					{#if !day.closed}
+						<div class="type-fields hours-fields">
+							<label class="field"><span>Open</span>
+								<input type="time" bind:value={draftHours[i].open} />
+							</label>
+							<label class="field"><span>Close</span>
+								<input type="time" bind:value={draftHours[i].close} />
+							</label>
+						</div>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+		{#snippet footer()}
+			<div class="footer-buttons">
+				<button class="btn primary" onclick={saveHours}>Save</button>
+				<button class="btn secondary" onclick={() => (editHoursOpen = false)}>Cancel</button>
+			</div>
+		{/snippet}
+	</Popup>
+
+	<Popup open={editOpen} title="Edit Actions" onclose={() => (editOpen = false)} fullscreen>
+		<ul class="type-list">
+			{#each typeEntries as [type, def]}
+				<li class="type-item">
+					<label class="type-check">
+						<input type="checkbox" bind:checked={drafts[type].checked} />
+						<span class="type-label">{def.label}</span>
+						<svg viewBox="0 0 24 24" class="type-icon">{@html def.icon}</svg>
+					</label>
+					{#if drafts[type].checked}
+						<div class="type-fields">
+							<label class="field"><span>Label</span>
+								<input type="text" bind:value={drafts[type].label} placeholder={def.label} />
+							</label>
+							<label class="field"><span>{def.inputLabel}</span>
+								<input type={def.inputType} bind:value={drafts[type].value} placeholder={def.placeholder} />
+							</label>
+						</div>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+		{#snippet footer()}
+			<div class="footer-buttons">
+				<button class="btn primary" onclick={saveActions}>Save</button>
+				<button class="btn secondary" onclick={() => (editOpen = false)}>Cancel</button>
+			</div>
+		{/snippet}
+	</Popup>
+
+{:else if view === 'menu'}
+	<h2>Edit Menu</h2>
+	<p>Menu editing coming soon.</p>
+	<button class="btn secondary back-btn" onclick={() => (view = 'select')}>Back</button>
+{/if}
 
 <div class="emp-bar">
 	<span class="emp-info">{empAuth.username} @ {empAuth.location}</span>
@@ -345,6 +372,67 @@
 	}
 
 	.btn-signout:hover { background: #f0f0f0; }
+
+	.select-wrapper {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding-top: 3rem;
+	}
+
+	.select-title {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #333;
+		margin: 0 0 1.5rem;
+	}
+
+	.select-buttons {
+		display: flex;
+		gap: 1rem;
+		width: 100%;
+		max-width: 400px;
+	}
+
+	.select-btn {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1.5rem 1rem;
+		background: #fff;
+		border: 1px solid #e0e0e0;
+		border-radius: 12px;
+		cursor: pointer;
+		transition: border-color 0.15s, box-shadow 0.15s;
+	}
+
+	.select-btn:hover {
+		border-color: #6c63ff;
+		box-shadow: 0 2px 8px rgba(108, 99, 255, 0.15);
+	}
+
+	.select-btn svg {
+		width: 2rem;
+		height: 2rem;
+		fill: none;
+		stroke: #6c63ff;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.select-btn span {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: #333;
+	}
+
+	.back-btn {
+		margin-top: 1.5rem;
+		margin-bottom: 3rem;
+	}
 
 	.title-row {
 		display: flex;
