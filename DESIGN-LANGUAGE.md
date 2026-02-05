@@ -12,6 +12,7 @@ Terms we use to communicate about the design and architecture of this app.
 | **Header** | The top section of the sidebar showing the app name |
 | **Backdrop** | The semi-transparent overlay behind the sidebar on mobile |
 | **Hamburger** | The three-line toggle button that opens/closes the sidebar on mobile |
+| **Topbar** | The fixed horizontal bar above the content area containing sublinks and topbar links |
 
 ## Navigation
 
@@ -21,29 +22,7 @@ Terms we use to communicate about the design and architecture of this app.
 | **Active link** | The nav link matching the current route, visually highlighted |
 | **Route** | A URL path handled by a `+page.svelte` file (e.g. `/dashboard`) |
 | **Links array** | The data-driven list of `{ label, href, icon }` objects defining the menu |
+| **Sublinks** | Left-aligned topbar links that change based on the current route (e.g. Home1, Home2 on `/`) |
+| **Sublinks map** | The `sublinks` record in the script keyed by route prefix, mapping each route to its sub-links |
+| **Topbar links** | Right-aligned icon links in the topbar (Notifications, Profile) that are always visible |
 
-## Responsive Behavior
-
-| Term | Meaning |
-|------|---------|
-| **Desktop mode** | Viewport wider than 768px — sidebar always visible |
-| **Mobile mode** | Viewport 768px or narrower — sidebar hidden, hamburger visible |
-| **Slide-in** | The CSS transform animation that reveals the sidebar on mobile |
-| **Breakpoint** | The 768px width threshold between desktop and mobile modes |
-
-## State
-
-| Term | Meaning |
-|------|---------|
-| **`open`** | The boolean `$state` controlling whether the sidebar is visible on mobile |
-| **Page state** | The reactive `page` object from `$app/state` used for active link detection |
-
-## Files
-
-| Term | Path |
-|------|------|
-| **Layout** | `src/routes/+layout.svelte` |
-| **Home page** | `src/routes/+page.svelte` |
-| **Dashboard page** | `src/routes/dashboard/+page.svelte` |
-| **Projects page** | `src/routes/projects/+page.svelte` |
-| **Settings page** | `src/routes/settings/+page.svelte` |
