@@ -32,6 +32,7 @@
 	let cartOpen = $state(false);
 	let checkoutOpen = $state(false);
 	let qrDataUrl = $state('');
+	let qrContent = $state('');
 	let purchasesOpen = $state(false);
 	let purchaseQrOpen = $state(false);
 	let purchaseQrUrl = $state('');
@@ -67,8 +68,9 @@
 
 	async function startCheckout() {
 		const totalCents = Math.round(cartStore.total * 100);
-		let orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(',') + `, ${totalCents}`;
-		if (selectedTable) orderStr += `, T${selectedTable.id}`;
+		const tableId = selectedTable ? selectedTable.id : 0;
+		const orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(',') + `, ${totalCents}, ${tableId}`;
+		qrContent = orderStr;
 		qrDataUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		showCustomerForm = false;
 		customerSearch = '';
@@ -98,8 +100,8 @@
 
 	async function viewPurchaseQr(order: Order) {
 		const totalCents = Math.round(parseFloat(order.total) * 100);
-		let orderStr = order.items.map(i => `${i.id}:${i.qty}`).join(',') + `, ${totalCents}`;
-		if (order.table) orderStr += `, T${order.table.id}`;
+		const tableId = order.table ? order.table.id : 0;
+		const orderStr = order.items.map(i => `${i.id}:${i.qty}`).join(',') + `,${totalCents},${tableId}`;
 		purchaseQrUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		purchaseQrOrder = order;
 		purchasesOpen = false;
@@ -301,6 +303,7 @@
 			<img src={qrDataUrl} alt="Order QR Code" class="checkout-qr" />
 		{/if}
 		<p class="checkout-hint">Scan this QR code to complete your order</p>
+		<p class="qr-decoded">{qrContent}</p>
 		<div class="checkout-summary">
 			<span>{cartStore.count} item{cartStore.count !== 1 ? 's' : ''}</span>
 			<span class="cart-total-price">${cartStore.total.toFixed(2)}</span>
@@ -369,12 +372,9 @@
 				<button class="purchase-card" onclick={() => viewPurchaseQr(order)}>
 					<div class="purchase-header">
 						<div class="purchase-header-left">
-							<span class="purchase-date">{order.date}</span>
+							<span class="purchase-date">{order.date} {#if order.table} | {order.table.label}{/if}</span>
 							{#if order.customer}
 								<span class="purchase-customer">{order.customer.name}</span>
-							{/if}
-							{#if order.table}
-								<span class="purchase-table">{order.table.label}</span>
 							{/if}
 						</div>
 						<span class="cart-total-price">${order.total}</span>
@@ -1010,6 +1010,17 @@
 		font-size: 0.9rem;
 		color: #888;
 		margin: 0;
+	}
+
+	.qr-decoded {
+		font-family: monospace;
+		font-size: 0.8rem;
+		color: #999;
+		background: #f5f5f5;
+		padding: 0.4rem 0.75rem;
+		border-radius: 6px;
+		margin: 0;
+		word-break: break-all;
 	}
 
 	.checkout-summary {

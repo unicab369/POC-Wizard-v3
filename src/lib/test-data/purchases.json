@@ -8,7 +8,9 @@
 			{ "id": 10, "name": "Granola Bowl", "qty": 2, "price": "5.50" }
 		],
 		"total": "35.00",
-		"date": "2/4/2026, 10:32:15 AM"
+		"date": "2/4/2026, 10:32:15 AM",
+		"customer": { "name": "Alice Johnson", "phone": "1234567890" },
+		"table": { "id": 1, "label": "Table 1" }
 	},
 	{
 		"items": [
@@ -20,7 +22,8 @@
 			{ "id": 4, "name": "Iced Americano", "qty": 1, "price": "4.00" }
 		],
 		"total": "32.50",
-		"date": "2/3/2026, 2:15:40 PM"
+		"date": "2/3/2026, 2:15:40 PM",
+		"table": { "id": 3, "label": "Table 3" }
 	},
 	{
 		"items": [
@@ -31,6 +34,7 @@
 			{ "id": 10, "name": "Granola Bowl", "qty": 1, "price": "5.50" }
 		],
 		"total": "33.00",
-		"date": "2/2/2026, 9:05:22 AM"
+		"date": "2/2/2026, 9:05:22 AM",
+		"customer": { "name": "Bob Smith", "phone": "2345678901" }
 	}
 ]
