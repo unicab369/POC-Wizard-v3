@@ -11,34 +11,59 @@
 	let checkoutOpen = $state(false);
 	let qrDataUrl = $state('');
 	let purchasesOpen = $state(false);
+	let purchaseQrOpen = $state(false);
+	let purchaseQrUrl = $state('');
+	let purchaseQrOrder = $state<Order | null>(null);
+	let customerName = $state('');
+	let customerPhone = $state('');
+	let showCustomerForm = $state(false);
 
 	interface Order {
 		items: { id: number; name: string; qty: number; price: string }[];
 		total: string;
 		date: string;
+		customer?: { name: string; phone: string };
 	}
 
-	let orders = $state<Order[]>(defaultPurchases);
+	let orders = $state<Order[]>(defaultPurchases as Order[]);
 
 	async function startCheckout() {
 		const totalCents = Math.round(cartStore.total * 100);
-		const orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(', ') + `, ${totalCents}`;
+		const orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(',') + `, ${totalCents}`;
 		qrDataUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
+		showCustomerForm = false;
 		cartOpen = false;
 		checkoutOpen = true;
 	}
 
 	function submitOrder() {
-		orders = [
-			{
-				items: cartStore.items.map(c => ({ id: c.item.id, name: c.item.name, qty: c.qty, price: c.item.price })),
-				total: cartStore.total.toFixed(2),
-				date: new Date().toLocaleString()
-			},
-			...orders
-		];
+		const order: Order = {
+			items: cartStore.items.map(c => ({ id: c.item.id, name: c.item.name, qty: c.qty, price: c.item.price })),
+			total: cartStore.total.toFixed(2),
+			date: new Date().toLocaleString()
+		};
+		if (customerName.trim()) {
+			order.customer = { name: customerName.trim(), phone: customerPhone.trim() };
+		}
+		orders = [order, ...orders];
 		cartStore.clear();
+		customerName = '';
+		customerPhone = '';
 		checkoutOpen = false;
+	}
+
+	async function viewPurchaseQr(order: Order) {
+		const totalCents = Math.round(parseFloat(order.total) * 100);
+		const orderStr = order.items.map(i => `${i.id}:${i.qty}`).join(',') + `, ${totalCents}`;
+		purchaseQrUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
+		purchaseQrOrder = order;
+		purchasesOpen = false;
+		purchaseQrOpen = true;
+	}
+
+	function backToPurchases() {
+		purchaseQrOpen = false;
+		purchasesOpen = true;
 	}
 
 	function backToCart() {
@@ -203,6 +228,29 @@
 			<span>{cartStore.count} item{cartStore.count !== 1 ? 's' : ''}</span>
 			<span class="cart-total-price">${cartStore.total.toFixed(2)}</span>
 		</div>
+
+		{#if showCustomerForm}
+			<div class="customer-form">
+				<label class="field"><span>Name</span>
+					<input type="text" bind:value={customerName} placeholder="Customer name" />
+				</label>
+				<label class="field"><span>Phone</span>
+					<input type="tel" bind:value={customerPhone} placeholder="+1 234 567 890" />
+				</label>
+			</div>
+		{:else}
+			<button class="btn-add-customer" onclick={() => (showCustomerForm = true)}>
+				<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 11h-6M19 8v6" /></svg>
+				Add Customer
+			</button>
+		{/if}
+
+		{#if customerName.trim()}
+			<div class="customer-tag">
+				<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+				<span>{customerName}{customerPhone ? ` \u2022 ${customerPhone}` : ''}</span>
+			</div>
+		{/if}
 	</div>
 	{#snippet footer()}
 		<div class="footer-buttons">
@@ -219,7 +267,7 @@
 	{:else}
 		<div class="purchases-list">
 			{#each orders as order}
-				<div class="purchase-card">
+				<button class="purchase-card" onclick={() => viewPurchaseQr(order)}>
 					<div class="purchase-header">
 						<span class="purchase-date">{order.date}</span>
 						<span class="cart-total-price">${order.total}</span>
@@ -229,10 +277,36 @@
 							<li>{item.qty} x {item.name} <span class="purchase-item-price">${item.price}</span></li>
 						{/each}
 					</ul>
-				</div>
+				</button>
 			{/each}
 		</div>
 	{/if}
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={() => { purchasesOpen = false; cartOpen = true; }}>Back</button>
+		</div>
+	{/snippet}
+</Popup>
+
+<!-- Purchase QR modal -->
+<Popup open={purchaseQrOpen} title="Purchase QR Code" onclose={() => (purchaseQrOpen = false)} fullscreen>
+	<div class="checkout-content">
+		{#if purchaseQrUrl}
+			<img src={purchaseQrUrl} alt="Purchase QR Code" class="checkout-qr" />
+		{/if}
+		{#if purchaseQrOrder}
+			<p class="checkout-hint">{purchaseQrOrder.date}</p>
+			<div class="checkout-summary">
+				<span>{purchaseQrOrder.items.length} item{purchaseQrOrder.items.length !== 1 ? 's' : ''}</span>
+				<span class="cart-total-price">${purchaseQrOrder.total}</span>
+			</div>
+		{/if}
+	</div>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={backToPurchases}>Back</button>
+		</div>
+	{/snippet}
 </Popup>
 
 <!-- Floating cart button -->
@@ -730,6 +804,19 @@
 		border: 1px solid #e8e8e8;
 		border-radius: 10px;
 		overflow: hidden;
+		background: #fff;
+		width: 100%;
+		cursor: pointer;
+		font-family: inherit;
+		font-size: inherit;
+		text-align: left;
+		padding: 0;
+		transition: border-color 0.15s, box-shadow 0.15s;
+	}
+
+	.purchase-card:hover {
+		border-color: #d0d0d0;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 	}
 
 	.purchase-header {
@@ -795,5 +882,86 @@
 		max-width: 250px;
 		font-weight: 600;
 		font-size: 1rem;
+	}
+
+	.btn-add-customer {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 1rem;
+		background: none;
+		border: 1px dashed #ccc;
+		border-radius: 8px;
+		color: #888;
+		font-size: 0.85rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: border-color 0.15s, color 0.15s;
+	}
+
+	.btn-add-customer:hover {
+		border-color: #6c63ff;
+		color: #6c63ff;
+	}
+
+	.btn-add-customer svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.customer-form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		width: 100%;
+		max-width: 280px;
+	}
+
+	.customer-form .field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.customer-form .field span {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: #555;
+		text-align: left;
+	}
+
+	.customer-form .field input {
+		padding: 0.5rem 0.75rem;
+		border: 1px solid #ccc;
+		border-radius: 6px;
+		font-size: 0.9rem;
+		font-family: inherit;
+	}
+
+	.customer-tag {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.35rem 0.75rem;
+		background: #f0eeff;
+		border-radius: 20px;
+		color: #6c63ff;
+		font-size: 0.8rem;
+		font-weight: 500;
+	}
+
+	.customer-tag svg {
+		width: 0.9rem;
+		height: 0.9rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 </style>

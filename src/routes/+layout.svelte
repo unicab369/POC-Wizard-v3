@@ -32,8 +32,8 @@
 			{ label: 'Overview', href: '/dashboard' },
 			{ label: 'Analytics', href: '/dashboard/analytics' }
 		]},
-		{ label: 'Admin', href: '/admin', icon: icons.admin, sublinks: [
-			{ label: 'Quick Actions', href: '/admin' }
+		{ label: 'Employee', href: '/employee', icon: icons.admin, sublinks: [
+			{ label: 'Quick Actions', href: '/employee' }
 		]},
 		{ label: 'Settings', href: '/settings', icon: icons.settings, sublinks: [
 			{ label: 'General', href: '/settings' },
