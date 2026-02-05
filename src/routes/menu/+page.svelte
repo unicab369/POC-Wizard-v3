@@ -33,6 +33,7 @@
 	let checkoutOpen = $state(false);
 	let qrDataUrl = $state('');
 	let qrContent = $state('');
+	let confirmClearOpen = $state(false);
 	let purchasesOpen = $state(false);
 	let purchaseQrOpen = $state(false);
 	let purchaseQrUrl = $state('');
@@ -266,14 +267,14 @@
 		<ul class="cart-list">
 			{#each cartStore.items as entry (entry.item.id)}
 				<li class="cart-item">
+					<button class="cart-remove" onclick={() => cartStore.remove(entry.item.id)} aria-label="Remove">
+						<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>
+					</button>
 					<div class="cart-item-info">
 						<span class="cart-item-name">{entry.item.name}</span>
 						<span class="cart-item-meta">{entry.qty} x ${entry.item.price}</span>
 					</div>
 					<span class="cart-item-total">${(entry.qty * parseFloat(entry.item.price)).toFixed(2)}</span>
-					<button class="cart-remove" onclick={() => cartStore.remove(entry.item.id)} aria-label="Remove">
-						<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>
-					</button>
 				</li>
 			{/each}
 		</ul>
@@ -284,7 +285,7 @@
 		{#if orders.length > 0}
 			<button class="btn-purchases" onclick={() => { cartOpen = false; purchasesOpen = true; }}>Last Purchases</button>
 		{/if}
-		<button class="btn-remove-all" onclick={() => { cartStore.clear(); }}>Remove All</button>
+		<button class="btn-remove-all" onclick={() => (confirmClearOpen = true)}>Remove All</button>
 	{/if}
 	{#snippet footer()}
 		<div class="footer-buttons">
@@ -292,6 +293,17 @@
 			{#if cartStore.items.length > 0}
 				<button class="btn primary" onclick={startCheckout}>Checkout</button>
 			{/if}
+		</div>
+	{/snippet}
+</Popup>
+
+<!-- Confirm Remove All modal -->
+<Popup open={confirmClearOpen} title="Remove All" onclose={() => (confirmClearOpen = false)}>
+	<p class="confirm-text">Are you sure you want to remove all items from your cart?</p>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={() => (confirmClearOpen = false)}>Cancel</button>
+			<button class="btn danger" onclick={() => { cartStore.clear(); confirmClearOpen = false; }}>Remove All</button>
 		</div>
 	{/snippet}
 </Popup>
@@ -873,6 +885,27 @@
 		font-size: 1.15rem;
 		font-weight: 700;
 	}
+
+	.confirm-text {
+		text-align: center;
+		color: #555;
+		font-size: 0.95rem;
+		margin: 1rem 0;
+		line-height: 1.5;
+	}
+
+	.btn.danger {
+		padding: 0.55rem 1.2rem;
+		background: #e74c3c;
+		color: #fff;
+		border: none;
+		border-radius: 6px;
+		font-size: 0.9rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.btn.danger:hover { background: #c0392b; }
 
 	.btn-remove-all {
 		width: 100%;
