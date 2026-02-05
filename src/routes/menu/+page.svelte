@@ -3,6 +3,10 @@
 	import Popup from '$lib/components/Popup.svelte';
 	import QRCode from 'qrcode';
 	import defaultPurchases from '$lib/test-data/purchases.json';
+	import defaultCustomers from '$lib/test-data/customers.json';
+
+	interface Customer { id: number; name: string; phone: string; }
+	const customers: Customer[] = defaultCustomers;
 
 	let columns = $state(1);
 	let selected = $state<MenuItem | null>(null);
@@ -17,6 +21,21 @@
 	let customerName = $state('');
 	let customerPhone = $state('');
 	let showCustomerForm = $state(false);
+	let customerSearch = $state('');
+
+	const filteredCustomers = $derived(() => {
+		const q = customerSearch.trim().toLowerCase();
+		if (!q) return [];
+		return customers.filter(c =>
+			c.name.toLowerCase().includes(q) || c.phone.includes(q)
+		);
+	});
+
+	function selectCustomer(c: Customer) {
+		customerName = c.name;
+		customerPhone = c.phone;
+		customerSearch = '';
+	}
 
 	interface Order {
 		items: { id: number; name: string; qty: number; price: string }[];
@@ -32,6 +51,7 @@
 		const orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(',') + `, ${totalCents}`;
 		qrDataUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		showCustomerForm = false;
+		customerSearch = '';
 		cartOpen = false;
 		checkoutOpen = true;
 	}
@@ -231,11 +251,26 @@
 
 		{#if showCustomerForm}
 			<div class="customer-form">
+				<label class="field"><span>Search Customer</span>
+					<input type="text" bind:value={customerSearch} placeholder="Search by name or phone" />
+				</label>
+				{#if filteredCustomers().length > 0}
+					<ul class="customer-results">
+						{#each filteredCustomers() as c (c.id)}
+							<li>
+								<button class="customer-result" onclick={() => selectCustomer(c)}>
+									<span class="customer-result-name">{c.name}</span>
+									<span class="customer-result-phone">{c.phone}</span>
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{/if}
 				<label class="field"><span>Name</span>
 					<input type="text" bind:value={customerName} placeholder="Customer name" />
 				</label>
 				<label class="field"><span>Phone</span>
-					<input type="tel" bind:value={customerPhone} placeholder="+1 234 567 890" />
+					<input type="text" bind:value={customerPhone} placeholder="1234567890" inputmode="numeric" oninput={(e) => { customerPhone = (e.target as HTMLInputElement).value.replace(/\D/g, ''); }} />
 				</label>
 			</div>
 		{:else}
@@ -941,6 +976,48 @@
 		border-radius: 6px;
 		font-size: 0.9rem;
 		font-family: inherit;
+	}
+
+	.customer-results {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		overflow: hidden;
+		max-height: 150px;
+		overflow-y: auto;
+	}
+
+	.customer-result {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		background: #fff;
+		border: none;
+		border-bottom: 1px solid #f0f0f0;
+		cursor: pointer;
+		font-family: inherit;
+		text-align: left;
+		transition: background 0.15s;
+	}
+
+	.customer-result:last-child { border-bottom: none; }
+	.customer-result:hover { background: #f0eeff; }
+
+	.customer-result-name {
+		font-size: 0.85rem;
+		font-weight: 500;
+		color: #333;
+	}
+
+	.customer-result-phone {
+		font-size: 0.8rem;
+		color: #999;
 	}
 
 	.customer-tag {
