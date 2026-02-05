@@ -43,6 +43,10 @@
 		cart = cart.filter(c => c.item.id !== id);
 	}
 
+	function cartQty(id: number): number {
+		return cart.find(c => c.item.id === id)?.qty ?? 0;
+	}
+
 	// Double-tap detection
 	let lastTap = $state<{ id: number; time: number }>({ id: 0, time: 0 });
 
@@ -92,6 +96,9 @@
 	<div class="menu-grid" class:two-col={columns === 2}>
 		{#each menuStore.items.filter((i: MenuItem) => i.category === category) as item (item.id)}
 			<button class="menu-card" class:grid-card={columns === 2} onclick={() => handleTap(item)}>
+				{#if cartQty(item.id) > 0}
+					<span class="card-qty">{cartQty(item.id)}</span>
+				{/if}
 				<div class="card-info">
 					<span class="card-name">{item.name}</span>
 					<span class="card-desc">{item.description}</span>
@@ -290,6 +297,26 @@
 		color: #6c63ff;
 		white-space: nowrap;
 		flex-shrink: 0;
+	}
+
+	.menu-card {
+		position: relative;
+	}
+
+	.card-qty {
+		position: absolute;
+		top: -0.35rem;
+		left: -0.35rem;
+		background: #6c63ff;
+		color: #fff;
+		font-size: 0.65rem;
+		font-weight: 700;
+		width: 1.2rem;
+		height: 1.2rem;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.menu-card.grid-card {
