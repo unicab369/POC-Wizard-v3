@@ -140,6 +140,16 @@
 		addingTable = false;
 	}
 
+	let confirmDeleteTable = $state(false);
+
+	function deleteTable() {
+		if (editingTable) {
+			tablesStore.remove(editingTable.id);
+			editingTable = null;
+			confirmDeleteTable = false;
+		}
+	}
+
 	let columns = $state(4);
 
 	// Menu import/export
@@ -487,21 +497,14 @@
 
 	<ul class="table-list">
 		{#each tablesStore.items as t (t.id)}
-			<li class="table-item">
+			<button class="table-item" onclick={() => startEditTable(t)}>
 				<div class="table-item-info">
 					<span class="table-item-label">{t.label}</span>
 					<span class="table-item-seats">{t.seats} seat{t.seats !== 1 ? 's' : ''}</span>
 				</div>
 				<span class="table-item-shape">{tableShapeLabel(t.shape)}</span>
-				<div class="table-item-actions">
-					<button class="btn-edit" onclick={() => startEditTable(t)} aria-label="Edit table">
-						<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-					</button>
-					<button class="btn-delete" onclick={() => tablesStore.remove(t.id)} aria-label="Remove table">
-						<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>
-					</button>
-				</div>
-			</li>
+				<svg class="table-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+			</button>
 		{/each}
 	</ul>
 
@@ -527,11 +530,26 @@
 					{/each}
 				</div>
 			</div>
+			<button class="btn-delete-full" onclick={() => (confirmDeleteTable = true)}>
+				<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" /></svg>
+				Delete Table
+			</button>
 		</div>
 		{#snippet footer()}
 			<div class="footer-buttons">
 				<button class="btn primary" onclick={saveTable} disabled={!canSaveTable}>Save</button>
 				<button class="btn secondary" onclick={() => (editingTable = null)}>Cancel</button>
+			</div>
+		{/snippet}
+	</Popup>
+
+	<!-- Confirm Delete Table Modal -->
+	<Popup open={confirmDeleteTable} title="Delete Table" onclose={() => (confirmDeleteTable = false)} wide>
+		<p class="confirm-text">Are you sure you want to delete <strong>{editingTable?.label}</strong>? This action cannot be undone.</p>
+		{#snippet footer()}
+			<div class="footer-buttons">
+				<button class="btn secondary" onclick={() => (confirmDeleteTable = false)}>Cancel</button>
+				<button class="btn danger" onclick={deleteTable}>Delete</button>
 			</div>
 		{/snippet}
 	</Popup>
@@ -672,6 +690,32 @@
 	}
 
 	.btn.secondary:hover { background: #f0f0f0; }
+
+	.btn.danger {
+		padding: 0.55rem 1.2rem;
+		background: #e74c3c;
+		color: #fff;
+		border: none;
+		border-radius: 6px;
+		font-size: 1.1rem;
+		font-weight: 600;
+		cursor: pointer;
+		font-family: inherit;
+	}
+
+	.btn.danger:hover { background: #c0392b; }
+
+	.confirm-text {
+		text-align: center;
+		color: #555;
+		font-size: 0.95rem;
+		margin: 1rem 0;
+		line-height: 1.5;
+	}
+
+	.confirm-text strong {
+		color: #222;
+	}
 
 	.sign-in-btn {
 		margin-top: 0.25rem;
@@ -1048,11 +1092,36 @@
 	.table-item {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		gap: 0.75rem;
 		padding: 0.65rem 0.75rem;
 		background: #fff;
 		border: 1px solid #e8e8e8;
 		border-radius: 8px;
+		width: 100%;
+		cursor: pointer;
+		font-family: inherit;
+		text-align: left;
+		transition: border-color 0.15s, box-shadow 0.15s;
+	}
+
+	.table-item:hover {
+		border-color: #6c63ff;
+		box-shadow: 0 2px 8px rgba(108, 99, 255, 0.15);
+	}
+
+	.table-arrow {
+		width: 1.25rem;
+		height: 1.25rem;
+		fill: none;
+		stroke: #ccc;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		flex-shrink: 0;
+	}
+
+	.table-item:hover .table-arrow {
+		stroke: #6c63ff;
 	}
 
 	.table-item-info {
@@ -1074,11 +1143,6 @@
 		color: #999;
 	}
 
-	.table-item-actions {
-		display: flex;
-		gap: 0.25rem;
-	}
-
 	.btn-delete {
 		display: flex;
 		align-items: center;
@@ -1095,6 +1159,40 @@
 
 	.btn-delete:hover { color: #e74c3c; border-color: #e74c3c; }
 	.btn-delete svg { width: 0.9rem; height: 0.9rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+	.btn-delete-full {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0.75rem;
+		margin-top: 0.5rem;
+		background: none;
+		border: 1px solid #e74c3c;
+		border-radius: 8px;
+		color: #e74c3c;
+		font-size: 0.9rem;
+		font-weight: 500;
+		cursor: pointer;
+		font-family: inherit;
+		transition: background 0.15s, color 0.15s;
+	}
+
+	.btn-delete-full:hover {
+		background: #e74c3c;
+		color: #fff;
+	}
+
+	.btn-delete-full svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
 
 	.popup-form-inline {
 		display: flex;
