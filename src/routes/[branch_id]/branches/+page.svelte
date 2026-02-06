@@ -18,15 +18,15 @@
 	{#each branches as branch}
 		<button
 			class="branch-card"
-			class:active={branchStore.id === branch}
-			onclick={() => selectBranch(branch)}
+			class:active={branchStore.id === branch.id}
+			onclick={() => selectBranch(branch.id)}
 		>
 			<div class="branch-icon">
 				<svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
 			</div>
 			<div class="branch-info">
-				<span class="branch-name">{branch}</span>
-				{#if branchStore.id === branch}
+				<span class="branch-name">{branch.name}</span>
+				{#if branchStore.id === branch.id}
 					<span class="branch-badge">Current</span>
 				{/if}
 			</div>

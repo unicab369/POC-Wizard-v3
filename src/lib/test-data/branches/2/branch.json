@@ -1,0 +1,22 @@
+{
+	"id": "2",
+	"name": "Downtown Plaza",
+	"address": "456 Plaza Avenue, Business District",
+	"phone": "+1 (555) 234-5678",
+	"email": "plaza@mycafe.com",
+	"description": "Modern location in the business district. Perfect for meetings and quick bites.",
+	"hours": {
+		"monday": { "open": "06:00", "close": "20:00" },
+		"tuesday": { "open": "06:00", "close": "20:00" },
+		"wednesday": { "open": "06:00", "close": "20:00" },
+		"thursday": { "open": "06:00", "close": "20:00" },
+		"friday": { "open": "06:00", "close": "22:00" },
+		"saturday": { "open": "07:00", "close": "22:00" },
+		"sunday": { "open": "08:00", "close": "18:00" }
+	},
+	"features": ["WiFi", "Meeting Rooms", "Express Counter", "Delivery"],
+	"socialMedia": {
+		"instagram": "https://instagram.com/mycafe_plaza",
+		"twitter": "https://twitter.com/mycafe_plaza"
+	}
+}

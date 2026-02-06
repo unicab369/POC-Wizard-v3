@@ -1,0 +1,22 @@
+{
+	"id": "1",
+	"name": "Main Street",
+	"address": "123 Main Street, Downtown",
+	"phone": "+1 (555) 123-4567",
+	"email": "mainstreet@mycafe.com",
+	"description": "Our flagship location in the heart of downtown. Cozy atmosphere with outdoor seating.",
+	"hours": {
+		"monday": { "open": "07:00", "close": "19:00" },
+		"tuesday": { "open": "07:00", "close": "19:00" },
+		"wednesday": { "open": "07:00", "close": "19:00" },
+		"thursday": { "open": "07:00", "close": "21:00" },
+		"friday": { "open": "07:00", "close": "21:00" },
+		"saturday": { "open": "08:00", "close": "20:00" },
+		"sunday": { "open": "09:00", "close": "17:00" }
+	},
+	"features": ["WiFi", "Outdoor Seating", "Parking"],
+	"socialMedia": {
+		"instagram": "https://instagram.com/mycafe_main",
+		"facebook": "https://facebook.com/mycafe.main"
+	}
+}

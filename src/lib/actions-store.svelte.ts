@@ -59,7 +59,7 @@ export function buildHref(type: ActionType, value: string): string {
 
 // Branch management
 const BRANCH_KEY = 'current-branch';
-const DEFAULT_BRANCH = 'main';
+const DEFAULT_BRANCH = '1';
 
 function loadBranchId(): string {
 	if (typeof localStorage === 'undefined') return DEFAULT_BRANCH;

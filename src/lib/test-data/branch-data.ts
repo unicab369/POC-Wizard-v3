@@ -1,20 +1,40 @@
-// Branch-specific test data
-import mainMenu from './branches/main/menu-items.json';
-import mainCustomers from './branches/main/customers.json';
-import mainPurchases from './branches/main/purchases.json';
-import mainTables from './branches/main/tables.json';
+// Branch-specific test data using numeric IDs
 
-import downtownMenu from './branches/downtown/menu-items.json';
-import downtownCustomers from './branches/downtown/customers.json';
-import downtownPurchases from './branches/downtown/purchases.json';
-import downtownTables from './branches/downtown/tables.json';
+// Branch 1 - Main Street
+import branch1Info from './branches/1/branch.json';
+import branch1Menu from './branches/1/menu-items.json';
+import branch1Customers from './branches/1/customers.json';
+import branch1Purchases from './branches/1/purchases.json';
+import branch1Tables from './branches/1/tables.json';
 
-import defaultMenu from './branches/default/menu-items.json';
-import defaultCustomers from './branches/default/customers.json';
-import defaultPurchases from './branches/default/purchases.json';
-import defaultTables from './branches/default/tables.json';
+// Branch 2 - Downtown Plaza
+import branch2Info from './branches/2/branch.json';
+import branch2Menu from './branches/2/menu-items.json';
+import branch2Customers from './branches/2/customers.json';
+import branch2Purchases from './branches/2/purchases.json';
+import branch2Tables from './branches/2/tables.json';
+
+// Default branch (ID 0) - for new/unknown branches
+import defaultBranchInfo from './branches/0/branch.json';
+import defaultMenu from './branches/0/menu-items.json';
+import defaultCustomers from './branches/0/customers.json';
+import defaultPurchases from './branches/0/purchases.json';
+import defaultTables from './branches/0/tables.json';
+
+export interface BranchInfo {
+	id: string;
+	name: string;
+	address: string;
+	phone: string;
+	email: string;
+	description: string;
+	hours: Record<string, { open: string; close: string; closed?: boolean }>;
+	features: string[];
+	socialMedia: Record<string, string>;
+}
 
 export interface BranchData {
+	info: BranchInfo;
 	menu: typeof defaultMenu;
 	customers: typeof defaultCustomers;
 	purchases: typeof defaultPurchases;
@@ -22,21 +42,39 @@ export interface BranchData {
 }
 
 const branchDataMap: Record<string, BranchData> = {
-	main: {
-		menu: mainMenu,
-		customers: mainCustomers,
-		purchases: mainPurchases,
-		tables: mainTables
+	'1': {
+		info: branch1Info as BranchInfo,
+		menu: branch1Menu,
+		customers: branch1Customers,
+		purchases: branch1Purchases,
+		tables: branch1Tables
 	},
-	downtown: {
-		menu: downtownMenu,
-		customers: downtownCustomers,
-		purchases: downtownPurchases,
-		tables: downtownTables
+	'2': {
+		info: branch2Info as BranchInfo,
+		menu: branch2Menu,
+		customers: branch2Customers,
+		purchases: branch2Purchases,
+		tables: branch2Tables
+	},
+	// Legacy name mappings for backwards compatibility
+	'main': {
+		info: branch1Info as BranchInfo,
+		menu: branch1Menu,
+		customers: branch1Customers,
+		purchases: branch1Purchases,
+		tables: branch1Tables
+	},
+	'downtown': {
+		info: branch2Info as BranchInfo,
+		menu: branch2Menu,
+		customers: branch2Customers,
+		purchases: branch2Purchases,
+		tables: branch2Tables
 	}
 };
 
 const defaultData: BranchData = {
+	info: defaultBranchInfo as BranchInfo,
 	menu: defaultMenu,
 	customers: defaultCustomers,
 	purchases: defaultPurchases,
@@ -47,6 +85,13 @@ export function getBranchData(branchId: string): BranchData {
 	return branchDataMap[branchId] || defaultData;
 }
 
-export function getAvailableBranches(): string[] {
-	return Object.keys(branchDataMap);
+export function getBranchInfo(branchId: string): BranchInfo {
+	return (branchDataMap[branchId]?.info || defaultData.info);
+}
+
+export function getAvailableBranches(): { id: string; name: string }[] {
+	return [
+		{ id: '1', name: branch1Info.name },
+		{ id: '2', name: branch2Info.name }
+	];
 }
