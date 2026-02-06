@@ -38,8 +38,9 @@
 			{ label: 'Overview', href: '/dashboard' },
 			{ label: 'Analytics', href: '/dashboard/analytics' }
 		]},
-		{ label: 'Branch', href: `/${branchId}/branch`, icon: icons.admin, sublinks: [
-			{ label: 'Manage', href: `/${branchId}/branch` }
+		{ label: 'Branches', href: `/${branchId}/branches`, icon: icons.admin, sublinks: [
+			{ label: 'My Branches', href: `/${branchId}/branches` },
+			{ label: 'Manage', href: `/${branchId}/manage` }
 		]},
 		{ label: 'Settings', href: '/settings', icon: icons.settings, sublinks: [
 			{ label: 'General', href: '/settings' },
