@@ -1,45 +1,13 @@
 <script lang="ts">
-	import { actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, ACTION_TYPES, TABLE_SHAPES, tableShapeLabel, tableShapeCss, type QuickAction, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode } from '$lib/actions-store.svelte';
+	import { page } from '$app/state';
+	import { actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, ACTION_TYPES, TABLE_SHAPES, tableShapeLabel, tableShapeCss, branchStore, type QuickAction, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode } from '$lib/actions-store.svelte';
+	import { getBranchInfo } from '$lib/test-data/branch-data';
 	import ActionGrid from '$lib/components/ActionGrid.svelte';
 	import BusinessHours from '$lib/components/BusinessHours.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 
-	// Employee sign-in
-	const EMP_KEY = 'employee-auth';
-
-	interface EmpAuth { location: string; username: string; }
-
-	function loadEmpAuth(): EmpAuth | null {
-		if (typeof sessionStorage === 'undefined') return null;
-		const raw = sessionStorage.getItem(EMP_KEY);
-		if (!raw) return null;
-		try { return JSON.parse(raw); } catch { return null; }
-	}
-
-	let empAuth = $state<EmpAuth | null>(loadEmpAuth());
-	let loginLocation = $state('');
-	let loginUsername = $state('');
-	let loginPassword = $state('');
-	let loginError = $state('');
-
-	function signIn() {
-		if (!loginLocation.trim() || !loginUsername.trim() || !loginPassword.trim()) {
-			loginError = 'All fields are required.';
-			return;
-		}
-		const auth: EmpAuth = { location: loginLocation.trim(), username: loginUsername.trim() };
-		sessionStorage.setItem(EMP_KEY, JSON.stringify(auth));
-		empAuth = auth;
-		loginError = '';
-	}
-
-	function signOut() {
-		sessionStorage.removeItem(EMP_KEY);
-		empAuth = null;
-		loginLocation = '';
-		loginUsername = '';
-		loginPassword = '';
-	}
+	const branchId = $derived(page.params.branch_id || branchStore.id);
+	const branchName = $derived(getBranchInfo(branchId).name);
 
 	type View = 'select' | 'home' | 'menu' | 'tables';
 	let view = $state<View>('select');
@@ -193,36 +161,13 @@
 	}
 </script>
 
-{#if !empAuth}
-	<div class="sign-in-wrapper">
-		<div class="sign-in-card">
-			<div class="sign-in-icon">
-				<svg viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-			</div>
-			<h2 class="sign-in-title">Employee Sign In</h2>
-			<div class="sign-in-form">
-				<label class="field"><span>Location Name</span>
-					<input type="text" bind:value={loginLocation} placeholder="e.g. Downtown Branch" />
-				</label>
-				<label class="field"><span>User Name</span>
-					<input type="text" bind:value={loginUsername} placeholder="Your username" />
-				</label>
-				<label class="field"><span>Password</span>
-					<input type="password" bind:value={loginPassword} placeholder="Enter password"
-						onkeydown={(e) => { if (e.key === 'Enter') signIn(); }} />
-				</label>
-				{#if loginError}
-					<p class="login-error">{loginError}</p>
-				{/if}
-				<button class="btn primary sign-in-btn" onclick={signIn}>Sign In</button>
-			</div>
-		</div>
-	</div>
-{:else}
-
 {#if view === 'select'}
+	<a class="back-btn" href="/{branchId}/branches">
+		<svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+		Back to Branches
+	</a>
 	<div class="select-wrapper">
-		<h2 class="select-title">What would you like to edit?</h2>
+		<h2 class="select-title">Editing: {branchName}</h2>
 		<div class="select-buttons">
 			<button class="select-btn" onclick={() => (view = 'home')}>
 				<svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" /></svg>
@@ -476,103 +421,7 @@
 	</Popup>
 {/if}
 
-<div class="emp-bar">
-	<span class="emp-info">{empAuth.username} @ {empAuth.location}</span>
-	<button class="btn-signout" onclick={signOut}>Sign Out</button>
-</div>
-
-{/if}
-
 <style>
-	.sign-in-wrapper {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		min-height: 60vh;
-	}
-
-	.sign-in-card {
-		background: #fff;
-		border-radius: 12px;
-		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-		padding: 2rem 1.5rem;
-		width: 100%;
-		max-width: 360px;
-		text-align: center;
-	}
-
-	.sign-in-icon svg {
-		width: 2.5rem;
-		height: 2.5rem;
-		fill: none;
-		stroke: #6c63ff;
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-
-	.sign-in-title {
-		margin: 0.5rem 0 1.25rem;
-		font-size: 1.15rem;
-		font-weight: 600;
-		color: #333;
-	}
-
-	.sign-in-form {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		text-align: left;
-	}
-
-	.sign-in-btn {
-		margin-top: 0.25rem;
-		width: 100%;
-	}
-
-	.login-error {
-		margin: 0;
-		font-size: 0.8rem;
-		color: #e53935;
-		text-align: center;
-	}
-
-	.emp-bar {
-		position: fixed;
-		bottom: 0;
-		left: 250px;
-		right: 0;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		background: #f0eeff;
-		border-top: 1px solid #d8d4ff;
-		padding: 0.5rem 1rem;
-		z-index: 50;
-	}
-
-	@media (max-width: 768px) {
-		.emp-bar { left: 0; }
-	}
-
-	.emp-info {
-		font-size: 0.85rem;
-		font-weight: 500;
-		color: #5a52d5;
-	}
-
-	.btn-signout {
-		background: none;
-		border: 1px solid #ccc;
-		border-radius: 6px;
-		font-size: 0.8rem;
-		padding: 0.3rem 0.75rem;
-		cursor: pointer;
-		color: #555;
-	}
-
-	.btn-signout:hover { background: #f0f0f0; }
-
 	.select-wrapper {
 		display: flex;
 		flex-direction: column;
@@ -641,7 +490,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.4rem;
-		margin-top: 1rem;
+		padding: 1rem 0.75rem;
 		background: #f0eeff;
 		border: none;
 		border-radius: 8px;
@@ -650,6 +499,7 @@
 		color: #6c63ff;
 		cursor: pointer;
 		font-family: inherit;
+		text-decoration: none;
 	}
 
 	.back-btn:hover { background: #e4e0ff; }

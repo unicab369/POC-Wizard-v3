@@ -41,8 +41,7 @@
 			{ label: 'Analytics', href: '/dashboard/analytics' }
 		]},
 		{ label: 'Branches', href: `/${branchId}/branches`, icon: icons.admin, sublinks: [
-			{ label: 'Branches', href: `/${branchId}/branches` },
-			{ label: 'Manage', href: `/${branchId}/manage` }
+			{ label: 'Branches', href: `/${branchId}/branches` }
 		]},
 		{ label: 'Settings', href: '/settings', icon: icons.settings, sublinks: [
 			{ label: 'General', href: '/settings' },
