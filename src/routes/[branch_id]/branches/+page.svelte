@@ -335,8 +335,10 @@
 		</div>
 	</div>
 {:else if view === 'home'}
+	<h2>Edit Home Page</h2>
+	<p class="editing-branch">{selectedBranchName}</p>
 	<div class="title-row">
-		<h1>{pageStore.title}</h1>
+		<h3>{pageStore.title}</h3>
 		<button class="btn-edit" onclick={startEditPage} aria-label="Edit title and description">
 			<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
 		</button>
@@ -439,6 +441,7 @@
 
 {:else if view === 'menu'}
 	<h2>Edit Menu</h2>
+	<p class="editing-branch">{selectedBranchName}</p>
 
 	<div class="menu-edit-section">
 		<span class="section-label">Menu Data</span>
@@ -489,7 +492,17 @@
 		</div>
 	</div>
 
+	<div class="menu-edit-section">
+		<span class="section-label">Checkout Options</span>
+		<label class="checkbox-option">
+			<input type="checkbox" checked={menuSettingsStore.requireTable} onchange={(e) => (menuSettingsStore.requireTable = (e.target as HTMLInputElement).checked)} />
+			<span>Require table selection before checkout</span>
+		</label>
+	</div>
+
 {:else if view === 'tables'}
+	<h2>Edit Tables</h2>
+	<p class="editing-branch">{selectedBranchName}</p>
 	<div class="grid-header">
 		<span class="grid-label">Tables</span>
 		<button class="btn-add" onclick={startAddTable}>+ Add Table</button>
@@ -731,6 +744,28 @@
 
 	h1 {
 		margin: 1rem 0 0.25rem;
+	}
+
+	h2 {
+		margin: 0.5rem 0 0;
+	}
+
+	h3 {
+		margin: 0;
+		font-size: 1.1rem;
+	}
+
+	.editing-branch {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		margin: 0.25rem 0 1rem;
+		padding: 0.25rem 0.6rem;
+		background: #f0eeff;
+		border-radius: 4px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: #6c63ff;
 	}
 
 	.subtitle {
@@ -1365,6 +1400,36 @@
 	}
 
 	.radio-option span {
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: #333;
+	}
+
+	.checkbox-option {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.6rem 0.75rem;
+		background: #fff;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		cursor: pointer;
+		margin-top: 0.5rem;
+		transition: border-color 0.15s, background 0.15s;
+	}
+
+	.checkbox-option:has(input:checked) {
+		border-color: #6c63ff;
+		background: #f0eeff;
+	}
+
+	.checkbox-option input[type="checkbox"] {
+		accent-color: #6c63ff;
+		width: 1.1rem;
+		height: 1.1rem;
+	}
+
+	.checkbox-option span {
 		font-size: 0.9rem;
 		font-weight: 500;
 		color: #333;

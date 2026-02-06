@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { menuStore, cartStore, tablesStore, menuDisplayStore, branchStore, tableShapeCss, formatCurrency, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
+	import { menuStore, cartStore, tablesStore, menuDisplayStore, menuSettingsStore, branchStore, tableShapeCss, formatCurrency, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 	import QRCode from 'qrcode';
 	import { getBranchData } from '$lib/test-data/branch-data';
@@ -300,10 +300,14 @@
 		</button>
 	{/if}
 
+	{#if menuSettingsStore.requireTable && !selectedTable && cartStore.items.length > 0}
+		<p class="table-required-hint">Please select a table to checkout</p>
+	{/if}
+
 	{#snippet footer()}
 		<div class="footer-buttons">
 			<button class="btn secondary" onclick={() => (cartOpen = false)}>Cancel</button>
-			<button class="btn primary" onclick={startCheckout} disabled={cartStore.items.length === 0}>Checkout</button>
+			<button class="btn primary" onclick={startCheckout} disabled={cartStore.items.length === 0 || (menuSettingsStore.requireTable && !selectedTable)}>Checkout</button>
 		</div>
 	{/snippet}
 </Popup>
@@ -1340,5 +1344,12 @@
 	.table-seats {
 		font-size: 0.7rem;
 		color: #999;
+	}
+
+	.table-required-hint {
+		text-align: center;
+		font-size: 0.8rem;
+		color: #e74c3c;
+		margin: 0.5rem 0 0;
 	}
 </style>

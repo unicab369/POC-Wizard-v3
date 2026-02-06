@@ -221,10 +221,11 @@ export const menuDisplayStore = {
 	set mode(v: MenuDisplayMode) { displayMode = v; if (typeof localStorage !== 'undefined') localStorage.setItem(branchKey('menu-display-mode'), v); }
 };
 
-// Menu settings (language/currency)
+// Menu settings (language/currency/checkout options)
 export interface MenuSettings {
 	language: string;
 	currency: string;
+	requireTable: boolean;
 }
 
 import localeOptions from '$lib/test-data/locale-options.json';
@@ -274,7 +275,8 @@ function getDefaultMenuSettings(): MenuSettings {
 	const branchInfo = getBranchInfo(currentBranchId);
 	return {
 		language: branchInfo.language || 'en',
-		currency: branchInfo.currency || 'USD'
+		currency: branchInfo.currency || 'USD',
+		requireTable: false
 	};
 }
 
@@ -300,7 +302,9 @@ export const menuSettingsStore = {
 	get language() { return menuSettings.language; },
 	set language(v: string) { menuSettings = { ...menuSettings, language: v }; saveMenuSettings(menuSettings); },
 	get currency() { return menuSettings.currency; },
-	set currency(v: string) { menuSettings = { ...menuSettings, currency: v }; saveMenuSettings(menuSettings); }
+	set currency(v: string) { menuSettings = { ...menuSettings, currency: v }; saveMenuSettings(menuSettings); },
+	get requireTable() { return menuSettings.requireTable; },
+	set requireTable(v: boolean) { menuSettings = { ...menuSettings, requireTable: v }; saveMenuSettings(menuSettings); }
 };
 
 // Tables
