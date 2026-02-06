@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
+	import { base } from '$app/paths';
 	import { branchStore, actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, menuSettingsStore, ACTION_TYPES, TABLE_SHAPES, LANGUAGES, CURRENCIES, tableShapeLabel, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode, type Employee } from '$lib/actions-store.svelte';
 	import { getAvailableBranches, getBranchInfo, getBranchData } from '$lib/test-data/branch-data';
 	import { auth } from '$lib/auth.svelte';
@@ -18,9 +19,17 @@
 		return all;
 	}
 
-	// Reset view to list when navigating to this page
+	// Track if we're doing a branch switch (should go to select view)
+	let pendingSelect = $state(false);
+
+	// Reset view when navigating to this page
 	afterNavigate(() => {
-		view = 'list';
+		if (pendingSelect) {
+			view = 'select';
+			pendingSelect = false;
+		} else {
+			view = 'list';
+		}
 	});
 
 	// Employee sign-in (checks for manager role)
@@ -93,8 +102,9 @@
 	const selectedBranchName = $derived(getBranchInfo(branchStore.id).name);
 
 	function selectBranch(branchId: string) {
-		branchStore.id = branchId;
-		view = 'select';
+		// Navigate to the new branch's URL so the layout effect syncs correctly
+		pendingSelect = true;
+		goto(`${base}/${branchId}/branches`);
 	}
 
 	function goBack() {

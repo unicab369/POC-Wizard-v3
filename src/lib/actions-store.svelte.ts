@@ -276,7 +276,7 @@ function getDefaultMenuSettings(): MenuSettings {
 	return {
 		language: branchInfo.language || 'en',
 		currency: branchInfo.currency || 'USD',
-		requireTable: false
+		requireTable: branchInfo.requireTable ?? false
 	};
 }
 

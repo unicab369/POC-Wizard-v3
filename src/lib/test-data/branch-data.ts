@@ -33,6 +33,7 @@ export interface BranchInfo {
 	description: string;
 	language: string;
 	currency: string;
+	requireTable: boolean;
 	hours: Record<string, { open: string; close: string; closed?: boolean }>;
 	features: string[];
 	socialMedia: Record<string, string>;

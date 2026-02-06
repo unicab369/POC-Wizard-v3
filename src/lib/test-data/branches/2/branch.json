@@ -7,6 +7,7 @@
 	"description": "Modern location in the business district. Perfect for meetings and quick bites.",
 	"language": "en",
 	"currency": "USD",
+	"requireTable": true,
 	"hours": {
 		"monday": { "open": "06:00", "close": "20:00" },
 		"tuesday": { "open": "06:00", "close": "20:00" },
