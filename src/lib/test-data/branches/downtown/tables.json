@@ -1,0 +1,12 @@
+[
+	{ "id": 1, "label": "Window 1", "seats": 2, "shape": 0 },
+	{ "id": 2, "label": "Window 2", "seats": 2, "shape": 0 },
+	{ "id": 3, "label": "Window 3", "seats": 2, "shape": 0 },
+	{ "id": 4, "label": "Center 1", "seats": 4, "shape": 1 },
+	{ "id": 5, "label": "Booth 1", "seats": 4, "shape": 2 },
+	{ "id": 6, "label": "Booth 2", "seats": 4, "shape": 2 },
+	{ "id": 7, "label": "Booth 3", "seats": 6, "shape": 2 },
+	{ "id": 8, "label": "High Top 1", "seats": 2, "shape": 3 },
+	{ "id": 9, "label": "High Top 2", "seats": 2, "shape": 3 },
+	{ "id": 10, "label": "Large Party", "seats": 10, "shape": 2 }
+]

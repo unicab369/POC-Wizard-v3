@@ -8,10 +8,5 @@
 	{ "id": 7, "name": "Bagel", "description": "Toasted with cream cheese", "price": "4.00", "category": "Food" },
 	{ "id": 8, "name": "Muffin", "description": "Blueberry or chocolate chip", "price": "3.50", "category": "Food" },
 	{ "id": 9, "name": "Avocado Toast", "description": "Sourdough with fresh avocado", "price": "6.50", "category": "Food" },
-	{ "id": 10, "name": "Granola Bowl", "description": "Yogurt, granola, and berries", "price": "5.50", "category": "Food" },
-	{ "id": 11, "name": "Croissant", "description": "Buttery, flaky pastry", "price": "3.00", "category": "Food" },
-	{ "id": 12, "name": "Bagel", "description": "Toasted with cream cheese", "price": "4.00", "category": "Food" },
-	{ "id": 13, "name": "Muffin", "description": "Blueberry or chocolate chip", "price": "3.50", "category": "Food" },
-	{ "id": 14, "name": "Avocado Toast", "description": "Sourdough with fresh avocado", "price": "6.50", "category": "Food" },
-	{ "id": 15, "name": "Granola Bowl", "description": "Yogurt, granola, and berries", "price": "5.50", "category": "Food" }
+	{ "id": 10, "name": "Granola Bowl", "description": "Yogurt, granola, and berries", "price": "5.50", "category": "Food" }
 ]

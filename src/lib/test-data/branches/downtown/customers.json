@@ -1,0 +1,8 @@
+[
+	{ "id": 1, "name": "Michael Chen", "phone": "5551234567" },
+	{ "id": 2, "name": "Sarah Parker", "phone": "5552345678" },
+	{ "id": 3, "name": "James Rodriguez", "phone": "5553456789" },
+	{ "id": 4, "name": "Lisa Kim", "phone": "5554567890" },
+	{ "id": 5, "name": "Ryan O'Brien", "phone": "5555678901" },
+	{ "id": 6, "name": "Nina Patel", "phone": "5556789012" }
+]

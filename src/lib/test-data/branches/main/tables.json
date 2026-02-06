@@ -1,0 +1,9 @@
+[
+	{ "id": 1, "label": "Table 1", "seats": 2, "shape": 0 },
+	{ "id": 2, "label": "Table 2", "seats": 2, "shape": 0 },
+	{ "id": 3, "label": "Table 3", "seats": 4, "shape": 1 },
+	{ "id": 4, "label": "Table 4", "seats": 4, "shape": 1 },
+	{ "id": 5, "label": "Table 5", "seats": 6, "shape": 2 },
+	{ "id": 6, "label": "Bar 1", "seats": 1, "shape": 3 },
+	{ "id": 7, "label": "Bar 2", "seats": 1, "shape": 3 }
+]

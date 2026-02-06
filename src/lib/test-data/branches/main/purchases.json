@@ -1,0 +1,22 @@
+[
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 2, "price": "4.50" },
+			{ "id": 6, "name": "Croissant", "qty": 1, "price": "3.00" },
+			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": "6.50" }
+		],
+		"total": "18.50",
+		"date": "2/4/2026, 10:32:15 AM",
+		"customer": { "name": "Alice Johnson", "phone": "1234567890" },
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 1, "price": "5.00" },
+			{ "id": 7, "name": "Bagel", "qty": 2, "price": "4.00" }
+		],
+		"total": "13.00",
+		"date": "2/3/2026, 2:15:40 PM",
+		"table": { "id": 3, "label": "Table 3" }
+	}
+]

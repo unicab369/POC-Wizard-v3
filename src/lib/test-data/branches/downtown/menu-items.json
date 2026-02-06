@@ -1,0 +1,14 @@
+[
+	{ "id": 1, "name": "Flat White", "description": "Velvety microfoam espresso", "price": "4.75", "category": "Coffee" },
+	{ "id": 2, "name": "Cold Brew", "description": "24-hour steeped cold coffee", "price": "4.50", "category": "Coffee" },
+	{ "id": 3, "name": "Cortado", "description": "Equal parts espresso and milk", "price": "4.00", "category": "Coffee" },
+	{ "id": 4, "name": "Mocha", "description": "Espresso with chocolate and milk", "price": "5.50", "category": "Coffee" },
+	{ "id": 5, "name": "Chai Latte", "description": "Spiced tea with steamed milk", "price": "5.00", "category": "Tea" },
+	{ "id": 6, "name": "Earl Grey", "description": "Classic bergamot black tea", "price": "3.50", "category": "Tea" },
+	{ "id": 7, "name": "Green Tea", "description": "Japanese sencha", "price": "3.50", "category": "Tea" },
+	{ "id": 8, "name": "Breakfast Burrito", "description": "Eggs, cheese, and salsa", "price": "8.50", "category": "Brunch" },
+	{ "id": 9, "name": "Eggs Benedict", "description": "Poached eggs with hollandaise", "price": "12.00", "category": "Brunch" },
+	{ "id": 10, "name": "Pancake Stack", "description": "Three fluffy pancakes with maple", "price": "9.00", "category": "Brunch" },
+	{ "id": 11, "name": "Acai Bowl", "description": "Frozen acai with toppings", "price": "11.00", "category": "Brunch" },
+	{ "id": 12, "name": "Smoked Salmon Bagel", "description": "Cream cheese and capers", "price": "10.50", "category": "Brunch" }
+]

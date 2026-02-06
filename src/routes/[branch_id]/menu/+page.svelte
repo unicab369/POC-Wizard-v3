@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { menuStore, cartStore, tablesStore, menuDisplayStore, tableShapeCss, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
+	import { menuStore, cartStore, tablesStore, menuDisplayStore, branchStore, tableShapeCss, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 	import QRCode from 'qrcode';
-	import defaultPurchases from '$lib/test-data/purchases.json';
-	import defaultCustomers from '$lib/test-data/customers.json';
+	import { getBranchData } from '$lib/test-data/branch-data';
 
 	interface Customer { id: number; name: string; phone: string; }
-	const customers: Customer[] = defaultCustomers;
+	const customers = $derived<Customer[]>(getBranchData(branchStore.id).customers);
 
 	// Check if employee is signed in via Branch
 	const isEmployee = $derived(
@@ -66,7 +65,7 @@
 		table?: { id: number; label: string };
 	}
 
-	let orders = $state<Order[]>(defaultPurchases as Order[]);
+	let orders = $state<Order[]>(getBranchData(branchStore.id).purchases as Order[]);
 
 	async function startCheckout() {
 		const totalCents = Math.round(cartStore.total * 100);

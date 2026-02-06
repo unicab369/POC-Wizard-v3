@@ -147,9 +147,14 @@ export interface MenuItem {
 	category: string;
 }
 
-import defaultMenu from '$lib/test-data/menu-items.json';
+import { getBranchData } from '$lib/test-data/branch-data';
+
+function getDefaultMenu(): MenuItem[] {
+	return getBranchData(currentBranchId).menu;
+}
 
 function loadMenu(): MenuItem[] {
+	const defaultMenu = getDefaultMenu();
 	if (typeof localStorage === 'undefined') return defaultMenu;
 	const raw = localStorage.getItem(branchKey('menu-items'));
 	if (!raw) return defaultMenu;
@@ -229,9 +234,12 @@ export interface TableItem {
 	shape: number;
 }
 
-import defaultTables from '$lib/test-data/tables.json';
+function getDefaultTables(): TableItem[] {
+	return getBranchData(currentBranchId).tables;
+}
 
 function loadTables(): TableItem[] {
+	const defaultTables = getDefaultTables();
 	if (typeof localStorage === 'undefined') return defaultTables;
 	const raw = localStorage.getItem(branchKey('tables'));
 	if (!raw) return defaultTables;
