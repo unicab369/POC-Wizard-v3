@@ -2,6 +2,8 @@
 	import { menuStore, cartStore, tablesStore, menuDisplayStore, menuSettingsStore, branchStore, tableShapeCss, formatCurrency, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 	import QRCode from 'qrcode';
+	import { Html5Qrcode } from 'html5-qrcode';
+	import { onDestroy } from 'svelte';
 	import { getBranchData } from '$lib/test-data/branch-data';
 
 	interface Customer { id: number; name: string; phone: string; }
@@ -43,6 +45,18 @@
 	let showCustomerForm = $state(false);
 	let customerSearch = $state('');
 
+	// Scanner state
+	let confirmScanOpen = $state(false);
+	let scannerOpen = $state(false);
+	let scannerInstance: Html5Qrcode | null = null;
+	let scanResult = $state<string | null>(null);
+	let scanError = $state<string | null>(null);
+	let scanning = $state(false);
+
+	onDestroy(() => {
+		if (scannerInstance?.isScanning) scannerInstance.stop();
+	});
+
 	const filteredCustomers = $derived(() => {
 		const q = customerSearch.trim().toLowerCase();
 		if (!q) return [];
@@ -67,11 +81,16 @@
 
 	let orders = $state<Order[]>(getBranchData(branchStore.id).purchases as Order[]);
 
+	// Generate QR string from order items
+	function generateOrderQrString(items: { id: number; qty: number }[], total: number, tableId: number): string {
+		return `${total},${tableId},` + items.map(i => `${i.id}:${i.qty}`).join(',');
+	}
+
 	async function startCheckout() {
 		const tableId = selectedTable ? selectedTable.id : 0;
-		const orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(',') + `,${cartStore.total},${tableId}`;
-		qrContent = orderStr;
-		qrDataUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
+		const items = cartStore.items.map(c => ({ id: c.item.id, qty: c.qty }));
+		qrContent = 'n,' + generateOrderQrString(items, cartStore.total, tableId);
+		qrDataUrl = await QRCode.toDataURL(qrContent, { width: 256, margin: 2 });
 		showCustomerForm = false;
 		customerSearch = '';
 		cartOpen = false;
@@ -100,7 +119,8 @@
 
 	async function viewPurchaseQr(order: Order) {
 		const tableId = order.table ? order.table.id : 0;
-		const orderStr = 'n,' + order.items.map(i => `${i.id}:${i.qty}`).join(',') + `,${order.total},${tableId}`;
+		const items = order.items.map(i => ({ id: i.id, qty: i.qty }));
+		const orderStr = 'r,' + generateOrderQrString(items, order.total, tableId);
 		purchaseQrUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		purchaseQrOrder = order;
 		purchasesOpen = false;
@@ -152,6 +172,129 @@
 				}
 			}, 350);
 		}
+	}
+
+	// Scanner functions
+	function handleScanClick() {
+		if (cartStore.items.length > 0) {
+			confirmScanOpen = true;
+		} else {
+			openScanner();
+		}
+	}
+
+	function openScanner() {
+		confirmScanOpen = false;
+		cartOpen = false;
+		scanResult = null;
+		scanError = null;
+		scannerOpen = true;
+		// Start scanning after DOM renders
+		setTimeout(() => startScan(), 100);
+	}
+
+	function clearAndScan() {
+		cartStore.clear();
+		openScanner();
+	}
+
+	// Parse scanned order and update cart
+	// Format: n,total,tableId,itemId:qty,itemId:qty,... (n=new/add, r=replace/clear first)
+	function applyScannedOrder(text: string): boolean {
+		const parts = text.split(',');
+		if (parts.length < 4) return false;
+
+		const mode = parts[0]; // 'n' for new (add), 'r' for replace (clear first)
+		if (mode !== 'n' && mode !== 'r') return false;
+
+		// parts[1] is total (ignored, we recalculate)
+		const tableId = parseInt(parts[2], 10);
+
+		// Parse items (starting from index 3)
+		const itemParts = parts.slice(3);
+		const orderItems: { id: number; qty: number }[] = [];
+
+		for (const part of itemParts) {
+			const [idStr, qtyStr] = part.split(':');
+			const id = parseInt(idStr, 10);
+			const qty = parseInt(qtyStr, 10);
+			if (isNaN(id) || isNaN(qty) || qty <= 0) continue;
+			orderItems.push({ id, qty });
+		}
+
+		if (orderItems.length === 0) return false;
+
+		// Clear cart if replace mode
+		if (mode === 'r') {
+			cartStore.clear();
+		}
+
+		// Add items to cart
+		for (const { id, qty } of orderItems) {
+			const menuItem = menuStore.items.find((m: MenuItem) => m.id === id);
+			if (menuItem) {
+				if (mode === 'r') {
+					cartStore.set(menuItem, qty);
+				} else {
+					cartStore.add(menuItem, qty);
+				}
+			}
+		}
+
+		// Set table if valid
+		if (tableId > 0) {
+			const table = tablesStore.items.find(t => t.id === tableId);
+			if (table) {
+				selectedTable = table;
+			}
+		}
+
+		return true;
+	}
+
+	async function startScan() {
+		scanResult = null;
+		scanError = null;
+		scanning = true;
+
+		scannerInstance = new Html5Qrcode('cart-reader');
+
+		try {
+			await scannerInstance.start(
+				{ facingMode: 'environment' },
+				{ fps: 10, qrbox: { width: 250, height: 250 } },
+				(text) => {
+					scanResult = text;
+					scannerInstance?.stop();
+					scanning = false;
+
+					// Try to parse and apply the order
+					if (applyScannedOrder(text)) {
+						// Success - close scanner and show cart
+						scannerOpen = false;
+						cartOpen = true;
+					}
+				},
+				() => {}
+			);
+		} catch (err) {
+			scanError = err instanceof Error ? err.message : 'Camera access denied';
+			scanning = false;
+		}
+	}
+
+	async function stopScan() {
+		if (scannerInstance?.isScanning) await scannerInstance.stop();
+		scanning = false;
+		scannerOpen = false;
+		cartOpen = true;
+	}
+
+	function closeScanner() {
+		if (scannerInstance?.isScanning) scannerInstance.stop();
+		scanning = false;
+		scannerOpen = false;
+		cartOpen = true;
 	}
 </script>
 
@@ -292,13 +435,19 @@
 		</div>
 	{/if}
 
-	<!-- Last Purchases link -->
-	{#if orders.length > 0}
-		<button class="btn-purchases" onclick={() => { cartOpen = false; purchasesOpen = true; }}>
-			<svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-			Last Purchases
+	<!-- Action buttons row -->
+	<div class="cart-actions-row">
+		<button class="btn-action-large scan" onclick={handleScanClick}>
+			<svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M7 12h10M7 8h3M14 8h3M7 16h3M14 16h3" /></svg>
+			Scan Barcode
 		</button>
-	{/if}
+		{#if orders.length > 0}
+			<button class="btn-action-large purchases" onclick={() => { cartOpen = false; purchasesOpen = true; }}>
+				<svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+				Last Purchases
+			</button>
+		{/if}
+	</div>
 
 	{#if menuSettingsStore.requireTable && !selectedTable && cartStore.items.length > 0}
 		<p class="table-required-hint">Please select a table to checkout</p>
@@ -319,6 +468,46 @@
 		<div class="footer-buttons">
 			<button class="btn secondary" onclick={() => (confirmClearOpen = false)}>Cancel</button>
 			<button class="btn danger" onclick={() => { cartStore.clear(); confirmClearOpen = false; cartOpen = false; }}>Remove All</button>
+		</div>
+	{/snippet}
+</Popup>
+
+<!-- Confirm Scan (clear cart) modal -->
+<Popup open={confirmScanOpen} title="Clear Cart?" onclose={() => (confirmScanOpen = false)} wide>
+	<p class="confirm-text">You have items in your cart. Do you want to clear them before scanning?</p>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={() => (confirmScanOpen = false)}>Cancel</button>
+			<button class="btn danger" onclick={clearAndScan}>Clear & Scan</button>
+		</div>
+	{/snippet}
+</Popup>
+
+<!-- Scanner modal -->
+<Popup open={scannerOpen} title="Scan Barcode" onclose={closeScanner} fullscreen>
+	<div class="scanner-content">
+		<div id="cart-reader" class="scanner-reader"></div>
+
+		{#if scanResult}
+			<div class="scan-result">
+				<strong>Scanned:</strong>
+				<span class="scan-text">{scanResult}</span>
+			</div>
+			<button class="btn primary" onclick={startScan}>Scan Again</button>
+		{/if}
+
+		{#if scanError}
+			<div class="scan-error">{scanError}</div>
+			<button class="btn primary" onclick={startScan}>Try Again</button>
+		{/if}
+	</div>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			{#if scanning}
+				<button class="btn secondary" onclick={stopScan}>Cancel</button>
+			{:else}
+				<button class="btn secondary" onclick={closeScanner}>Back</button>
+			{/if}
 		</div>
 	{/snippet}
 </Popup>
@@ -986,33 +1175,55 @@
 		opacity: 0.5;
 	}
 
-	.btn-purchases {
+	.cart-actions-row {
+		display: flex;
+		gap: 0.5rem;
+		margin-top: 0.75rem;
+	}
+
+	.btn-action-large {
+		flex: 1;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		gap: 0.5rem;
-		width: 100%;
-		padding: 0.6rem;
-		margin-top: 0.75rem;
-		background: #f9f9fb;
-		border: 1px solid #e0e0e0;
-		border-radius: 8px;
-		color: #666;
-		font-size: 0.85rem;
-		font-weight: 500;
+		padding: 0.85rem 1rem;
+		border-radius: 10px;
+		font-size: 0.9rem;
+		font-weight: 600;
 		cursor: pointer;
-		transition: background 0.15s, border-color 0.15s;
+		transition: background 0.15s, border-color 0.15s, transform 0.1s;
 	}
 
-	.btn-purchases:hover {
+	.btn-action-large:active {
+		transform: scale(0.98);
+	}
+
+	.btn-action-large.scan {
+		background: #6c63ff;
+		color: #fff;
+		border: none;
+	}
+
+	.btn-action-large.scan:hover {
+		background: #5a52d5;
+	}
+
+	.btn-action-large.purchases {
+		background: #f9f9fb;
+		border: 1px solid #e0e0e0;
+		color: #666;
+	}
+
+	.btn-action-large.purchases:hover {
 		background: #f0eeff;
 		border-color: #6c63ff;
 		color: #6c63ff;
 	}
 
-	.btn-purchases svg {
-		width: 1rem;
-		height: 1rem;
+	.btn-action-large svg {
+		width: 1.2rem;
+		height: 1.2rem;
 		fill: none;
 		stroke: currentColor;
 		stroke-width: 2;
@@ -1351,5 +1562,44 @@
 		font-size: 0.8rem;
 		color: #e74c3c;
 		margin: 0.5rem 0 0;
+	}
+
+	.scanner-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		padding: 1rem 0.5rem;
+	}
+
+	.scanner-reader {
+		width: 100%;
+		max-width: 400px;
+	}
+
+	.scan-result {
+		padding: 0.75rem 1rem;
+		background: #e8f5e9;
+		border-radius: 6px;
+		word-break: break-all;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		width: 100%;
+		max-width: 400px;
+	}
+
+	.scan-text {
+		font-family: monospace;
+		font-size: 0.9rem;
+	}
+
+	.scan-error {
+		padding: 0.75rem 1rem;
+		background: #fdecea;
+		color: #c0392b;
+		border-radius: 6px;
+		width: 100%;
+		max-width: 400px;
 	}
 </style>
