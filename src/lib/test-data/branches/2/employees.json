@@ -1,0 +1,6 @@
+[
+	{ "id": 1, "name": "Lisa Manager", "role": "Manager", "email": "lisa@mycafe.com", "phone": "5552001001" },
+	{ "id": 2, "name": "Tom Barista", "role": "Barista", "email": "tom@mycafe.com", "phone": "5552001002" },
+	{ "id": 3, "name": "Amy Server", "role": "Server", "email": "amy@mycafe.com", "phone": "5552001003" },
+	{ "id": 4, "name": "Chris Cashier", "role": "Cashier", "email": "chris@mycafe.com", "phone": "5552001004" }
+]

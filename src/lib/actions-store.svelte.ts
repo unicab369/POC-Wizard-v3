@@ -91,6 +91,8 @@ function reloadAllStores() {
 	displayMode = loadDisplayMode();
 	menuSettings = loadMenuSettings();
 	tableItems = loadTables();
+	employeeItems = loadEmployees();
+	customerItems = loadCustomers();
 	pageConfig = loadPage();
 	items = load();
 	// Clear cart when switching branches
@@ -366,6 +368,114 @@ export const tablesStore = {
 	remove(id: number) {
 		tableItems = tableItems.filter(t => t.id !== id);
 		saveTables(tableItems);
+	}
+};
+
+// Employees
+export interface Employee {
+	id: number;
+	name: string;
+	role: string;
+	email: string;
+	phone: string;
+}
+
+export const EMPLOYEE_ROLES = ['Manager', 'Barista', 'Server', 'Cashier', 'Chef', 'Host'];
+
+function getDefaultEmployees(): Employee[] {
+	return getBranchData(currentBranchId).employees;
+}
+
+function loadEmployees(): Employee[] {
+	const defaults = getDefaultEmployees();
+	if (typeof localStorage === 'undefined') return defaults;
+	const raw = localStorage.getItem(branchKey('employees'));
+	if (!raw) return defaults;
+	try {
+		const parsed = JSON.parse(raw);
+		if (Array.isArray(parsed)) return parsed;
+		return defaults;
+	} catch { return defaults; }
+}
+
+function saveEmployees(e: Employee[]) {
+	if (typeof localStorage !== 'undefined') {
+		localStorage.setItem(branchKey('employees'), JSON.stringify(e));
+	}
+}
+
+let employeeItems = $state<Employee[]>(loadEmployees());
+
+export const employeesStore = {
+	get items() { return employeeItems; },
+	set items(v: Employee[]) { employeeItems = v; saveEmployees(v); },
+
+	add(item: Omit<Employee, 'id'>) {
+		const id = employeeItems.length > 0 ? Math.max(...employeeItems.map(e => e.id)) + 1 : 1;
+		employeeItems = [...employeeItems, { id, ...item }];
+		saveEmployees(employeeItems);
+	},
+
+	update(id: number, fields: Partial<Omit<Employee, 'id'>>) {
+		employeeItems = employeeItems.map(e => e.id === id ? { ...e, ...fields } : e);
+		saveEmployees(employeeItems);
+	},
+
+	remove(id: number) {
+		employeeItems = employeeItems.filter(e => e.id !== id);
+		saveEmployees(employeeItems);
+	}
+};
+
+// Customers
+export interface Customer {
+	id: number;
+	name: string;
+	phone: string;
+}
+
+function getDefaultCustomers(): Customer[] {
+	return getBranchData(currentBranchId).customers;
+}
+
+function loadCustomers(): Customer[] {
+	const defaults = getDefaultCustomers();
+	if (typeof localStorage === 'undefined') return defaults;
+	const raw = localStorage.getItem(branchKey('customers'));
+	if (!raw) return defaults;
+	try {
+		const parsed = JSON.parse(raw);
+		if (Array.isArray(parsed)) return parsed;
+		return defaults;
+	} catch { return defaults; }
+}
+
+function saveCustomers(c: Customer[]) {
+	if (typeof localStorage !== 'undefined') {
+		localStorage.setItem(branchKey('customers'), JSON.stringify(c));
+	}
+}
+
+let customerItems = $state<Customer[]>(loadCustomers());
+
+export const customersStore = {
+	get items() { return customerItems; },
+	set items(v: Customer[]) { customerItems = v; saveCustomers(v); },
+
+	add(item: Omit<Customer, 'id'>) {
+		const id = customerItems.length > 0 ? Math.max(...customerItems.map(c => c.id)) + 1 : 1;
+		customerItems = [...customerItems, { id, ...item }];
+		saveCustomers(customerItems);
+	},
+
+	update(id: number, fields: Partial<Omit<Customer, 'id'>>) {
+		customerItems = customerItems.map(c => c.id === id ? { ...c, ...fields } : c);
+		saveCustomers(customerItems);
+	},
+
+	remove(id: number) {
+		customerItems = customerItems.filter(c => c.id !== id);
+		saveCustomers(customerItems);
 	}
 };
 

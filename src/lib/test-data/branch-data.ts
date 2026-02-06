@@ -4,6 +4,7 @@
 import branch1Info from './branches/1/branch.json';
 import branch1Menu from './branches/1/menu-items.json';
 import branch1Customers from './branches/1/customers.json';
+import branch1Employees from './branches/1/employees.json';
 import branch1Purchases from './branches/1/purchases.json';
 import branch1Tables from './branches/1/tables.json';
 
@@ -11,6 +12,7 @@ import branch1Tables from './branches/1/tables.json';
 import branch2Info from './branches/2/branch.json';
 import branch2Menu from './branches/2/menu-items.json';
 import branch2Customers from './branches/2/customers.json';
+import branch2Employees from './branches/2/employees.json';
 import branch2Purchases from './branches/2/purchases.json';
 import branch2Tables from './branches/2/tables.json';
 
@@ -18,6 +20,7 @@ import branch2Tables from './branches/2/tables.json';
 import defaultBranchInfo from './branches/0/branch.json';
 import defaultMenu from './branches/0/menu-items.json';
 import defaultCustomers from './branches/0/customers.json';
+import defaultEmployees from './branches/0/employees.json';
 import defaultPurchases from './branches/0/purchases.json';
 import defaultTables from './branches/0/tables.json';
 
@@ -39,6 +42,7 @@ export interface BranchData {
 	info: BranchInfo;
 	menu: typeof defaultMenu;
 	customers: typeof defaultCustomers;
+	employees: typeof defaultEmployees;
 	purchases: typeof defaultPurchases;
 	tables: typeof defaultTables;
 }
@@ -48,6 +52,7 @@ const branchDataMap: Record<string, BranchData> = {
 		info: branch1Info as BranchInfo,
 		menu: branch1Menu,
 		customers: branch1Customers,
+		employees: branch1Employees,
 		purchases: branch1Purchases,
 		tables: branch1Tables
 	},
@@ -55,6 +60,7 @@ const branchDataMap: Record<string, BranchData> = {
 		info: branch2Info as BranchInfo,
 		menu: branch2Menu,
 		customers: branch2Customers,
+		employees: branch2Employees,
 		purchases: branch2Purchases,
 		tables: branch2Tables
 	},
@@ -63,6 +69,7 @@ const branchDataMap: Record<string, BranchData> = {
 		info: branch1Info as BranchInfo,
 		menu: branch1Menu,
 		customers: branch1Customers,
+		employees: branch1Employees,
 		purchases: branch1Purchases,
 		tables: branch1Tables
 	},
@@ -70,6 +77,7 @@ const branchDataMap: Record<string, BranchData> = {
 		info: branch2Info as BranchInfo,
 		menu: branch2Menu,
 		customers: branch2Customers,
+		employees: branch2Employees,
 		purchases: branch2Purchases,
 		tables: branch2Tables
 	}
@@ -79,6 +87,7 @@ const defaultData: BranchData = {
 	info: defaultBranchInfo as BranchInfo,
 	menu: defaultMenu,
 	customers: defaultCustomers,
+	employees: defaultEmployees,
 	purchases: defaultPurchases,
 	tables: defaultTables
 };

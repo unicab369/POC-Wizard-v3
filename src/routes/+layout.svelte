@@ -40,6 +40,10 @@
 			{ label: 'Overview', href: '/dashboard' },
 			{ label: 'Analytics', href: '/dashboard/analytics' }
 		]},
+		{ label: 'Users', href: `/${branchId}/users`, icon: icons.profile, sublinks: [
+			{ label: 'Employees', href: `/${branchId}/users` },
+			{ label: 'Customers', href: `/${branchId}/users` }
+		]},
 		{ label: 'Branches', href: `/${branchId}/branches`, icon: icons.admin, sublinks: [
 			{ label: 'Branches', href: `/${branchId}/branches` }
 		]},
@@ -128,10 +132,14 @@
 	:global(html, body) {
 		margin: 0;
 		height: 100%;
+		height: 100dvh;
 		overflow: hidden;
+		overscroll-behavior: none;
+		touch-action: pan-x pan-y;
 		font-family: system-ui, sans-serif;
 		background: #f5f5f5;
 		color: #333;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	.sidebar {
@@ -140,9 +148,11 @@
 		left: 0;
 		width: 250px;
 		height: 100vh;
+		height: 100dvh;
 		background: #1a1a2e;
 		z-index: 100;
 		transition: transform 0.3s ease;
+		overscroll-behavior: contain;
 	}
 
 	.header {
@@ -251,7 +261,7 @@
 	.topbar-links a.active { background: rgba(108, 99, 255, 0.1); color: #6c63ff; }
 	.topbar-links a svg { width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-	.content { margin-left: 250px; padding: 3rem 2rem 2rem; height: 100dvh; overflow-y: auto; }
+	.content { margin-left: 250px; padding: 3rem 2rem 2rem; height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 
 	.hamburger {
 		display: none;
