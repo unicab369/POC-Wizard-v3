@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { menuStore, cartStore, tablesStore, menuDisplayStore, branchStore, tableShapeCss, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
+	import { menuStore, cartStore, tablesStore, menuDisplayStore, branchStore, tableShapeCss, formatCurrency, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 	import QRCode from 'qrcode';
 	import { getBranchData } from '$lib/test-data/branch-data';
@@ -58,8 +58,8 @@
 	}
 
 	interface Order {
-		items: { id: number; name: string; qty: number; price: string }[];
-		total: string;
+		items: { id: number; name: string; qty: number; price: number }[];
+		total: number;
 		date: string;
 		customer?: { name: string; phone: string };
 		table?: { id: number; label: string };
@@ -68,9 +68,8 @@
 	let orders = $state<Order[]>(getBranchData(branchStore.id).purchases as Order[]);
 
 	async function startCheckout() {
-		const totalCents = Math.round(cartStore.total * 100);
 		const tableId = selectedTable ? selectedTable.id : 0;
-		const orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(',') + `, ${totalCents}, ${tableId}`;
+		const orderStr = cartStore.items.map(c => `${c.item.id}:${c.qty}`).join(',') + `,${cartStore.total},${tableId}`;
 		qrContent = orderStr;
 		qrDataUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		showCustomerForm = false;
@@ -82,7 +81,7 @@
 	function submitOrder() {
 		const order: Order = {
 			items: cartStore.items.map(c => ({ id: c.item.id, name: c.item.name, qty: c.qty, price: c.item.price })),
-			total: cartStore.total.toFixed(2),
+			total: cartStore.total,
 			date: new Date().toLocaleString()
 		};
 		if (customerName.trim()) {
@@ -100,9 +99,8 @@
 	}
 
 	async function viewPurchaseQr(order: Order) {
-		const totalCents = Math.round(parseFloat(order.total) * 100);
 		const tableId = order.table ? order.table.id : 0;
-		const orderStr = order.items.map(i => `${i.id}:${i.qty}`).join(',') + `,${totalCents},${tableId}`;
+		const orderStr = order.items.map(i => `${i.id}:${i.qty}`).join(',') + `,${order.total},${tableId}`;
 		purchaseQrUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		purchaseQrOrder = order;
 		purchasesOpen = false;
@@ -195,7 +193,7 @@
 					<span class="card-name">{item.name}</span>
 					<span class="card-desc">{item.description}</span>
 				</div>
-				<span class="card-price">${item.price}</span>
+				<span class="card-price">{formatCurrency(item.price)}</span>
 			</button>
 		{/each}
 	</div>
@@ -211,7 +209,7 @@
 			<span class="detail-category">{selected.category}</span>
 			<p class="detail-desc">{selected.description}</p>
 			<div class="detail-bottom">
-				<span class="detail-price">${selected.price}</span>
+				<span class="detail-price">{formatCurrency(selected.price)}</span>
 				<div class="qty-row">
 					<button class="qty-btn" onclick={() => { if (quantity > 0) quantity--; }}>-</button>
 					<span class="qty-value">{quantity}</span>
@@ -282,15 +280,15 @@
 					</button>
 					<div class="cart-item-info">
 						<span class="cart-item-name">{entry.item.name}</span>
-						<span class="cart-item-meta">{entry.qty} x ${entry.item.price}</span>
+						<span class="cart-item-meta">{entry.qty} x {formatCurrency(entry.item.price)}</span>
 					</div>
-					<span class="cart-item-total">${(entry.qty * parseFloat(entry.item.price)).toFixed(2)}</span>
+					<span class="cart-item-total">{formatCurrency(entry.qty * entry.item.price)}</span>
 				</li>
 			{/each}
 		</ul>
 		<div class="cart-total-row">
 			<span>Total</span>
-			<span class="cart-total-price">${cartStore.total.toFixed(2)}</span>
+			<span class="cart-total-price">{formatCurrency(cartStore.total)}</span>
 		</div>
 	{/if}
 
@@ -331,7 +329,7 @@
 		<p class="qr-decoded">{qrContent}</p>
 		<div class="checkout-summary">
 			<span>{cartStore.count} item{cartStore.count !== 1 ? 's' : ''}</span>
-			<span class="cart-total-price">${cartStore.total.toFixed(2)}</span>
+			<span class="cart-total-price">{formatCurrency(cartStore.total)}</span>
 		</div>
 
 		{#if selectedTable}
@@ -402,11 +400,11 @@
 								<span class="purchase-customer">{order.customer.name}</span>
 							{/if}
 						</div>
-						<span class="cart-total-price">${order.total}</span>
+						<span class="cart-total-price">{formatCurrency(order.total)}</span>
 					</div>
 					<ul class="purchase-items">
 						{#each order.items as item}
-							<li>{item.qty} x {item.name} <span class="purchase-item-price">${item.price}</span></li>
+							<li>{item.qty} x {item.name} <span class="purchase-item-price">{formatCurrency(item.price)}</span></li>
 						{/each}
 					</ul>
 				</button>
@@ -430,7 +428,7 @@
 			<p class="checkout-hint">{purchaseQrOrder.date}</p>
 			<div class="checkout-summary">
 				<span>{purchaseQrOrder.items.length} item{purchaseQrOrder.items.length !== 1 ? 's' : ''}</span>
-				<span class="cart-total-price">${purchaseQrOrder.total}</span>
+				<span class="cart-total-price">{formatCurrency(purchaseQrOrder.total)}</span>
 			</div>
 			{#if purchaseQrOrder.customer}
 				<div class="customer-tag">

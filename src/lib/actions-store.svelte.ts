@@ -151,7 +151,7 @@ export interface MenuItem {
 	id: number;
 	name: string;
 	description: string;
-	price: string;
+	price: number;
 	category: string;
 }
 
@@ -229,6 +229,44 @@ import localeOptions from '$lib/test-data/locale-options.json';
 
 export const LANGUAGES = localeOptions.languages;
 export const CURRENCIES = localeOptions.currencies;
+
+export interface CurrencyInfo {
+	code: string;
+	symbol: string;
+	name: string;
+	prefix: number;
+	divisor: number;
+	separator: string;
+}
+
+export function getCurrencyInfo(code: string): CurrencyInfo {
+	return (CURRENCIES as CurrencyInfo[]).find(c => c.code === code) || {
+		code: 'USD', symbol: '$', name: 'US Dollar', prefix: 1, divisor: 100, separator: '.'
+	};
+}
+
+export function formatCurrency(amount: number, currencyCode?: string): string {
+	const code = currencyCode ?? menuSettings.currency;
+	const info = getCurrencyInfo(code);
+	const value = amount / info.divisor;
+
+	// Format the number with proper decimal places
+	const decimals = info.divisor === 1 ? 0 : 2;
+	let formatted: string;
+
+	if (info.divisor === 1) {
+		// No decimals - add thousand separators
+		formatted = Math.round(value).toLocaleString('en-US').replace(/,/g, info.separator);
+	} else {
+		// With decimals
+		const [intPart, decPart] = value.toFixed(decimals).split('.');
+		const intFormatted = parseInt(intPart).toLocaleString('en-US').replace(/,/g, info.separator === ',' ? '.' : ',');
+		formatted = `${intFormatted}${info.separator}${decPart}`;
+	}
+
+	// Apply prefix or suffix
+	return info.prefix ? `${info.symbol}${formatted}` : `${formatted}${info.symbol}`;
+}
 
 function getDefaultMenuSettings(): MenuSettings {
 	const branchInfo = getBranchInfo(currentBranchId);
@@ -341,7 +379,7 @@ export const cartStore = {
 	set items(v: CartItem[]) { cartItems = v; },
 
 	get count() { return cartItems.reduce((sum, c) => sum + c.qty, 0); },
-	get total() { return cartItems.reduce((sum, c) => sum + c.qty * parseFloat(c.item.price), 0); },
+	get total() { return cartItems.reduce((sum, c) => sum + c.qty * c.item.price, 0); },
 
 	add(item: MenuItem, qty: number) {
 		const existing = cartItems.find(c => c.item.id === item.id);

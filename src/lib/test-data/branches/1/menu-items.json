@@ -1,12 +1,12 @@
 [
-	{ "id": 1, "name": "Espresso", "description": "Rich and bold single shot", "price": "3.50", "category": "Drinks" },
-	{ "id": 2, "name": "Cappuccino", "description": "Espresso with steamed milk foam", "price": "4.50", "category": "Drinks" },
-	{ "id": 3, "name": "Latte", "description": "Smooth espresso with milk", "price": "5.00", "category": "Drinks" },
-	{ "id": 4, "name": "Iced Americano", "description": "Chilled espresso with water", "price": "4.00", "category": "Drinks" },
-	{ "id": 5, "name": "Matcha Latte", "description": "Creamy green tea latte", "price": "5.50", "category": "Drinks" },
-	{ "id": 6, "name": "Croissant", "description": "Buttery, flaky pastry", "price": "3.00", "category": "Food" },
-	{ "id": 7, "name": "Bagel", "description": "Toasted with cream cheese", "price": "4.00", "category": "Food" },
-	{ "id": 8, "name": "Muffin", "description": "Blueberry or chocolate chip", "price": "3.50", "category": "Food" },
-	{ "id": 9, "name": "Avocado Toast", "description": "Sourdough with fresh avocado", "price": "6.50", "category": "Food" },
-	{ "id": 10, "name": "Granola Bowl", "description": "Yogurt, granola, and berries", "price": "5.50", "category": "Food" }
+	{ "id": 1, "name": "Espresso", "description": "Rich and bold single shot", "price": 350, "category": "Drinks" },
+	{ "id": 2, "name": "Cappuccino", "description": "Espresso with steamed milk foam", "price": 450, "category": "Drinks" },
+	{ "id": 3, "name": "Latte", "description": "Smooth espresso with milk", "price": 500, "category": "Drinks" },
+	{ "id": 4, "name": "Iced Americano", "description": "Chilled espresso with water", "price": 400, "category": "Drinks" },
+	{ "id": 5, "name": "Matcha Latte", "description": "Creamy green tea latte", "price": 550, "category": "Drinks" },
+	{ "id": 6, "name": "Croissant", "description": "Buttery, flaky pastry", "price": 300, "category": "Food" },
+	{ "id": 7, "name": "Bagel", "description": "Toasted with cream cheese", "price": 400, "category": "Food" },
+	{ "id": 8, "name": "Muffin", "description": "Blueberry or chocolate chip", "price": 350, "category": "Food" },
+	{ "id": 9, "name": "Avocado Toast", "description": "Sourdough with fresh avocado", "price": 650, "category": "Food" },
+	{ "id": 10, "name": "Granola Bowl", "description": "Yogurt, granola, and berries", "price": 550, "category": "Food" }
 ]

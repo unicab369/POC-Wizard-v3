@@ -13,16 +13,16 @@
 		{ "code": "ar", "name": "Arabic" }
 	],
 	"currencies": [
-		{ "code": "USD", "symbol": "$", "name": "US Dollar" },
-		{ "code": "VND", "symbol": "Đ", "name": "Vietnamese Dong" },
-		{ "code": "EUR", "symbol": "€", "name": "Euro" },
-		{ "code": "GBP", "symbol": "£", "name": "British Pound" },
-		{ "code": "CAD", "symbol": "CA$", "name": "Canadian Dollar" },
-		{ "code": "AUD", "symbol": "A$", "name": "Australian Dollar" },
-		{ "code": "JPY", "symbol": "¥", "name": "Japanese Yen" },
-		{ "code": "MXN", "symbol": "MX$", "name": "Mexican Peso" },
-		{ "code": "BRL", "symbol": "R$", "name": "Brazilian Real" },
-		{ "code": "INR", "symbol": "₹", "name": "Indian Rupee" },
-		{ "code": "CNY", "symbol": "¥", "name": "Chinese Yuan" }
+		{ "code": "USD", "symbol": "$", "name": "US Dollar", "prefix": 1, "divisor": 100, "separator": "." },
+		{ "code": "VND", "symbol": "đ", "name": "Vietnamese Dong", "prefix": 0, "divisor": 1, "separator": "," },
+		{ "code": "EUR", "symbol": "€", "name": "Euro", "prefix": 0, "divisor": 100, "separator": "," },
+		{ "code": "GBP", "symbol": "£", "name": "British Pound", "prefix": 1, "divisor": 100, "separator": "." },
+		{ "code": "CAD", "symbol": "CA$", "name": "Canadian Dollar", "prefix": 1, "divisor": 100, "separator": "." },
+		{ "code": "AUD", "symbol": "A$", "name": "Australian Dollar", "prefix": 1, "divisor": 100, "separator": "." },
+		{ "code": "JPY", "symbol": "¥", "name": "Japanese Yen", "prefix": 1, "divisor": 1, "separator": "," },
+		{ "code": "MXN", "symbol": "MX$", "name": "Mexican Peso", "prefix": 1, "divisor": 100, "separator": "." },
+		{ "code": "BRL", "symbol": "R$", "name": "Brazilian Real", "prefix": 1, "divisor": 100, "separator": "," },
+		{ "code": "INR", "symbol": "₹", "name": "Indian Rupee", "prefix": 1, "divisor": 100, "separator": "." },
+		{ "code": "CNY", "symbol": "¥", "name": "Chinese Yuan", "prefix": 1, "divisor": 100, "separator": "." }
 	]
 }
