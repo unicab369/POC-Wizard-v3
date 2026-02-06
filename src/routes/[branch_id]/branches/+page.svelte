@@ -7,7 +7,7 @@
 
 	function selectBranch(branchId: string) {
 		branchStore.id = branchId;
-		goto(`/${branchId}/menu`);
+		goto(`/${branchId}/branches`);
 	}
 </script>
 

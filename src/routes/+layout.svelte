@@ -3,12 +3,14 @@
 	import { base } from '$app/paths';
 	import { auth } from '$lib/auth.svelte';
 	import { branchStore } from '$lib/actions-store.svelte';
+	import { getBranchInfo } from '$lib/test-data/branch-data';
 
 	let { children } = $props();
 	let open = $state(false);
 
 	// Get branch_id from URL or use current branch
 	const branchId = $derived(page.params.branch_id || branchStore.id);
+	const branchName = $derived(getBranchInfo(branchId).name);
 
 	const icons = {
 		home: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1',
@@ -25,8 +27,8 @@
 
 	// Links with dynamic branch_id for branch-specific routes
 	const links = $derived([
-		{ label: 'Home', href: '/', icon: icons.home, sublinks: [
-			{ label: 'Home', href: '/' },
+		{ label: 'Home', href: `/${branchId}`, icon: icons.home, sublinks: [
+			{ label: 'Home', href: `/${branchId}` },
 			{ label: 'Menu', href: `/${branchId}/menu` }
 		]},
 		{ label: 'QR Barcode', href: '/scanner', icon: icons.barcode, filled: true, sublinks: [
@@ -39,7 +41,7 @@
 			{ label: 'Analytics', href: '/dashboard/analytics' }
 		]},
 		{ label: 'Branches', href: `/${branchId}/branches`, icon: icons.admin, sublinks: [
-			{ label: 'My Branches', href: `/${branchId}/branches` },
+			{ label: 'Branches', href: `/${branchId}/branches` },
 			{ label: 'Manage', href: `/${branchId}/manage` }
 		]},
 		{ label: 'Settings', href: '/settings', icon: icons.settings, sublinks: [
@@ -48,12 +50,30 @@
 		]}
 	]);
 
-	const currentSublinks = $derived(
-		links.find(l =>
-			l.sublinks.some(s => page.url.pathname === base + s.href) ||
-			(l.href === '/' ? page.url.pathname === base + '/' : page.url.pathname.startsWith(base + l.href))
-		)?.sublinks ?? []
-	);
+	// Find the most specific matching link (longest href that matches)
+	const currentSublinks = $derived.by(() => {
+		const pathname = page.url.pathname;
+		let bestMatch: typeof links[0] | null = null;
+		let bestLength = 0;
+
+		for (const l of links) {
+			const fullHref = base + l.href;
+			if (pathname === fullHref || pathname.startsWith(fullHref + '/')) {
+				if (fullHref.length > bestLength) {
+					bestMatch = l;
+					bestLength = fullHref.length;
+				}
+			}
+			// Also check sublinks for exact match
+			if (l.sublinks.some(s => pathname === base + s.href)) {
+				if (l.href.length > bestLength) {
+					bestMatch = l;
+					bestLength = l.href.length;
+				}
+			}
+		}
+		return bestMatch?.sublinks ?? [];
+	});
 </script>
 
 {#if open}
@@ -65,12 +85,11 @@
 		<span class="app-name">MyApp</span>
 		<span class="branch-badge">
 			<svg viewBox="0 0 24 24"><path d={icons.store} /></svg>
-			{branchId}
+			{branchName}
 		</span>
 	</div>
 	{#each links as link}
-		<a href="{base}{link.href}" class:active={link.href === '/' ?
-			page.url.pathname === base + '/' : page.url.pathname.startsWith(base + link.href)} onclick={() => (open = false)}
+		<a href="{base}{link.href}" class:active={page.url.pathname.startsWith(base + link.href)} onclick={() => (open = false)}
 		>
 			<svg viewBox="0 0 24 24" class:filled={link.filled}><path d={link.icon} /></svg>
 			{link.label}
@@ -151,8 +170,6 @@
 		font-size: 0.75rem;
 		font-weight: 600;
 		color: #a5a0ff;
-		text-transform: uppercase;
-		letter-spacing: 0.03em;
 	}
 
 	.branch-badge svg {

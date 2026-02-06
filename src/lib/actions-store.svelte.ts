@@ -104,17 +104,24 @@ export interface BusinessDay {
 	closed: boolean;
 }
 
-const defaultHours: BusinessDay[] = [
-	{ day: 'Monday', open: '09:00', close: '17:00', closed: false },
-	{ day: 'Tuesday', open: '09:00', close: '17:00', closed: false },
-	{ day: 'Wednesday', open: '09:00', close: '17:00', closed: false },
-	{ day: 'Thursday', open: '09:00', close: '17:00', closed: false },
-	{ day: 'Friday', open: '09:00', close: '17:00', closed: false },
-	{ day: 'Saturday', open: '10:00', close: '14:00', closed: false },
-	{ day: 'Sunday', open: '', close: '', closed: true }
-];
+const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+function getDefaultHours(): BusinessDay[] {
+	const branchInfo = getBranchInfo(currentBranchId);
+	return dayNames.map((day, i) => {
+		const h = branchInfo.hours[day];
+		return {
+			day: dayLabels[i],
+			open: h?.open || '09:00',
+			close: h?.close || '17:00',
+			closed: h?.closed || false
+		};
+	});
+}
 
 function loadHours(): BusinessDay[] {
+	const defaultHours = getDefaultHours();
 	if (typeof localStorage === 'undefined') return defaultHours;
 	const raw = localStorage.getItem(branchKey('business-hours'));
 	if (!raw) return defaultHours;
@@ -147,7 +154,7 @@ export interface MenuItem {
 	category: string;
 }
 
-import { getBranchData } from '$lib/test-data/branch-data';
+import { getBranchData, getBranchInfo } from '$lib/test-data/branch-data';
 
 function getDefaultMenu(): MenuItem[] {
 	return getBranchData(currentBranchId).menu;
@@ -334,9 +341,16 @@ interface PageConfig {
 	description: string;
 }
 
-const defaultPage: PageConfig = { title: 'Home', description: 'Welcome to MyApp. Use the sidebar to navigate between pages.' };
+function getDefaultPage(): PageConfig {
+	const branchInfo = getBranchInfo(currentBranchId);
+	return {
+		title: branchInfo.name || 'Home',
+		description: branchInfo.description || 'Welcome to MyApp. Use the sidebar to navigate between pages.'
+	};
+}
 
 function loadPage(): PageConfig {
+	const defaultPage = getDefaultPage();
 	if (typeof localStorage === 'undefined') return defaultPage;
 	const raw = localStorage.getItem(branchKey('quick-actions-page'));
 	if (!raw) return defaultPage;
@@ -359,18 +373,23 @@ export const pageStore = {
 };
 
 // Quick actions
-const defaults: QuickAction[] = [
-	{ id: 1, type: 'phone', label: 'Phone', icon: ACTION_TYPES.phone.icon, value: '', href: '' },
-	{ id: 2, type: 'navigation', label: 'Navigation', icon: ACTION_TYPES.navigation.icon, value: '', href: '' },
-	{ id: 3, type: 'social', label: 'Social Media', icon: ACTION_TYPES.social.icon, value: '', href: '' },
-	{ id: 4, type: 'link', label: 'Website', icon: ACTION_TYPES.link.icon, value: '', href: '' }
-];
+function getDefaultActions(): QuickAction[] {
+	const branchInfo = getBranchInfo(currentBranchId);
+	const socialUrl = branchInfo.socialMedia?.instagram || branchInfo.socialMedia?.facebook || branchInfo.socialMedia?.twitter || '';
+	return [
+		{ id: 1, type: 'phone', label: 'Phone', icon: ACTION_TYPES.phone.icon, value: branchInfo.phone || '', href: branchInfo.phone ? buildHref('phone', branchInfo.phone) : '' },
+		{ id: 2, type: 'navigation', label: 'Address', icon: ACTION_TYPES.navigation.icon, value: branchInfo.address || '', href: branchInfo.address ? buildHref('navigation', branchInfo.address) : '' },
+		{ id: 3, type: 'social', label: 'Social Media', icon: ACTION_TYPES.social.icon, value: socialUrl, href: socialUrl },
+		{ id: 4, type: 'link', label: 'Email', icon: ACTION_TYPES.link.icon, value: branchInfo.email ? `mailto:${branchInfo.email}` : '', href: branchInfo.email ? `mailto:${branchInfo.email}` : '' }
+	];
+}
 
 function isValid(arr: unknown[]): arr is QuickAction[] {
 	return arr.every(a => typeof a === 'object' && a !== null && 'type' in a && (a as QuickAction).type in ACTION_TYPES);
 }
 
 function load(): QuickAction[] {
+	const defaults = getDefaultActions();
 	if (typeof localStorage === 'undefined') return defaults;
 	const raw = localStorage.getItem(branchKey('quick-actions'));
 	if (!raw) return defaults;
