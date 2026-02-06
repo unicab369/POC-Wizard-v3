@@ -180,6 +180,7 @@
 
 	.header {
 		padding: 1rem;
+		padding-top: calc(1rem + env(safe-area-inset-top, 0px));
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 		display: flex;
 		flex-direction: column;
@@ -242,12 +243,14 @@
 		top: 0;
 		left: 250px;
 		right: 0;
-		height: 3.5rem;
+		height: calc(3.5rem + env(safe-area-inset-top, 0px));
+		padding-top: env(safe-area-inset-top, 0px);
 		background: #fff;
 		border-bottom: 1px solid #e0e0e0;
 		display: flex;
 		align-items: center;
-		padding: 0 1rem;
+		padding-left: 1rem;
+		padding-right: 1rem;
 		z-index: 50;
 	}
 
@@ -290,7 +293,7 @@
 	.topbar-links a.active { background: rgba(108, 99, 255, 0.1); color: #6c63ff; }
 	.topbar-links a svg { width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-	.content { margin-left: 250px; padding: 3rem 2rem 2rem; height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+	.content { margin-left: 250px; padding: calc(3.5rem + env(safe-area-inset-top, 0px)) 2rem 2rem; height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 
 	.hamburger {
 		display: none;
