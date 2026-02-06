@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { auth } from '$lib/auth.svelte';
+	import { employeesStore } from '$lib/actions-store.svelte';
 
 	let view = $state<'signin' | 'forgot'>('signin');
 	let email = $state('');
@@ -7,14 +8,19 @@
 
 	function signin() {
 		if (email && password) {
-			auth.value = email;
+			// Check if email matches an employee and if they're a manager
+			const employee = employeesStore.items.find(
+				e => e.email.toLowerCase() === email.toLowerCase()
+			);
+			const isManager = employee?.role === 'Manager';
+			auth.signIn(email, isManager);
 			email = '';
 			password = '';
 		}
 	}
 
 	function signout() {
-		auth.value = null;
+		auth.signOut();
 		view = 'signin';
 	}
 
@@ -31,6 +37,11 @@
 {#if auth.value}
 	<div class="card">
 		<p>Signed in as <strong>{auth.value}</strong></p>
+		{#if auth.isManager}
+			<span class="role-badge manager">Manager</span>
+		{:else}
+			<span class="role-badge">Employee</span>
+		{/if}
 		<button class="btn" onclick={signout}>Sign out</button>
 	</div>
 {:else if view === 'forgot'}
@@ -128,4 +139,20 @@
 	}
 
 	.link:hover { text-decoration: underline; }
+
+	.role-badge {
+		display: inline-block;
+		padding: 0.25rem 0.6rem;
+		background: #e8e8e8;
+		color: #555;
+		border-radius: 4px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		margin-bottom: 1rem;
+	}
+
+	.role-badge.manager {
+		background: #f0eeff;
+		color: #6c63ff;
+	}
 </style>

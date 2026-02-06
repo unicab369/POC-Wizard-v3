@@ -1,19 +1,29 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
-	import { branchStore, actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, menuSettingsStore, ACTION_TYPES, TABLE_SHAPES, LANGUAGES, CURRENCIES, tableShapeLabel, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode } from '$lib/actions-store.svelte';
-	import { getAvailableBranches, getBranchInfo } from '$lib/test-data/branch-data';
+	import { branchStore, actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, menuSettingsStore, ACTION_TYPES, TABLE_SHAPES, LANGUAGES, CURRENCIES, tableShapeLabel, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode, type Employee } from '$lib/actions-store.svelte';
+	import { getAvailableBranches, getBranchInfo, getBranchData } from '$lib/test-data/branch-data';
+	import { auth } from '$lib/auth.svelte';
 	import ActionGrid from '$lib/components/ActionGrid.svelte';
 	import BusinessHours from '$lib/components/BusinessHours.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 
 	const branches = getAvailableBranches();
 
+	// Get all employees across all branches for manager sign-in
+	function getAllEmployees(): Employee[] {
+		const all: Employee[] = [];
+		for (const b of branches) {
+			all.push(...getBranchData(b.id).employees);
+		}
+		return all;
+	}
+
 	// Reset view to list when navigating to this page
 	afterNavigate(() => {
 		view = 'list';
 	});
 
-	// Employee sign-in
+	// Employee sign-in (checks for manager role)
 	const EMP_KEY = 'employee-auth';
 
 	interface EmpAuth { location: string; username: string; }
@@ -31,20 +41,46 @@
 	let loginPassword = $state('');
 	let loginError = $state('');
 
+	// Restore auth state on load if empAuth exists
+	if (empAuth) {
+		const allEmps = getAllEmployees();
+		const employee = allEmps.find(
+			e => e.email.toLowerCase() === empAuth.username.toLowerCase()
+		);
+		if (employee?.role === 'Manager') {
+			auth.signIn(employee.name, true);
+		}
+	}
+
 	function signIn() {
 		if (!loginLocation.trim() || !loginUsername.trim() || !loginPassword.trim()) {
 			loginError = 'All fields are required.';
 			return;
 		}
-		const auth: EmpAuth = { location: loginLocation.trim(), username: loginUsername.trim() };
-		sessionStorage.setItem(EMP_KEY, JSON.stringify(auth));
-		empAuth = auth;
+		// Check if email matches an employee with Manager role (across all branches)
+		const allEmps = getAllEmployees();
+		const employee = allEmps.find(
+			e => e.email.toLowerCase() === loginUsername.trim().toLowerCase()
+		);
+		if (!employee) {
+			loginError = 'Employee not found.';
+			return;
+		}
+		if (employee.role !== 'Manager') {
+			loginError = 'Only managers can access branch settings.';
+			return;
+		}
+		const empData: EmpAuth = { location: loginLocation.trim(), username: loginUsername.trim() };
+		sessionStorage.setItem(EMP_KEY, JSON.stringify(empData));
+		empAuth = empData;
+		auth.signIn(employee.name, true);
 		loginError = '';
 	}
 
 	function signOut() {
 		sessionStorage.removeItem(EMP_KEY);
 		empAuth = null;
+		auth.signOut();
 		loginLocation = '';
 		loginUsername = '';
 		loginPassword = '';
@@ -223,13 +259,14 @@
 			<div class="sign-in-icon">
 				<svg viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
 			</div>
-			<h2 class="sign-in-title">Employee Sign In</h2>
+			<h2 class="sign-in-title">Manager Sign In</h2>
+			<p class="access-message">Sign in with your manager credentials to edit branches.</p>
 			<div class="sign-in-form">
 				<label class="field"><span>Location Name</span>
 					<input type="text" bind:value={loginLocation} placeholder="e.g. Downtown Branch" />
 				</label>
-				<label class="field"><span>User Name</span>
-					<input type="text" bind:value={loginUsername} placeholder="Your username" />
+				<label class="field"><span>Email</span>
+					<input type="email" bind:value={loginUsername} placeholder="Your employee email" />
 				</label>
 				<label class="field"><span>Password</span>
 					<input type="password" bind:value={loginPassword} placeholder="Enter password"
@@ -573,10 +610,17 @@
 	}
 
 	.sign-in-title {
-		margin: 0.5rem 0 1.25rem;
+		margin: 0.5rem 0 1rem;
 		font-size: 1.15rem;
 		font-weight: 600;
 		color: #333;
+	}
+
+	.access-message {
+		font-size: 0.9rem;
+		color: #666;
+		margin: 0 0 1.25rem;
+		line-height: 1.5;
 	}
 
 	.sign-in-form {

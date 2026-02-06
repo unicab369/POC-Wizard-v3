@@ -26,33 +26,49 @@
 	};
 
 	// Links with dynamic branch_id for branch-specific routes
-	const links = $derived([
-		{ label: 'Home', href: `/${branchId}`, icon: icons.home, sublinks: [
-			{ label: 'Home', href: `/${branchId}` },
-			{ label: 'Menu', href: `/${branchId}/menu` }
-		]},
-		{ label: 'QR Barcode', href: '/scanner', icon: icons.barcode, filled: true, sublinks: [
-			{ label: 'Scan', href: '/scanner' },
-			{ label: 'History', href: '/scanner/history' },
-			{ label: 'Cards', href: '/scanner/cards' }
-		]},
-		{ label: 'Dashboard', href: '/dashboard', icon: icons.dashboard, sublinks: [
-			{ label: 'Overview', href: '/dashboard' },
-			{ label: 'Analytics', href: '/dashboard/analytics' }
-		]},
-		{ label: 'divider', href: '', icon: '', sublinks: [] },
-		{ label: 'Users', href: `/${branchId}/users`, icon: icons.profile, sublinks: [
-			{ label: 'Employees', href: `/${branchId}/users` },
-			{ label: 'Customers', href: `/${branchId}/users` }
-		]},
-		{ label: 'Branches', href: `/${branchId}/branches`, icon: icons.admin, sublinks: [
-			{ label: 'Branches', href: `/${branchId}/branches` }
-		]},
-		{ label: 'Settings', href: '/settings', icon: icons.settings, sublinks: [
-			{ label: 'General', href: '/settings' },
-			{ label: 'Account', href: '/settings/account' }
-		]}
-	]);
+	// Manager-only links (Dashboard, Users) are conditionally included
+	const links = $derived.by(() => {
+		const isManager = auth.isManager;
+		const allLinks: { label: string; href: string; icon: string; filled?: boolean; sublinks: { label: string; href: string }[] }[] = [
+			{ label: 'Home', href: `/${branchId}`, icon: icons.home, sublinks: [
+				{ label: 'Home', href: `/${branchId}` },
+				{ label: 'Menu', href: `/${branchId}/menu` }
+			]},
+			{ label: 'QR Barcode', href: '/scanner', icon: icons.barcode, filled: true, sublinks: [
+				{ label: 'Scan', href: '/scanner' },
+				{ label: 'History', href: '/scanner/history' },
+				{ label: 'Cards', href: '/scanner/cards' }
+			]}
+		];
+
+		// Manager-only sections
+		if (isManager) {
+			allLinks.push(
+				{ label: 'Dashboard', href: '/dashboard', icon: icons.dashboard, sublinks: [
+					{ label: 'Overview', href: '/dashboard' },
+					{ label: 'Analytics', href: '/dashboard/analytics' }
+				]},
+				{ label: 'divider', href: '', icon: '', sublinks: [] },
+				{ label: 'Users', href: `/${branchId}/users`, icon: icons.profile, sublinks: [
+					{ label: 'Employees', href: `/${branchId}/users` },
+					{ label: 'Customers', href: `/${branchId}/users` }
+				]}
+			);
+		}
+
+		// Branches always visible - has its own sign-in
+		allLinks.push(
+			{ label: 'Branches', href: `/${branchId}/branches`, icon: icons.admin, sublinks: [
+				{ label: 'Branches', href: `/${branchId}/branches` }
+			]},
+			{ label: 'Settings', href: '/settings', icon: icons.settings, sublinks: [
+				{ label: 'General', href: '/settings' },
+				{ label: 'Account', href: '/settings/account' }
+			]}
+		);
+
+		return allLinks;
+	});
 
 	// Find the active link (most specific match)
 	const activeHref = $derived.by(() => {

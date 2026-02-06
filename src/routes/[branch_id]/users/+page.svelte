@@ -46,8 +46,13 @@
 
 	let confirmDeleteEmployee = $state(false);
 
+	const managerCount = $derived(employeesStore.items.filter(e => e.role === 'Manager').length);
+	const canDeleteEmployee = $derived(
+		editingEmployee ? !(editingEmployee.role === 'Manager' && managerCount <= 1) : true
+	);
+
 	function deleteEmployee() {
-		if (editingEmployee) {
+		if (editingEmployee && canDeleteEmployee) {
 			employeesStore.remove(editingEmployee.id);
 			editingEmployee = null;
 			confirmDeleteEmployee = false;
@@ -210,10 +215,13 @@
 			<label class="field"><span>Phone</span>
 				<input type="tel" bind:value={draftEmpPhone} placeholder="Phone number" />
 			</label>
-			<button class="btn-delete" onclick={() => (confirmDeleteEmployee = true)}>
+			<button class="btn-delete" onclick={() => (confirmDeleteEmployee = true)} disabled={!canDeleteEmployee}>
 				<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" /></svg>
 				Delete Employee
 			</button>
+			{#if !canDeleteEmployee}
+				<p class="delete-note">Cannot delete the only manager. Assign another manager first.</p>
+			{/if}
 		</div>
 		{#snippet footer()}
 			<div class="footer-buttons">
@@ -523,9 +531,23 @@
 		transition: background 0.15s, color 0.15s;
 	}
 
-	.btn-delete:hover {
+	.btn-delete:hover:not(:disabled) {
 		background: #e74c3c;
 		color: #fff;
+	}
+
+	.btn-delete:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+		border-color: #ccc;
+		color: #999;
+	}
+
+	.delete-note {
+		font-size: 0.8rem;
+		color: #e74c3c;
+		text-align: center;
+		margin: 0.5rem 0 0;
 	}
 
 	.btn-delete svg {
