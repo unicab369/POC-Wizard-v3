@@ -2,9 +2,13 @@
 	import { page } from '$app/state';
 	import { base } from '$app/paths';
 	import { auth } from '$lib/auth.svelte';
+	import { branchStore } from '$lib/actions-store.svelte';
 
 	let { children } = $props();
 	let open = $state(false);
+
+	// Get branch_id from URL or use current branch
+	const branchId = $derived(page.params.branch_id || branchStore.id);
 
 	const icons = {
 		home: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1',
@@ -15,13 +19,15 @@
 		profileFilled: 'M12 11a4 4 0 100-8 4 4 0 000 8zm0 2c-5 0-9 2.5-9 6v1h18v-1c0-3.5-4-6-9-6z',
 		bell: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
 		barcode: 'M1 1h7v7H1zM2 2h5v5H2zM3 3h3v3H3zM15 1h7v7h-7zM16 2h5v5h-5zM17 3h3v3h-3zM1 15h7v7H1zM2 16h5v5H2zM3 17h3v3H3zM10 1h2v2h-2zM12 3h2v2h-2zM1 10h2v2H1zM3 12h2v2H3zM10 10h2v2h-2zM14 10h2v2h-2zM18 10h2v2h-2zM12 12h2v2h-2zM16 12h2v2h-2zM20 12h2v2h-2zM10 14h2v2h-2zM14 14h2v2h-2zM18 14h2v2h-2zM12 16h2v2h-2zM16 16h2v2h-2zM20 16h2v2h-2zM10 18h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2zM12 20h2v2h-2zM16 20h2v2h-2zM20 20h2v2h-2z',
-		admin: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'
+		admin: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
+		store: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'
 	};
 
-	const links = [
+	// Links with dynamic branch_id for branch-specific routes
+	const links = $derived([
 		{ label: 'Home', href: '/', icon: icons.home, sublinks: [
 			{ label: 'Home', href: '/' },
-			{ label: 'Menu', href: '/menu' }
+			{ label: 'Menu', href: `/${branchId}/menu` }
 		]},
 		{ label: 'QR Barcode', href: '/scanner', icon: icons.barcode, filled: true, sublinks: [
 			{ label: 'Scan', href: '/scanner' },
@@ -32,14 +38,14 @@
 			{ label: 'Overview', href: '/dashboard' },
 			{ label: 'Analytics', href: '/dashboard/analytics' }
 		]},
-		{ label: 'Branch', href: '/branch', icon: icons.admin, sublinks: [
-			{ label: 'Branch', href: '/branch' }
+		{ label: 'Branch', href: `/${branchId}/branch`, icon: icons.admin, sublinks: [
+			{ label: 'Manage', href: `/${branchId}/branch` }
 		]},
 		{ label: 'Settings', href: '/settings', icon: icons.settings, sublinks: [
 			{ label: 'General', href: '/settings' },
 			{ label: 'Account', href: '/settings/account' }
 		]}
-	];
+	]);
 
 	const currentSublinks = $derived(
 		links.find(l =>
@@ -54,7 +60,13 @@
 {/if}
 
 <nav class="sidebar" class:open>
-	<div class="header">MyApp</div>
+	<div class="header">
+		<span class="app-name">MyApp</span>
+		<span class="branch-badge">
+			<svg viewBox="0 0 24 24"><path d={icons.store} /></svg>
+			{branchId}
+		</span>
+	</div>
 	{#each links as link}
 		<a href="{base}{link.href}" class:active={link.href === '/' ?
 			page.url.pathname === base + '/' : page.url.pathname.startsWith(base + link.href)} onclick={() => (open = false)}
@@ -115,11 +127,41 @@
 	}
 
 	.header {
-		padding: 1.5rem 1rem;
+		padding: 1rem;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.app-name {
 		font-size: 1.25rem;
 		font-weight: 700;
 		color: #fff;
+	}
+
+	.branch-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.25rem 0.6rem;
+		background: rgba(108, 99, 255, 0.2);
+		border-radius: 4px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: #a5a0ff;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.branch-badge svg {
+		width: 0.85rem;
+		height: 0.85rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 
 	.sidebar a {

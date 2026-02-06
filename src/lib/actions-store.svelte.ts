@@ -57,9 +57,46 @@ export function buildHref(type: ActionType, value: string): string {
 	}
 }
 
-// Business hours
-const HOURS_KEY = 'business-hours';
+// Branch management
+const BRANCH_KEY = 'current-branch';
+const DEFAULT_BRANCH = 'main';
 
+function loadBranchId(): string {
+	if (typeof localStorage === 'undefined') return DEFAULT_BRANCH;
+	return localStorage.getItem(BRANCH_KEY) || DEFAULT_BRANCH;
+}
+
+let currentBranchId = $state<string>(loadBranchId());
+
+export const branchStore = {
+	get id() { return currentBranchId; },
+	set id(v: string) {
+		currentBranchId = v;
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem(BRANCH_KEY, v);
+		}
+		// Reload all branch-specific data
+		reloadAllStores();
+	}
+};
+
+function branchKey(key: string): string {
+	return `${currentBranchId}:${key}`;
+}
+
+// Helper to reload all stores when branch changes
+function reloadAllStores() {
+	hours = loadHours();
+	menuItems = loadMenu();
+	displayMode = loadDisplayMode();
+	tableItems = loadTables();
+	pageConfig = loadPage();
+	items = load();
+	// Clear cart when switching branches
+	cartItems = [];
+}
+
+// Business hours
 export interface BusinessDay {
 	day: string;
 	open: string;
@@ -79,7 +116,7 @@ const defaultHours: BusinessDay[] = [
 
 function loadHours(): BusinessDay[] {
 	if (typeof localStorage === 'undefined') return defaultHours;
-	const raw = localStorage.getItem(HOURS_KEY);
+	const raw = localStorage.getItem(branchKey('business-hours'));
 	if (!raw) return defaultHours;
 	try {
 		const parsed = JSON.parse(raw);
@@ -90,7 +127,7 @@ function loadHours(): BusinessDay[] {
 
 function saveHours(h: BusinessDay[]) {
 	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem(HOURS_KEY, JSON.stringify(h));
+		localStorage.setItem(branchKey('business-hours'), JSON.stringify(h));
 	}
 }
 
@@ -102,8 +139,6 @@ export const hoursStore = {
 };
 
 // Menu items
-const MENU_KEY = 'menu-items';
-
 export interface MenuItem {
 	id: number;
 	name: string;
@@ -116,7 +151,7 @@ import defaultMenu from '$lib/test-data/menu-items.json';
 
 function loadMenu(): MenuItem[] {
 	if (typeof localStorage === 'undefined') return defaultMenu;
-	const raw = localStorage.getItem(MENU_KEY);
+	const raw = localStorage.getItem(branchKey('menu-items'));
 	if (!raw) return defaultMenu;
 	try {
 		const parsed = JSON.parse(raw);
@@ -127,7 +162,7 @@ function loadMenu(): MenuItem[] {
 
 function saveMenu(m: MenuItem[]) {
 	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem(MENU_KEY, JSON.stringify(m));
+		localStorage.setItem(branchKey('menu-items'), JSON.stringify(m));
 	}
 }
 
@@ -156,11 +191,10 @@ export const menuStore = {
 
 // Menu display mode
 export type MenuDisplayMode = 'list' | 'grid' | 'both';
-const DISPLAY_MODE_KEY = 'menu-display-mode';
 
 function loadDisplayMode(): MenuDisplayMode {
 	if (typeof localStorage === 'undefined') return 'both';
-	const raw = localStorage.getItem(DISPLAY_MODE_KEY);
+	const raw = localStorage.getItem(branchKey('menu-display-mode'));
 	if (raw === 'list' || raw === 'grid' || raw === 'both') return raw;
 	return 'both';
 }
@@ -169,12 +203,10 @@ let displayMode = $state<MenuDisplayMode>(loadDisplayMode());
 
 export const menuDisplayStore = {
 	get mode() { return displayMode; },
-	set mode(v: MenuDisplayMode) { displayMode = v; if (typeof localStorage !== 'undefined') localStorage.setItem(DISPLAY_MODE_KEY, v); }
+	set mode(v: MenuDisplayMode) { displayMode = v; if (typeof localStorage !== 'undefined') localStorage.setItem(branchKey('menu-display-mode'), v); }
 };
 
 // Tables
-const TABLES_KEY = 'tables';
-
 export const TABLE_SHAPES: { value: number; label: string; css: string }[] = [
 	{ value: 0, label: 'Square', css: 'square' },
 	{ value: 1, label: 'Round', css: 'round' },
@@ -201,7 +233,7 @@ import defaultTables from '$lib/test-data/tables.json';
 
 function loadTables(): TableItem[] {
 	if (typeof localStorage === 'undefined') return defaultTables;
-	const raw = localStorage.getItem(TABLES_KEY);
+	const raw = localStorage.getItem(branchKey('tables'));
 	if (!raw) return defaultTables;
 	try {
 		const parsed = JSON.parse(raw);
@@ -212,7 +244,7 @@ function loadTables(): TableItem[] {
 
 function saveTables(t: TableItem[]) {
 	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem(TABLES_KEY, JSON.stringify(t));
+		localStorage.setItem(branchKey('tables'), JSON.stringify(t));
 	}
 }
 
@@ -239,7 +271,7 @@ export const tablesStore = {
 	}
 };
 
-// Cart
+// Cart (not persisted, cleared on branch switch)
 export interface CartItem { item: MenuItem; qty: number; }
 
 let cartItems = $state<CartItem[]>([]);
@@ -288,9 +320,7 @@ export const cartStore = {
 	}
 };
 
-const STORAGE_KEY = 'quick-actions';
-const PAGE_KEY = 'quick-actions-page';
-
+// Page config
 interface PageConfig {
 	title: string;
 	description: string;
@@ -300,14 +330,14 @@ const defaultPage: PageConfig = { title: 'Home', description: 'Welcome to MyApp.
 
 function loadPage(): PageConfig {
 	if (typeof localStorage === 'undefined') return defaultPage;
-	const raw = localStorage.getItem(PAGE_KEY);
+	const raw = localStorage.getItem(branchKey('quick-actions-page'));
 	if (!raw) return defaultPage;
 	try { return { ...defaultPage, ...JSON.parse(raw) }; } catch { return defaultPage; }
 }
 
 function savePage(p: PageConfig) {
 	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem(PAGE_KEY, JSON.stringify(p));
+		localStorage.setItem(branchKey('quick-actions-page'), JSON.stringify(p));
 	}
 }
 
@@ -320,6 +350,7 @@ export const pageStore = {
 	set description(v: string) { pageConfig = { ...pageConfig, description: v }; savePage(pageConfig); }
 };
 
+// Quick actions
 const defaults: QuickAction[] = [
 	{ id: 1, type: 'phone', label: 'Phone', icon: ACTION_TYPES.phone.icon, value: '', href: '' },
 	{ id: 2, type: 'navigation', label: 'Navigation', icon: ACTION_TYPES.navigation.icon, value: '', href: '' },
@@ -333,19 +364,19 @@ function isValid(arr: unknown[]): arr is QuickAction[] {
 
 function load(): QuickAction[] {
 	if (typeof localStorage === 'undefined') return defaults;
-	const raw = localStorage.getItem(STORAGE_KEY);
+	const raw = localStorage.getItem(branchKey('quick-actions'));
 	if (!raw) return defaults;
 	try {
 		const parsed = JSON.parse(raw);
 		if (Array.isArray(parsed) && isValid(parsed)) return parsed;
-		localStorage.removeItem(STORAGE_KEY);
+		localStorage.removeItem(branchKey('quick-actions'));
 		return defaults;
 	} catch { return defaults; }
 }
 
 function save(items: QuickAction[]) {
 	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+		localStorage.setItem(branchKey('quick-actions'), JSON.stringify(items));
 	}
 }
 
