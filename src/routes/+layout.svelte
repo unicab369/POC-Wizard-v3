@@ -50,8 +50,7 @@
 				]},
 				{ label: 'divider', href: '', icon: '', sublinks: [] },
 				{ label: 'Users', href: `/${branchId}/users`, icon: icons.profile, sublinks: [
-					{ label: 'Employees', href: `/${branchId}/users` },
-					{ label: 'Customers', href: `/${branchId}/users` }
+					{ label: 'Users', href: `/${branchId}/users` },
 				]}
 			);
 		}

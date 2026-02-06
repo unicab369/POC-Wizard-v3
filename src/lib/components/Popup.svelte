@@ -70,12 +70,17 @@
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
+		border-radius: 0;
 	}
 
 	.popup-header {
 		padding: 0.75rem 1rem;
 		border-bottom: 1px solid #e0e0e0;
 		text-align: center;
+	}
+
+	.popup.fullscreen .popup-header {
+		padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
 	}
 
 	.popup-title {
@@ -93,6 +98,10 @@
 		border-top: 1px solid #e0e0e0;
 		padding: 0.5rem;
 		text-align: center;
+	}
+
+	.popup.fullscreen .popup-footer {
+		padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
 	}
 
 	.popup-close {
