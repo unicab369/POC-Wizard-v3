@@ -100,7 +100,7 @@
 
 	async function viewPurchaseQr(order: Order) {
 		const tableId = order.table ? order.table.id : 0;
-		const orderStr = order.items.map(i => `${i.id}:${i.qty}`).join(',') + `,${order.total},${tableId}`;
+		const orderStr = 'n,' + order.items.map(i => `${i.id}:${i.qty}`).join(',') + `,${order.total},${tableId}`;
 		purchaseQrUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		purchaseQrOrder = order;
 		purchasesOpen = false;
