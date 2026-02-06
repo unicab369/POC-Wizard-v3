@@ -40,6 +40,7 @@
 			{ label: 'Overview', href: '/dashboard' },
 			{ label: 'Analytics', href: '/dashboard/analytics' }
 		]},
+		{ label: 'divider', href: '', icon: '', sublinks: [] },
 		{ label: 'Users', href: `/${branchId}/users`, icon: icons.profile, sublinks: [
 			{ label: 'Employees', href: `/${branchId}/users` },
 			{ label: 'Customers', href: `/${branchId}/users` }
@@ -52,6 +53,25 @@
 			{ label: 'Account', href: '/settings/account' }
 		]}
 	]);
+
+	// Find the active link (most specific match)
+	const activeHref = $derived.by(() => {
+		const pathname = page.url.pathname;
+		let bestMatch = '';
+		let bestLength = 0;
+
+		for (const l of links) {
+			if (l.label === 'divider') continue;
+			const fullHref = base + l.href;
+			if (pathname === fullHref || pathname.startsWith(fullHref + '/')) {
+				if (fullHref.length > bestLength) {
+					bestMatch = l.href;
+					bestLength = fullHref.length;
+				}
+			}
+		}
+		return bestMatch;
+	});
 
 	// Find the most specific matching link (longest href that matches)
 	const currentSublinks = $derived.by(() => {
@@ -92,11 +112,14 @@
 		</span>
 	</div>
 	{#each links as link}
-		<a href="{base}{link.href}" class:active={page.url.pathname.startsWith(base + link.href)} onclick={() => (open = false)}
-		>
-			<svg viewBox="0 0 24 24" class:filled={link.filled}><path d={link.icon} /></svg>
-			{link.label}
-		</a>
+		{#if link.label === 'divider'}
+			<div class="divider"></div>
+		{:else}
+			<a href="{base}{link.href}" class:active={link.href === activeHref} onclick={() => (open = false)}>
+				<svg viewBox="0 0 24 24" class:filled={link.filled}><path d={link.icon} /></svg>
+				{link.label}
+			</a>
+		{/if}
 	{/each}
 </nav>
 
@@ -205,6 +228,12 @@
 	.sidebar a.active { background: rgba(108, 99, 255, 0.2); color: #fff; border-right: 3px solid #6c63ff; }
 	.sidebar a svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 	.sidebar a svg.filled { fill: currentColor; stroke: none; fill-rule: evenodd; }
+
+	.sidebar .divider {
+		height: 1px;
+		background: rgba(255, 255, 255, 0.1);
+		margin: 0.5rem 1rem;
+	}
 
 	.backdrop { display: none; }
 
