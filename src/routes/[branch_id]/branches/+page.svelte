@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
-	import { branchStore, actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, ACTION_TYPES, TABLE_SHAPES, tableShapeLabel, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode } from '$lib/actions-store.svelte';
+	import { branchStore, actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, menuSettingsStore, ACTION_TYPES, TABLE_SHAPES, LANGUAGES, CURRENCIES, tableShapeLabel, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode } from '$lib/actions-store.svelte';
 	import { getAvailableBranches, getBranchInfo } from '$lib/test-data/branch-data';
 	import ActionGrid from '$lib/components/ActionGrid.svelte';
 	import BusinessHours from '$lib/components/BusinessHours.svelte';
@@ -287,10 +287,6 @@
 			</button>
 		</div>
 	</div>
-	<div class="bottom-actions">
-		<button class="btn secondary" onclick={goBack}>Back to Branches</button>
-	</div>
-
 {:else if view === 'home'}
 	<div class="title-row">
 		<h1>{pageStore.title}</h1>
@@ -394,10 +390,6 @@
 		{/snippet}
 	</Popup>
 
-	<div class="bottom-actions">
-		<button class="btn secondary" onclick={goBack}>Back</button>
-	</div>
-
 {:else if view === 'menu'}
 	<h2>Edit Menu</h2>
 
@@ -417,6 +409,28 @@
 	</div>
 
 	<div class="menu-edit-section">
+		<span class="section-label">Region Settings</span>
+		<div class="region-fields">
+			<label class="field">
+				<span>Language</span>
+				<select value={menuSettingsStore.language} onchange={(e) => (menuSettingsStore.language = (e.target as HTMLSelectElement).value)}>
+					{#each LANGUAGES as lang}
+						<option value={lang.code}>{lang.name}</option>
+					{/each}
+				</select>
+			</label>
+			<label class="field">
+				<span>Currency</span>
+				<select value={menuSettingsStore.currency} onchange={(e) => (menuSettingsStore.currency = (e.target as HTMLSelectElement).value)}>
+					{#each CURRENCIES as c}
+						<option value={c.code}>{c.symbol} {c.name}</option>
+					{/each}
+				</select>
+			</label>
+		</div>
+	</div>
+
+	<div class="menu-edit-section">
 		<span class="section-label">Display Mode</span>
 		<div class="radio-list">
 			{#each ['list', 'grid', 'both'] as mode}
@@ -426,10 +440,6 @@
 				</label>
 			{/each}
 		</div>
-	</div>
-
-	<div class="bottom-actions">
-		<button class="btn secondary" onclick={goBack}>Back</button>
 	</div>
 
 {:else if view === 'tables'}
@@ -520,14 +530,17 @@
 		{/snippet}
 	</Popup>
 
-	<div class="bottom-actions">
-		<button class="btn secondary" onclick={goBack}>Back</button>
-	</div>
 {/if}
 
 	<div class="emp-bar">
-		<span class="emp-info">{empAuth.username} @ {empAuth.location}</span>
-		<button class="btn-signout" onclick={signOut}>Sign Out</button>
+		{#if view === 'list'}
+			<span class="emp-info">{empAuth.username} @ {empAuth.location}</span>
+			<button class="btn-signout" onclick={signOut}>Sign Out</button>
+		{:else}
+			<button class="btn secondary back-footer-btn" onclick={goBack}>
+				{view === 'select' ? 'Back to Branches' : 'Back'}
+			</button>
+		{/if}
 	</div>
 {/if}
 
@@ -764,6 +777,10 @@
 
 	.btn-signout:hover { background: #f0f0f0; }
 
+	.back-footer-btn {
+		width: 100%;
+	}
+
 	/* Edit options */
 	.select-wrapper {
 		display: flex;
@@ -828,16 +845,6 @@
 		font-size: 0.9rem;
 		font-weight: 600;
 		color: #333;
-	}
-
-	.bottom-actions {
-		margin-top: 2rem;
-		padding-bottom: 4rem;
-		max-width: 500px;
-	}
-
-	.bottom-actions .btn {
-		width: 100%;
 	}
 
 	/* Home editing */
@@ -1120,6 +1127,29 @@
 		color: #999;
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
+	}
+
+	.region-fields {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-top: 0.5rem;
+	}
+
+	.field select {
+		padding: 0.5rem 0.75rem;
+		border: 1px solid #ccc;
+		border-radius: 6px;
+		font-size: 0.95rem;
+		font-family: inherit;
+		background: #fff;
+		cursor: pointer;
+		width: 100%;
+	}
+
+	.field select:focus {
+		outline: none;
+		border-color: #6c63ff;
 	}
 
 	.menu-edit-buttons {

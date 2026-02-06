@@ -5,6 +5,8 @@
 	"phone": "+1 (555) 234-5678",
 	"email": "plaza@mycafe.com",
 	"description": "Modern location in the business district. Perfect for meetings and quick bites.",
+	"language": "en",
+	"currency": "USD",
 	"hours": {
 		"monday": { "open": "06:00", "close": "20:00" },
 		"tuesday": { "open": "06:00", "close": "20:00" },

@@ -5,6 +5,8 @@
 	"phone": "",
 	"email": "",
 	"description": "Welcome to your new branch. Configure your settings to get started.",
+	"language": "en",
+	"currency": "USD",
 	"hours": {
 		"monday": { "open": "09:00", "close": "17:00" },
 		"tuesday": { "open": "09:00", "close": "17:00" },

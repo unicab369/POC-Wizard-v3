@@ -1,0 +1,28 @@
+{
+	"languages": [
+		{ "code": "en", "name": "English" },
+		{ "code": "vn", "name": "Vietnamese" },
+		{ "code": "es", "name": "Spanish" },
+		{ "code": "fr", "name": "French" },
+		{ "code": "de", "name": "German" },
+		{ "code": "pt", "name": "Portuguese" },
+		{ "code": "ja", "name": "Japanese" },
+		{ "code": "zh", "name": "Chinese" },
+		{ "code": "ko", "name": "Korean" },
+		{ "code": "it", "name": "Italian" },
+		{ "code": "ar", "name": "Arabic" }
+	],
+	"currencies": [
+		{ "code": "USD", "symbol": "$", "name": "US Dollar" },
+		{ "code": "VND", "symbol": "Đ", "name": "Vietnamese Dong" },
+		{ "code": "EUR", "symbol": "€", "name": "Euro" },
+		{ "code": "GBP", "symbol": "£", "name": "British Pound" },
+		{ "code": "CAD", "symbol": "CA$", "name": "Canadian Dollar" },
+		{ "code": "AUD", "symbol": "A$", "name": "Australian Dollar" },
+		{ "code": "JPY", "symbol": "¥", "name": "Japanese Yen" },
+		{ "code": "MXN", "symbol": "MX$", "name": "Mexican Peso" },
+		{ "code": "BRL", "symbol": "R$", "name": "Brazilian Real" },
+		{ "code": "INR", "symbol": "₹", "name": "Indian Rupee" },
+		{ "code": "CNY", "symbol": "¥", "name": "Chinese Yuan" }
+	]
+}

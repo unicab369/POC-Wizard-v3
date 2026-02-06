@@ -89,6 +89,7 @@ function reloadAllStores() {
 	hours = loadHours();
 	menuItems = loadMenu();
 	displayMode = loadDisplayMode();
+	menuSettings = loadMenuSettings();
 	tableItems = loadTables();
 	pageConfig = loadPage();
 	items = load();
@@ -216,6 +217,50 @@ let displayMode = $state<MenuDisplayMode>(loadDisplayMode());
 export const menuDisplayStore = {
 	get mode() { return displayMode; },
 	set mode(v: MenuDisplayMode) { displayMode = v; if (typeof localStorage !== 'undefined') localStorage.setItem(branchKey('menu-display-mode'), v); }
+};
+
+// Menu settings (language/currency)
+export interface MenuSettings {
+	language: string;
+	currency: string;
+}
+
+import localeOptions from '$lib/test-data/locale-options.json';
+
+export const LANGUAGES = localeOptions.languages;
+export const CURRENCIES = localeOptions.currencies;
+
+function getDefaultMenuSettings(): MenuSettings {
+	const branchInfo = getBranchInfo(currentBranchId);
+	return {
+		language: branchInfo.language || 'en',
+		currency: branchInfo.currency || 'USD'
+	};
+}
+
+function loadMenuSettings(): MenuSettings {
+	const defaults = getDefaultMenuSettings();
+	if (typeof localStorage === 'undefined') return defaults;
+	const raw = localStorage.getItem(branchKey('menu-settings'));
+	if (!raw) return defaults;
+	try {
+		return { ...defaults, ...JSON.parse(raw) };
+	} catch { return defaults; }
+}
+
+function saveMenuSettings(s: MenuSettings) {
+	if (typeof localStorage !== 'undefined') {
+		localStorage.setItem(branchKey('menu-settings'), JSON.stringify(s));
+	}
+}
+
+let menuSettings = $state<MenuSettings>(loadMenuSettings());
+
+export const menuSettingsStore = {
+	get language() { return menuSettings.language; },
+	set language(v: string) { menuSettings = { ...menuSettings, language: v }; saveMenuSettings(menuSettings); },
+	get currency() { return menuSettings.currency; },
+	set currency(v: string) { menuSettings = { ...menuSettings, currency: v }; saveMenuSettings(menuSettings); }
 };
 
 // Tables

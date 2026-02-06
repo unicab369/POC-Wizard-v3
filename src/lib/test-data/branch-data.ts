@@ -28,6 +28,8 @@ export interface BranchInfo {
 	phone: string;
 	email: string;
 	description: string;
+	language: string;
+	currency: string;
 	hours: Record<string, { open: string; close: string; closed?: boolean }>;
 	features: string[];
 	socialMedia: Record<string, string>;

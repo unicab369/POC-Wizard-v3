@@ -5,6 +5,8 @@
 	"phone": "+1 (555) 123-4567",
 	"email": "mainstreet@mycafe.com",
 	"description": "Our flagship location in the heart of downtown. Cozy atmosphere with outdoor seating.",
+	"language": "en",
+	"currency": "USD",
 	"hours": {
 		"monday": { "open": "07:00", "close": "19:00" },
 		"tuesday": { "open": "07:00", "close": "19:00" },
