@@ -44,6 +44,16 @@
 		}
 	}
 
+	let confirmDeleteEmployee = $state(false);
+
+	function deleteEmployee() {
+		if (editingEmployee) {
+			employeesStore.remove(editingEmployee.id);
+			editingEmployee = null;
+			confirmDeleteEmployee = false;
+		}
+	}
+
 	function addEmployee() {
 		if (!canSaveEmployee) return;
 		employeesStore.add({
@@ -83,6 +93,16 @@
 				phone: draftCustPhone.trim()
 			});
 			editingCustomer = null;
+		}
+	}
+
+	let confirmDeleteCustomer = $state(false);
+
+	function deleteCustomer() {
+		if (editingCustomer) {
+			customersStore.remove(editingCustomer.id);
+			editingCustomer = null;
+			confirmDeleteCustomer = false;
 		}
 	}
 
@@ -126,7 +146,7 @@
 	{:else}
 		<ul class="user-list">
 			{#each employeesStore.items as emp (emp.id)}
-				<li class="user-item">
+				<button class="user-item" onclick={() => startEditEmployee(emp)}>
 					<div class="user-avatar">
 						<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
 					</div>
@@ -135,15 +155,8 @@
 						<span class="user-role">{emp.role}</span>
 						<span class="user-contact">{emp.email}{emp.phone ? ` | ${emp.phone}` : ''}</span>
 					</div>
-					<div class="user-actions">
-						<button class="btn-icon" onclick={() => startEditEmployee(emp)} aria-label="Edit">
-							<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-						</button>
-						<button class="btn-icon danger" onclick={() => employeesStore.remove(emp.id)} aria-label="Delete">
-							<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" /></svg>
-						</button>
-					</div>
-				</li>
+					<svg class="user-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+				</button>
 			{/each}
 		</ul>
 	{/if}
@@ -197,11 +210,26 @@
 			<label class="field"><span>Phone</span>
 				<input type="tel" bind:value={draftEmpPhone} placeholder="Phone number" />
 			</label>
+			<button class="btn-delete" onclick={() => (confirmDeleteEmployee = true)}>
+				<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" /></svg>
+				Delete Employee
+			</button>
 		</div>
 		{#snippet footer()}
 			<div class="footer-buttons">
 				<button class="btn primary" onclick={saveEmployee} disabled={!canSaveEmployee}>Save</button>
 				<button class="btn secondary" onclick={() => (editingEmployee = null)}>Cancel</button>
+			</div>
+		{/snippet}
+	</Popup>
+
+	<!-- Confirm Delete Employee Modal -->
+	<Popup open={confirmDeleteEmployee} title="Delete Employee" onclose={() => (confirmDeleteEmployee = false)} wide>
+		<p class="confirm-text">Are you sure you want to delete <strong>{editingEmployee?.name}</strong>? This action cannot be undone.</p>
+		{#snippet footer()}
+			<div class="footer-buttons">
+				<button class="btn secondary" onclick={() => (confirmDeleteEmployee = false)}>Cancel</button>
+				<button class="btn danger" onclick={deleteEmployee}>Delete</button>
 			</div>
 		{/snippet}
 	</Popup>
@@ -221,7 +249,7 @@
 	{:else}
 		<ul class="user-list">
 			{#each customersStore.items as cust (cust.id)}
-				<li class="user-item">
+				<button class="user-item" onclick={() => startEditCustomer(cust)}>
 					<div class="user-avatar customer">
 						<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
 					</div>
@@ -229,15 +257,8 @@
 						<span class="user-name">{cust.name}</span>
 						<span class="user-contact">{cust.phone || 'No phone'}</span>
 					</div>
-					<div class="user-actions">
-						<button class="btn-icon" onclick={() => startEditCustomer(cust)} aria-label="Edit">
-							<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-						</button>
-						<button class="btn-icon danger" onclick={() => customersStore.remove(cust.id)} aria-label="Delete">
-							<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" /></svg>
-						</button>
-					</div>
-				</li>
+					<svg class="user-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+				</button>
 			{/each}
 		</ul>
 	{/if}
@@ -269,11 +290,26 @@
 			<label class="field"><span>Phone</span>
 				<input type="tel" bind:value={draftCustPhone} placeholder="Phone number" />
 			</label>
+			<button class="btn-delete" onclick={() => (confirmDeleteCustomer = true)}>
+				<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" /></svg>
+				Delete Customer
+			</button>
 		</div>
 		{#snippet footer()}
 			<div class="footer-buttons">
 				<button class="btn primary" onclick={saveCustomer} disabled={!canSaveCustomer}>Save</button>
 				<button class="btn secondary" onclick={() => (editingCustomer = null)}>Cancel</button>
+			</div>
+		{/snippet}
+	</Popup>
+
+	<!-- Confirm Delete Customer Modal -->
+	<Popup open={confirmDeleteCustomer} title="Delete Customer" onclose={() => (confirmDeleteCustomer = false)} wide>
+		<p class="confirm-text">Are you sure you want to delete <strong>{editingCustomer?.name}</strong>? This action cannot be undone.</p>
+		{#snippet footer()}
+			<div class="footer-buttons">
+				<button class="btn secondary" onclick={() => (confirmDeleteCustomer = false)}>Cancel</button>
+				<button class="btn danger" onclick={deleteCustomer}>Delete</button>
 			</div>
 		{/snippet}
 	</Popup>
@@ -383,6 +419,16 @@
 		background: #fff;
 		border: 1px solid #e8e8e8;
 		border-radius: 10px;
+		width: 100%;
+		cursor: pointer;
+		font-family: inherit;
+		text-align: left;
+		transition: border-color 0.15s, box-shadow 0.15s;
+	}
+
+	.user-item:hover {
+		border-color: #6c63ff;
+		box-shadow: 0 2px 8px rgba(108, 99, 255, 0.15);
 	}
 
 	.user-avatar {
@@ -443,38 +489,48 @@
 		color: #888;
 	}
 
-	.user-actions {
-		display: flex;
-		gap: 0.25rem;
+	.user-arrow {
+		width: 1.25rem;
+		height: 1.25rem;
+		fill: none;
+		stroke: #ccc;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		flex-shrink: 0;
 	}
 
-	.btn-icon {
+	.user-item:hover .user-arrow {
+		stroke: #6c63ff;
+	}
+
+	.btn-delete {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 2rem;
-		height: 2rem;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0.75rem;
+		margin-top: 1rem;
 		background: none;
-		border: 1px solid #ddd;
-		border-radius: 6px;
-		cursor: pointer;
-		color: #888;
-		transition: color 0.15s, border-color 0.15s;
-	}
-
-	.btn-icon:hover {
-		color: #6c63ff;
-		border-color: #6c63ff;
-	}
-
-	.btn-icon.danger:hover {
+		border: 1px solid #e74c3c;
+		border-radius: 8px;
 		color: #e74c3c;
-		border-color: #e74c3c;
+		font-size: 0.9rem;
+		font-weight: 500;
+		cursor: pointer;
+		font-family: inherit;
+		transition: background 0.15s, color 0.15s;
 	}
 
-	.btn-icon svg {
-		width: 1rem;
-		height: 1rem;
+	.btn-delete:hover {
+		background: #e74c3c;
+		color: #fff;
+	}
+
+	.btn-delete svg {
+		width: 1.1rem;
+		height: 1.1rem;
 		fill: none;
 		stroke: currentColor;
 		stroke-width: 2;
@@ -573,4 +629,30 @@
 	}
 
 	.btn.secondary:hover { background: #f0f0f0; }
+
+	.btn.danger {
+		padding: 0.55rem 1.2rem;
+		background: #e74c3c;
+		color: #fff;
+		border: none;
+		border-radius: 6px;
+		font-size: 1.1rem;
+		font-weight: 600;
+		cursor: pointer;
+		font-family: inherit;
+	}
+
+	.btn.danger:hover { background: #c0392b; }
+
+	.confirm-text {
+		text-align: center;
+		color: #555;
+		font-size: 0.95rem;
+		margin: 1rem 0;
+		line-height: 1.5;
+	}
+
+	.confirm-text strong {
+		color: #222;
+	}
 </style>
