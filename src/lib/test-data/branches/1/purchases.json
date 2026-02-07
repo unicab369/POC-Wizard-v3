@@ -88,6 +88,26 @@
 	},
 	{
 		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 2, "price": 350 }
+		],
+		"total": 700,
+		"date": "2/6/2026, 10:00:00 AM",
+		"status": "completed",
+		"customer": { "name": "Frank Lee", "phone": "5554567890" },
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 1, "price": 500 },
+			{ "id": 7, "name": "Bagel", "qty": 2, "price": 400 }
+		],
+		"total": 1300,
+		"date": "2/6/2026, 8:45:00 AM",
+		"status": "completed",
+		"customer": { "name": "Grace Kim", "phone": "5555678901" }
+	},
+	{
+		"items": [
 			{ "id": 1, "name": "Espresso", "qty": 1, "price": 350 }
 		],
 		"total": 350,
@@ -105,5 +125,503 @@
 		"date": "2/5/2026, 11:30:15 AM",
 		"status": "completed",
 		"table": { "id": 5, "label": "Table 5" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 1, "price": 450 },
+			{ "id": 8, "name": "Muffin", "qty": 2, "price": 350 }
+		],
+		"total": 1150,
+		"date": "2/5/2026, 9:20:00 AM",
+		"status": "completed",
+		"customer": { "name": "Hannah Brown", "phone": "5556789012" },
+		"table": { "id": 3, "label": "Table 3" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 3, "price": 400 }
+		],
+		"total": 1200,
+		"date": "2/5/2026, 8:00:00 AM",
+		"status": "completed",
+		"customer": { "name": "Ian Taylor", "phone": "5557890124" },
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 2, "price": 550 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": 650 }
+		],
+		"total": 1750,
+		"date": "2/4/2026, 2:30:00 PM",
+		"status": "completed",
+		"customer": { "name": "Julia White", "phone": "5558901235" },
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 1, "price": 350 },
+			{ "id": 6, "name": "Croissant", "qty": 1, "price": 300 }
+		],
+		"total": 650,
+		"date": "2/4/2026, 11:15:00 AM",
+		"status": "completed",
+		"customer": { "name": "Kevin Garcia", "phone": "5559012346" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 1, "price": 500 }
+		],
+		"total": 500,
+		"date": "2/4/2026, 9:45:00 AM",
+		"status": "cancelled",
+		"table": { "id": 4, "label": "Table 4" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 2, "price": 450 },
+			{ "id": 7, "name": "Bagel", "qty": 1, "price": 400 }
+		],
+		"total": 1300,
+		"date": "2/4/2026, 8:30:00 AM",
+		"status": "completed",
+		"customer": { "name": "Laura Martinez", "phone": "5550123456" },
+		"table": { "id": 5, "label": "Table 5" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 1, "price": 400 },
+			{ "id": 8, "name": "Muffin", "qty": 1, "price": 350 }
+		],
+		"total": 750,
+		"date": "2/3/2026, 4:00:00 PM",
+		"status": "completed",
+		"customer": { "name": "Mike Johnson", "phone": "5551234568" },
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 1, "price": 550 },
+			{ "id": 6, "name": "Croissant", "qty": 3, "price": 300 }
+		],
+		"total": 1450,
+		"date": "2/3/2026, 1:20:00 PM",
+		"status": "completed",
+		"customer": { "name": "Nancy Lee", "phone": "5552345679" },
+		"table": { "id": 3, "label": "Table 3" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 2, "price": 350 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 2, "price": 650 }
+		],
+		"total": 2000,
+		"date": "2/3/2026, 10:45:00 AM",
+		"status": "completed",
+		"customer": { "name": "Oscar Brown", "phone": "5553456790" },
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 3, "price": 500 }
+		],
+		"total": 1500,
+		"date": "2/3/2026, 9:00:00 AM",
+		"status": "completed",
+		"customer": { "name": "Patricia Davis", "phone": "5554567891" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 1, "price": 450 },
+			{ "id": 7, "name": "Bagel", "qty": 2, "price": 400 }
+		],
+		"total": 1250,
+		"date": "2/2/2026, 3:30:00 PM",
+		"status": "completed",
+		"customer": { "name": "Quinn Wilson", "phone": "5555678902" },
+		"table": { "id": 4, "label": "Table 4" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 2, "price": 400 },
+			{ "id": 6, "name": "Croissant", "qty": 1, "price": 300 }
+		],
+		"total": 1100,
+		"date": "2/2/2026, 12:00:00 PM",
+		"status": "completed",
+		"customer": { "name": "Rachel Kim", "phone": "5556789013" },
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 1, "price": 550 },
+			{ "id": 8, "name": "Muffin", "qty": 2, "price": 350 }
+		],
+		"total": 1250,
+		"date": "2/2/2026, 10:15:00 AM",
+		"status": "completed",
+		"customer": { "name": "Steve Taylor", "phone": "5557890125" },
+		"table": { "id": 5, "label": "Table 5" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 1, "price": 350 }
+		],
+		"total": 350,
+		"date": "2/2/2026, 8:45:00 AM",
+		"status": "completed",
+		"customer": { "name": "Tina Garcia", "phone": "5558901236" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 2, "price": 500 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": 650 }
+		],
+		"total": 1650,
+		"date": "2/1/2026, 2:45:00 PM",
+		"status": "completed",
+		"customer": { "name": "Uma White", "phone": "5559012347" },
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 3, "price": 450 },
+			{ "id": 6, "name": "Croissant", "qty": 2, "price": 300 }
+		],
+		"total": 1950,
+		"date": "2/1/2026, 11:30:00 AM",
+		"status": "completed",
+		"customer": { "name": "Victor Martinez", "phone": "5550123457" },
+		"table": { "id": 3, "label": "Table 3" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 1, "price": 400 },
+			{ "id": 7, "name": "Bagel", "qty": 1, "price": 400 }
+		],
+		"total": 800,
+		"date": "2/1/2026, 9:20:00 AM",
+		"status": "cancelled",
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 2, "price": 550 }
+		],
+		"total": 1100,
+		"date": "2/1/2026, 8:00:00 AM",
+		"status": "completed",
+		"customer": { "name": "Wendy Johnson", "phone": "5551234569" },
+		"table": { "id": 4, "label": "Table 4" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 2, "price": 350 },
+			{ "id": 8, "name": "Muffin", "qty": 1, "price": 350 }
+		],
+		"total": 1050,
+		"date": "1/31/2026, 4:15:00 PM",
+		"status": "completed",
+		"customer": { "name": "Xavier Lee", "phone": "5552345680" },
+		"table": { "id": 5, "label": "Table 5" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 1, "price": 500 },
+			{ "id": 6, "name": "Croissant", "qty": 2, "price": 300 }
+		],
+		"total": 1100,
+		"date": "1/31/2026, 1:00:00 PM",
+		"status": "completed",
+		"customer": { "name": "Yolanda Brown", "phone": "5553456791" },
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 2, "price": 450 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": 650 }
+		],
+		"total": 1550,
+		"date": "1/31/2026, 10:30:00 AM",
+		"status": "completed",
+		"customer": { "name": "Zack Davis", "phone": "5554567892" },
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 3, "price": 400 },
+			{ "id": 7, "name": "Bagel", "qty": 1, "price": 400 }
+		],
+		"total": 1600,
+		"date": "1/31/2026, 9:00:00 AM",
+		"status": "completed",
+		"customer": { "name": "Amy Wilson", "phone": "5555678903" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 1, "price": 550 },
+			{ "id": 8, "name": "Muffin", "qty": 3, "price": 350 }
+		],
+		"total": 1600,
+		"date": "1/30/2026, 3:45:00 PM",
+		"status": "completed",
+		"customer": { "name": "Brian Kim", "phone": "5556789014" },
+		"table": { "id": 3, "label": "Table 3" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 1, "price": 350 },
+			{ "id": 6, "name": "Croissant", "qty": 1, "price": 300 }
+		],
+		"total": 650,
+		"date": "1/30/2026, 12:20:00 PM",
+		"status": "completed",
+		"customer": { "name": "Cathy Taylor", "phone": "5557890126" },
+		"table": { "id": 4, "label": "Table 4" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 2, "price": 500 }
+		],
+		"total": 1000,
+		"date": "1/30/2026, 10:00:00 AM",
+		"status": "completed",
+		"customer": { "name": "Derek Garcia", "phone": "5558901237" },
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 1, "price": 450 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 2, "price": 650 }
+		],
+		"total": 1750,
+		"date": "1/30/2026, 8:30:00 AM",
+		"status": "completed",
+		"customer": { "name": "Emma White", "phone": "5559012348" },
+		"table": { "id": 5, "label": "Table 5" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 2, "price": 400 },
+			{ "id": 7, "name": "Bagel", "qty": 2, "price": 400 }
+		],
+		"total": 1600,
+		"date": "1/29/2026, 4:30:00 PM",
+		"status": "completed",
+		"customer": { "name": "Frank Martinez", "phone": "5550123458" },
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 3, "price": 550 }
+		],
+		"total": 1650,
+		"date": "1/29/2026, 1:45:00 PM",
+		"status": "completed",
+		"customer": { "name": "Gina Johnson", "phone": "5551234570" },
+		"table": { "id": 3, "label": "Table 3" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 2, "price": 350 },
+			{ "id": 8, "name": "Muffin", "qty": 2, "price": 350 }
+		],
+		"total": 1400,
+		"date": "1/29/2026, 11:00:00 AM",
+		"status": "cancelled",
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 1, "price": 500 },
+			{ "id": 6, "name": "Croissant", "qty": 3, "price": 300 }
+		],
+		"total": 1400,
+		"date": "1/29/2026, 9:15:00 AM",
+		"status": "completed",
+		"customer": { "name": "Henry Lee", "phone": "5552345681" },
+		"table": { "id": 4, "label": "Table 4" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 2, "price": 450 },
+			{ "id": 7, "name": "Bagel", "qty": 1, "price": 400 }
+		],
+		"total": 1300,
+		"date": "1/28/2026, 3:00:00 PM",
+		"status": "completed",
+		"customer": { "name": "Iris Brown", "phone": "5553456792" },
+		"table": { "id": 5, "label": "Table 5" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 1, "price": 400 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": 650 }
+		],
+		"total": 1050,
+		"date": "1/28/2026, 12:30:00 PM",
+		"status": "completed",
+		"customer": { "name": "Jake Davis", "phone": "5554567893" },
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 2, "price": 550 },
+			{ "id": 6, "name": "Croissant", "qty": 1, "price": 300 }
+		],
+		"total": 1400,
+		"date": "1/28/2026, 10:45:00 AM",
+		"status": "completed",
+		"customer": { "name": "Karen Wilson", "phone": "5555678904" },
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 3, "price": 350 },
+			{ "id": 8, "name": "Muffin", "qty": 1, "price": 350 }
+		],
+		"total": 1400,
+		"date": "1/28/2026, 8:15:00 AM",
+		"status": "completed",
+		"customer": { "name": "Leo Kim", "phone": "5556789015" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 2, "price": 500 },
+			{ "id": 7, "name": "Bagel", "qty": 2, "price": 400 }
+		],
+		"total": 1800,
+		"date": "1/27/2026, 4:00:00 PM",
+		"status": "completed",
+		"customer": { "name": "Mia Taylor", "phone": "5557890127" },
+		"table": { "id": 3, "label": "Table 3" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 1, "price": 450 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 2, "price": 650 }
+		],
+		"total": 1750,
+		"date": "1/27/2026, 1:15:00 PM",
+		"status": "completed",
+		"customer": { "name": "Nick Garcia", "phone": "5558901238" },
+		"table": { "id": 4, "label": "Table 4" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 2, "price": 400 },
+			{ "id": 6, "name": "Croissant", "qty": 2, "price": 300 }
+		],
+		"total": 1400,
+		"date": "1/27/2026, 10:30:00 AM",
+		"status": "completed",
+		"customer": { "name": "Olivia White", "phone": "5559012349" },
+		"table": { "id": 5, "label": "Table 5" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 1, "price": 550 }
+		],
+		"total": 550,
+		"date": "1/27/2026, 9:00:00 AM",
+		"status": "completed",
+		"customer": { "name": "Paul Martinez", "phone": "5550123459" },
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 1, "price": 350 },
+			{ "id": 8, "name": "Muffin", "qty": 2, "price": 350 }
+		],
+		"total": 1050,
+		"date": "1/26/2026, 3:30:00 PM",
+		"status": "completed",
+		"customer": { "name": "Quinn Johnson", "phone": "5551234571" },
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 3, "price": 500 },
+			{ "id": 7, "name": "Bagel", "qty": 1, "price": 400 }
+		],
+		"total": 1900,
+		"date": "1/26/2026, 12:45:00 PM",
+		"status": "completed",
+		"customer": { "name": "Rose Lee", "phone": "5552345682" },
+		"table": { "id": 3, "label": "Table 3" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 2, "price": 450 },
+			{ "id": 6, "name": "Croissant", "qty": 1, "price": 300 }
+		],
+		"total": 1200,
+		"date": "1/26/2026, 10:15:00 AM",
+		"status": "cancelled",
+		"table": { "id": 4, "label": "Table 4" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 1, "price": 400 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": 650 }
+		],
+		"total": 1050,
+		"date": "1/26/2026, 8:45:00 AM",
+		"status": "completed",
+		"customer": { "name": "Sam Brown", "phone": "5553456793" },
+		"table": { "id": 5, "label": "Table 5" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 2, "price": 550 },
+			{ "id": 8, "name": "Muffin", "qty": 1, "price": 350 }
+		],
+		"total": 1450,
+		"date": "1/25/2026, 4:15:00 PM",
+		"status": "completed",
+		"customer": { "name": "Tara Davis", "phone": "5554567894" },
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 2, "price": 350 },
+			{ "id": 6, "name": "Croissant", "qty": 2, "price": 300 }
+		],
+		"total": 1300,
+		"date": "1/25/2026, 1:30:00 PM",
+		"status": "completed",
+		"customer": { "name": "Uma Wilson", "phone": "5555678905" },
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 1, "price": 500 },
+			{ "id": 7, "name": "Bagel", "qty": 3, "price": 400 }
+		],
+		"total": 1700,
+		"date": "1/25/2026, 11:00:00 AM",
+		"status": "completed",
+		"customer": { "name": "Victor Kim", "phone": "5556789016" },
+		"table": { "id": 3, "label": "Table 3" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 3, "price": 450 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": 650 }
+		],
+		"total": 2000,
+		"date": "1/25/2026, 9:30:00 AM",
+		"status": "completed",
+		"customer": { "name": "Wendy Taylor", "phone": "5557890128" },
+		"table": { "id": 4, "label": "Table 4" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 2, "price": 400 }
+		],
+		"total": 800,
+		"date": "1/25/2026, 8:00:00 AM",
+		"status": "completed",
+		"customer": { "name": "Xavier Garcia", "phone": "5558901239" }
 	}
 ]

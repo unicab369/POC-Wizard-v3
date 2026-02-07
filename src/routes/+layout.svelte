@@ -39,9 +39,8 @@
 				{ label: 'Orders', href: `/${branchId}/orders` },
 				{ label: 'Reservations', href: `/${branchId}/reservations` }
 			]},
-			{ label: 'Dashboard', href: '/dashboard', icon: icons.dashboard, sublinks: [
-				{ label: 'Overview', href: '/dashboard' },
-				{ label: 'Analytics', href: '/dashboard/analytics' }
+			{ label: 'Reports', href: `/${branchId}/reports`, icon: icons.dashboard, sublinks: [
+				{ label: 'Reports', href: `/${branchId}/reports` }
 			]},
 		];
 
