@@ -6,10 +6,10 @@
 
 	const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string }> = {
 		reserved: { label: 'Reserved', color: '#0ea5e9', bg: '#e0f2fe' },
-		ordering: { label: 'Ordering', color: '#8b5cf6', bg: '#ede9fe' },
+		ordering: { label: 'Ordering', color: '#f59e0b', bg: '#fef3c7' },
 		preparing: { label: 'Preparing', color: '#f59e0b', bg: '#fef3c7' },
-		served: { label: 'Served', color: '#10b981', bg: '#d1fae5' },
-		billing: { label: 'Billing', color: '#6366f1', bg: '#e0e7ff' },
+		served: { label: 'Served', color: '#f59e0b', bg: '#fef3c7' },
+		billing: { label: 'Billing', color: '#f59e0b', bg: '#fef3c7' },
 		completed: { label: 'Completed', color: '#059669', bg: '#d1fae5' },
 		cancelled: { label: 'Cancelled', color: '#ef4444', bg: '#fee2e2' }
 	};
