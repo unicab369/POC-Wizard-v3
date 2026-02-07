@@ -451,8 +451,14 @@
 	</Popup>
 
 {:else if view === 'menu'}
+	<div class="edit-header">
+		<p class="editing-branch">{selectedBranchName}</p>
+		<a href="{base}/{branchStore.id}/menu" class="view-menu-link">
+			<svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" /></svg>
+			View Menu Page
+		</a>
+	</div>
 	<h2>Edit Menu</h2>
-	<p class="editing-branch">{selectedBranchName}</p>
 
 	<div class="menu-edit-section">
 		<span class="section-label">Menu Data</span>
@@ -958,6 +964,46 @@
 		font-weight: 600;
 		color: #333;
 		margin: 0 0 1.5rem;
+	}
+
+	.edit-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 0.5rem;
+		margin-top: 1rem;
+	}
+
+	.edit-header .editing-branch {
+		margin: 0;
+	}
+
+	.view-menu-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.85rem;
+		background: #6c63ff;
+		color: #fff;
+		text-decoration: none;
+		border-radius: 8px;
+		font-size: 0.85rem;
+		font-weight: 500;
+		transition: background 0.15s;
+	}
+
+	.view-menu-link:hover {
+		background: #5a52d5;
+	}
+
+	.view-menu-link svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 
 	.select-buttons {
