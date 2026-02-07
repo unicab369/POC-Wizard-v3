@@ -2,18 +2,6 @@
 	import { branchStore, formatCurrency } from '$lib/actions-store.svelte';
 	import { getBranchData } from '$lib/test-data/branch-data';
 
-	type OrderStatus = 'reserved' | 'ordering' | 'preparing' | 'served' | 'billing' | 'completed' | 'cancelled';
-
-	const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string }> = {
-		reserved: { label: 'Reserved', color: '#0ea5e9', bg: '#e0f2fe' },
-		ordering: { label: 'Ordering', color: '#f59e0b', bg: '#fef3c7' },
-		preparing: { label: 'Preparing', color: '#f59e0b', bg: '#fef3c7' },
-		served: { label: 'Served', color: '#f59e0b', bg: '#fef3c7' },
-		billing: { label: 'Billing', color: '#f59e0b', bg: '#fef3c7' },
-		completed: { label: 'Completed', color: '#059669', bg: '#d1fae5' },
-		cancelled: { label: 'Cancelled', color: '#ef4444', bg: '#fee2e2' }
-	};
-
 	interface OrderItem {
 		id: number;
 		name: string;
@@ -25,23 +13,22 @@
 		items: OrderItem[];
 		total: number;
 		date: string;
-		status: OrderStatus;
+		status: string;
 		customer?: { name: string; phone: string };
 		table?: { id: number; label: string };
 	}
 
 	const allOrders = $derived<Order[]>(getBranchData(branchStore.id).purchases as Order[]);
 
-	// Exclude reserved orders (shown in Reservations page)
-	const orders = $derived(allOrders.filter(order => order.status !== 'reserved'));
+	// Filter to only show reserved orders
+	const reservations = $derived(allOrders.filter(order => order.status === 'reserved'));
 
-	// Group orders by date (just the date part, not time)
-	const ordersByDate = $derived.by(() => {
+	// Group reservations by date
+	const reservationsByDate = $derived.by(() => {
 		const groups: { date: string; orders: Order[] }[] = [];
 		const dateMap = new Map<string, Order[]>();
 
-		for (const order of orders) {
-			// Extract just the date part (before the comma)
+		for (const order of reservations) {
 			const datePart = order.date.split(',')[0];
 			if (!dateMap.has(datePart)) {
 				dateMap.set(datePart, []);
@@ -49,7 +36,6 @@
 			dateMap.get(datePart)!.push(order);
 		}
 
-		// Convert map to array and sort by date (newest first)
 		for (const [date, dateOrders] of dateMap) {
 			groups.push({ date, orders: dateOrders });
 		}
@@ -57,112 +43,96 @@
 		return groups;
 	});
 
-	// Get time part from full date string
 	function getTime(dateStr: string): string {
 		const parts = dateStr.split(', ');
 		return parts[1] || '';
 	}
 
-	function getStatusStyle(status: OrderStatus): string {
-		const config = STATUS_CONFIG[status];
-		return `color: ${config.color}; background: ${config.bg};`;
-	}
+	let selectedReservation = $state<Order | null>(null);
 
-	let selectedOrder = $state<Order | null>(null);
-
-	function selectOrder(order: Order) {
-		selectedOrder = order;
+	function selectReservation(order: Order) {
+		selectedReservation = order;
 	}
 
 	function goBack() {
-		selectedOrder = null;
+		selectedReservation = null;
 	}
 </script>
 
-{#if selectedOrder}
-	<div class="order-detail">
+{#if selectedReservation}
+	<div class="reservation-detail">
 		<div class="detail-header">
-			<h1>Order Details</h1>
-			<span class="status-badge" style={getStatusStyle(selectedOrder.status)}>
-				{STATUS_CONFIG[selectedOrder.status].label}
-			</span>
+			<h1>Reservation Details</h1>
+			<span class="status-badge">Reserved</span>
 		</div>
-		<div class="order-meta">
-			<span class="order-date">{selectedOrder.date}</span>
-			{#if selectedOrder.table}
-				<span class="order-table">{selectedOrder.table.label}</span>
+		<div class="reservation-meta">
+			<span class="reservation-date">{selectedReservation.date}</span>
+			{#if selectedReservation.table}
+				<span class="reservation-table">{selectedReservation.table.label}</span>
 			{/if}
 		</div>
 
-		{#if selectedOrder.customer}
+		{#if selectedReservation.customer}
 			<div class="customer-info">
 				<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-				<span>{selectedOrder.customer.name}</span>
-				{#if selectedOrder.customer.phone}
-					<span class="customer-phone">{selectedOrder.customer.phone}</span>
+				<span>{selectedReservation.customer.name}</span>
+				{#if selectedReservation.customer.phone}
+					<span class="customer-phone">{selectedReservation.customer.phone}</span>
 				{/if}
 			</div>
 		{/if}
 
-		<div class="items-list">
-			<h2>Items</h2>
-			{#each selectedOrder.items as item}
-				<div class="item-row">
-					<div class="item-info">
-						<span class="item-name">{item.name}</span>
-						<span class="item-qty">{item.qty} x {formatCurrency(item.price)}</span>
+		{#if selectedReservation.items.length > 0}
+			<div class="items-list">
+				<h2>Pre-ordered Items</h2>
+				{#each selectedReservation.items as item}
+					<div class="item-row">
+						<div class="item-info">
+							<span class="item-name">{item.name}</span>
+							<span class="item-qty">{item.qty} x {formatCurrency(item.price)}</span>
+						</div>
+						<span class="item-total">{formatCurrency(item.qty * item.price)}</span>
 					</div>
-					<span class="item-total">{formatCurrency(item.qty * item.price)}</span>
+				{/each}
+				<div class="order-total">
+					<span>Total</span>
+					<span class="total-price">{formatCurrency(selectedReservation.total)}</span>
 				</div>
-			{/each}
-		</div>
-
-		<div class="order-total">
-			<span>Total</span>
-			<span class="total-price">{formatCurrency(selectedOrder.total)}</span>
-		</div>
+			</div>
+		{/if}
 	</div>
 
 	<div class="footer-bar">
 		<button class="btn secondary back-btn" onclick={goBack}>Back</button>
 	</div>
 {:else}
-	<h1>Orders</h1>
-	<p class="subtitle">Purchase history</p>
+	<h1>Reservations</h1>
+	<p class="subtitle">Upcoming table reservations</p>
 
-	{#if orders.length === 0}
+	{#if reservations.length === 0}
 		<div class="empty-state">
-			<svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-			<p>No orders yet</p>
+			<svg viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+			<p>No reservations</p>
 		</div>
 	{:else}
-		{#each ordersByDate as group}
+		{#each reservationsByDate as group}
 			<div class="date-section">
 				<h2 class="date-header">{group.date}</h2>
-				<div class="orders-list">
-					{#each group.orders as order}
-						<button class="order-card" onclick={() => selectOrder(order)}>
-							<div class="order-header">
-								<span class="order-time">{getTime(order.date)}</span>
-								<span class="status-badge" style={getStatusStyle(order.status)}>
-									{STATUS_CONFIG[order.status].label}
-								</span>
-								<span class="order-total-badge">{formatCurrency(order.total)}</span>
-							</div>
-							<div class="order-summary">
-								{#if order.items.length > 0}
-									<span class="order-items-count">{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
-								{/if}
-								{#if order.table}
-									<span class="order-table-badge">{order.table.label}</span>
-								{/if}
-								{#if order.customer}
-									<span class="order-customer">{order.customer.name}</span>
+				<div class="reservations-list">
+					{#each group.orders as reservation}
+						<button class="reservation-card" onclick={() => selectReservation(reservation)}>
+							<div class="reservation-header">
+								<span class="reservation-time">{getTime(reservation.date)}</span>
+								<span class="status-badge">Reserved</span>
+								{#if reservation.table}
+									<span class="table-badge">{reservation.table.label}</span>
 								{/if}
 							</div>
-							{#if order.items.length > 0}
-								<div class="order-items-preview">
-									{order.items.map(i => i.name).join(', ')}
+							{#if reservation.customer}
+								<div class="reservation-customer">
+									<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+									<span>{reservation.customer.name}</span>
+									<span class="customer-phone">{reservation.customer.phone}</span>
 								</div>
 							{/if}
 						</button>
@@ -199,6 +169,8 @@
 		text-transform: uppercase;
 		letter-spacing: 0.03em;
 		white-space: nowrap;
+		color: #0ea5e9;
+		background: #e0f2fe;
 	}
 
 	.subtitle {
@@ -248,13 +220,13 @@
 		font-size: 1rem;
 	}
 
-	.orders-list {
+	.reservations-list {
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
 	}
 
-	.order-card {
+	.reservation-card {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
@@ -269,96 +241,76 @@
 		transition: border-color 0.15s, box-shadow 0.15s;
 	}
 
-	.order-card:hover {
+	.reservation-card:hover {
 		border-color: #d0d0d0;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 	}
 
-	.order-header {
+	.reservation-header {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 	}
 
-	.order-header .order-total-badge {
-		margin-left: auto;
+	.reservation-time {
+		font-size: 0.9rem;
+		color: #333;
+		font-weight: 600;
 	}
 
-	.order-date {
-		font-size: 0.8rem;
-		color: #888;
-	}
-
-	.order-time {
-		font-size: 0.8rem;
-		color: #888;
-		font-weight: 500;
-	}
-
-	.order-total-badge {
-		font-size: 0.95rem;
-		font-weight: 700;
-		color: #6c63ff;
-	}
-
-	.order-summary {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-	}
-
-	.order-items-count {
-		font-size: 0.85rem;
-		font-weight: 500;
-		color: #555;
-	}
-
-	.order-table-badge {
+	.table-badge {
 		font-size: 0.7rem;
 		font-weight: 600;
 		padding: 0.15rem 0.5rem;
 		background: #f0eeff;
 		color: #6c63ff;
 		border-radius: 4px;
+		margin-left: auto;
 	}
 
-	.order-customer {
-		font-size: 0.8rem;
-		color: #666;
+	.reservation-customer {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.85rem;
+		color: #555;
 	}
 
-	.order-items-preview {
-		font-size: 0.8rem;
-		color: #999;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+	.reservation-customer svg {
+		width: 1rem;
+		height: 1rem;
+		fill: none;
+		stroke: #6c63ff;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 
-	/* Order Detail View */
-	.order-detail {
+	.customer-phone {
+		color: #888;
+		margin-left: auto;
+	}
+
+	/* Detail View */
+	.reservation-detail {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
 		padding-bottom: 4rem;
 	}
 
-	.order-detail h1 {
-		margin-bottom: 0;
-	}
-
-	.order-meta {
+	.reservation-meta {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
 	}
 
-	.order-meta .order-date {
+	.reservation-date {
 		font-size: 0.9rem;
+		color: #888;
 	}
 
-	.order-meta .order-table {
+	.reservation-table {
 		font-size: 0.75rem;
 		font-weight: 600;
 		padding: 0.2rem 0.6rem;
@@ -388,8 +340,7 @@
 		stroke-linejoin: round;
 	}
 
-	.customer-phone {
-		color: #888;
+	.customer-info .customer-phone {
 		margin-left: auto;
 	}
 

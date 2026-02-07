@@ -36,7 +36,8 @@
 				{ label: 'Menu', href: `/${branchId}/menu` }
 			]},
 			{ label: 'Orders', href: `/${branchId}/orders`, icon: icons.orders, sublinks: [
-				{ label: 'Orders', href: `/${branchId}/orders` }
+				{ label: 'Orders', href: `/${branchId}/orders` },
+				{ label: 'Reservations', href: `/${branchId}/reservations` }
 			]},
 			{ label: 'QR Barcode', href: '/scanner', icon: icons.barcode, filled: true, sublinks: [
 				{ label: 'Scan', href: '/scanner' },
