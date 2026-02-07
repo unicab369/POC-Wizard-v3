@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { branchStore, formatCurrency } from '$lib/actions-store.svelte';
-	import { getBranchData } from '$lib/test-data/branch-data';
+	import { branchStore, formatCurrency, purchasesStore } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 
 	type OrderStatus = 'reserved' | 'ordering' | 'preparing' | 'served' | 'billing' | 'completed' | 'cancelled';
@@ -39,16 +38,7 @@
 		stateHistory?: StateHistoryEntry[];
 	}
 
-	const baseOrders = $derived<Order[]>(getBranchData(branchStore.id).purchases as Order[]);
-
-	// Store order updates by index to persist changes
-	let orderUpdates = $state<Map<number, Partial<Order>>>(new Map());
-
-	// Merge base orders with any updates
-	const allOrders = $derived(baseOrders.map((order, index) => {
-		const updates = orderUpdates.get(index);
-		return updates ? { ...order, ...updates } : order;
-	}));
+	const allOrders = $derived<Order[]>(purchasesStore.items as Order[]);
 
 	// Exclude reserved orders (shown in Reservations page)
 	const orders = $derived(allOrders.filter(order => order.status !== 'reserved'));
@@ -127,14 +117,11 @@
 		const existingHistory = selectedOrder.stateHistory || [{ status: selectedOrder.status, date: selectedOrder.date }];
 		const newHistory = [...existingHistory, newHistoryEntry];
 
-		// Save update to persist across modal close/open
-		const existingUpdates = orderUpdates.get(selectedOrderIndex) || {};
-		orderUpdates.set(selectedOrderIndex, {
-			...existingUpdates,
+		// Update via the shared store
+		purchasesStore.update(selectedOrderIndex, {
 			status: nextStatus,
 			stateHistory: newHistory
 		});
-		orderUpdates = new Map(orderUpdates); // Trigger reactivity
 	}
 
 	function getStateHistory(order: Order): StateHistoryEntry[] {

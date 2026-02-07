@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { menuStore, cartStore, tablesStore, menuDisplayStore, menuSettingsStore, branchStore, tableShapeCss, formatCurrency, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
+	import { menuStore, cartStore, tablesStore, menuDisplayStore, menuSettingsStore, branchStore, tableShapeCss, formatCurrency, purchasesStore, type MenuItem, type TableItem, type Purchase } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 	import MenuDisplay from '$lib/components/MenuDisplay.svelte';
 	import QRCode from 'qrcode';
@@ -75,15 +75,7 @@
 		customerSearch = '';
 	}
 
-	interface Order {
-		items: { id: number; name: string; qty: number; price: number }[];
-		total: number;
-		date: string;
-		customer?: { name: string; phone: string };
-		table?: { id: number; label: string };
-	}
-
-	let orders = $state<Order[]>(getBranchData(branchStore.id).purchases as Order[]);
+	type Order = Purchase;
 
 	// Generate QR string from order items
 	function generateOrderQrString(items: { id: number; qty: number }[], total: number, tableId: number): string {
@@ -105,7 +97,8 @@
 		const order: Order = {
 			items: cartStore.items.map(c => ({ id: c.item.id, name: c.item.name, qty: c.qty, price: c.item.price })),
 			total: cartStore.total,
-			date: new Date().toLocaleString()
+			date: new Date().toLocaleString(),
+			status: 'ordering'
 		};
 		if (customerName.trim()) {
 			order.customer = { name: customerName.trim(), phone: customerPhone.trim() };
@@ -113,7 +106,7 @@
 		if (selectedTable) {
 			order.table = { id: selectedTable.id, label: selectedTable.label };
 		}
-		orders = [order, ...orders];
+		purchasesStore.add(order);
 		cartStore.clear();
 		customerName = '';
 		customerPhone = '';
@@ -407,7 +400,7 @@
 			<svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M7 12h10M7 8h3M14 8h3M7 16h3M14 16h3" /></svg>
 			Scan Barcode
 		</button>
-		{#if orders.length > 0}
+		{#if purchasesStore.items.length > 0}
 			<button class="btn-action-large purchases" onclick={() => { cartOpen = false; purchasesOpen = true; }}>
 				<svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
 				Last Purchases
@@ -546,11 +539,11 @@
 
 <!-- Purchases history modal -->
 <Popup open={purchasesOpen} title="Last Purchases" onclose={() => (purchasesOpen = false)} fullscreen>
-	{#if orders.length === 0}
+	{#if purchasesStore.items.length === 0}
 		<p class="cart-empty">No previous purchases</p>
 	{:else}
 		<div class="purchases-list">
-			{#each orders as order}
+			{#each purchasesStore.items as order}
 				<button class="purchase-card" onclick={() => viewPurchaseQr(order)}>
 					<div class="purchase-header">
 						<div class="purchase-header-left">

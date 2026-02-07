@@ -95,6 +95,7 @@ function reloadAllStores() {
 	customerItems = loadCustomers();
 	pageConfig = loadPage();
 	items = load();
+	purchaseItems = loadPurchases();
 	// Clear cart when switching branches
 	cartItems = [];
 }
@@ -627,6 +628,62 @@ export const cartStore = {
 
 	clear() {
 		cartItems = [];
+	}
+};
+
+// Purchases
+export interface PurchaseItem {
+	id: number;
+	name: string;
+	qty: number;
+	price: number;
+}
+
+export interface Purchase {
+	items: PurchaseItem[];
+	total: number;
+	date: string;
+	status: string;
+	customer?: { name: string; phone: string };
+	table?: { id: number; label: string };
+}
+
+function getDefaultPurchases(): Purchase[] {
+	return getBranchData(currentBranchId).purchases as Purchase[];
+}
+
+function loadPurchases(): Purchase[] {
+	const defaults = getDefaultPurchases();
+	if (typeof localStorage === 'undefined') return defaults;
+	const raw = localStorage.getItem(branchKey('purchases'));
+	if (!raw) return defaults;
+	try {
+		const parsed = JSON.parse(raw);
+		if (Array.isArray(parsed)) return parsed;
+		return defaults;
+	} catch { return defaults; }
+}
+
+function savePurchases(p: Purchase[]) {
+	if (typeof localStorage !== 'undefined') {
+		localStorage.setItem(branchKey('purchases'), JSON.stringify(p));
+	}
+}
+
+let purchaseItems = $state<Purchase[]>(loadPurchases());
+
+export const purchasesStore = {
+	get items() { return purchaseItems; },
+	set items(v: Purchase[]) { purchaseItems = v; savePurchases(v); },
+
+	add(purchase: Purchase) {
+		purchaseItems = [purchase, ...purchaseItems];
+		savePurchases(purchaseItems);
+	},
+
+	update(index: number, fields: Partial<Purchase>) {
+		purchaseItems = purchaseItems.map((p, i) => i === index ? { ...p, ...fields } : p);
+		savePurchases(purchaseItems);
 	}
 };
 

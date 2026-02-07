@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Chart, registerables } from 'chart.js';
-	import { branchStore, formatCurrency } from '$lib/actions-store.svelte';
-	import { getBranchData, getBranchInfo } from '$lib/test-data/branch-data';
+	import { branchStore, formatCurrency, purchasesStore } from '$lib/actions-store.svelte';
+	import { getBranchInfo } from '$lib/test-data/branch-data';
 
 	Chart.register(...registerables);
 
@@ -19,7 +19,7 @@
 		status: string;
 	}
 
-	const purchases = $derived<Purchase[]>(getBranchData(branchStore.id).purchases as Purchase[]);
+	const purchases = $derived<Purchase[]>(purchasesStore.items as Purchase[]);
 	const branchInfo = $derived(getBranchInfo(branchStore.id));
 
 	// Date range selection
