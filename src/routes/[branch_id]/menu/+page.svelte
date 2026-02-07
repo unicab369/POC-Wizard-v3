@@ -415,7 +415,7 @@
 	{#snippet footer()}
 		<div class="footer-buttons">
 			<button class="btn secondary" onclick={() => (cartOpen = false)}>Cancel</button>
-			<button class="btn primary" onclick={startCheckout} disabled={cartStore.items.length === 0 || (menuSettingsStore.requireTable && !selectedTable)}>Checkout</button>
+			<button class="btn primary" onclick={startCheckout} disabled={cartStore.items.length === 0 || (menuSettingsStore.requireTable && !selectedTable)}>Next</button>
 		</div>
 	{/snippet}
 </Popup>
@@ -532,7 +532,7 @@
 	{#snippet footer()}
 		<div class="footer-buttons">
 			<button class="btn secondary" onclick={backToCart}>Back</button>
-			<button class="btn primary" onclick={submitOrder}>Submit</button>
+			<button class="btn primary" onclick={submitOrder}>Place Order</button>
 		</div>
 	{/snippet}
 </Popup>

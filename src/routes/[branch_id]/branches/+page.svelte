@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import { branchStore, actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, menuSettingsStore, ACTION_TYPES, TABLE_SHAPES, LANGUAGES, CURRENCIES, tableShapeLabel, formatCurrency, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode, type Employee, type MenuItem, type Menu } from '$lib/actions-store.svelte';
+	import { branchStore, actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, menuSettingsStore, orderStatesStore, ALL_ORDER_STATES, ACTION_TYPES, TABLE_SHAPES, LANGUAGES, CURRENCIES, tableShapeLabel, formatCurrency, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode, type Employee, type MenuItem, type Menu, type OrderState } from '$lib/actions-store.svelte';
 	import { getAvailableBranches, getBranchInfo, getBranchData } from '$lib/test-data/branch-data';
 	import { auth } from '$lib/auth.svelte';
 	import ActionGrid from '$lib/components/ActionGrid.svelte';
@@ -104,7 +104,7 @@
 	}
 
 	// View management
-	type View = 'list' | 'select' | 'home' | 'menu' | 'tables';
+	type View = 'list' | 'select' | 'home' | 'menu' | 'tables' | 'orders';
 	let view = $state<View>('list');
 
 	const selectedBranchName = $derived(getBranchInfo(branchStore.id).name);
@@ -362,7 +362,28 @@
 				<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 16v4M17 16v4" /></svg>
 				<span>Edit Tables</span>
 			</button>
+			<button class="select-btn" onclick={() => (view = 'orders')}>
+				<svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+				<span>Edit Orders</span>
+			</button>
 		</div>
+	</div>
+{:else if view === 'orders'}
+	<h2>Edit Orders</h2>
+	<p class="editing-branch">{selectedBranchName}</p>
+	<p class="section-desc">Enable or disable order states. Only enabled states will be available as actions in the Order Details page.</p>
+
+	<div class="order-states-list">
+		{#each ALL_ORDER_STATES as state}
+			<label class="order-state-item">
+				<input
+					type="checkbox"
+					checked={orderStatesStore.isEnabled(state.value)}
+					onchange={() => orderStatesStore.toggle(state.value)}
+				/>
+				<span>{state.label}</span>
+			</label>
+		{/each}
 	</div>
 {:else if view === 'home'}
 	<h2>Edit Home Page</h2>
@@ -1652,6 +1673,47 @@
 		stroke-width: 2;
 		stroke-linecap: round;
 		stroke-linejoin: round;
+	}
+
+	.section-desc {
+		color: #666;
+		font-size: 0.9rem;
+		margin: 0 0 1rem;
+	}
+
+	.order-states-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.order-state-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.75rem 1rem;
+		background: #fff;
+		border: 1px solid #e8e8e8;
+		border-radius: 8px;
+		cursor: pointer;
+		transition: border-color 0.15s;
+	}
+
+	.order-state-item:hover {
+		border-color: #6c63ff;
+	}
+
+	.order-state-item input[type="checkbox"] {
+		width: 1.25rem;
+		height: 1.25rem;
+		accent-color: #6c63ff;
+		cursor: pointer;
+	}
+
+	.order-state-item span {
+		font-size: 0.95rem;
+		font-weight: 500;
+		color: #333;
 	}
 
 </style>

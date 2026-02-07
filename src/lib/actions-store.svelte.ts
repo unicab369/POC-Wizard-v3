@@ -96,6 +96,7 @@ function reloadAllStores() {
 	pageConfig = loadPage();
 	items = load();
 	purchaseItems = loadPurchases();
+	orderStates = loadOrderStates();
 	// Clear cart when switching branches
 	cartItems = [];
 }
@@ -684,6 +685,57 @@ export const purchasesStore = {
 	update(index: number, fields: Partial<Purchase>) {
 		purchaseItems = purchaseItems.map((p, i) => i === index ? { ...p, ...fields } : p);
 		savePurchases(purchaseItems);
+	}
+};
+
+// Order States (which states are enabled for order flow)
+export type OrderState = 'preparing' | 'served' | 'billing';
+
+export const ALL_ORDER_STATES: { value: OrderState; label: string }[] = [
+	{ value: 'preparing', label: 'Preparing' },
+	{ value: 'served', label: 'Served' },
+	{ value: 'billing', label: 'Billing' }
+];
+
+function getDefaultOrderStates(): OrderState[] {
+	return ['preparing', 'served', 'billing'];
+}
+
+function loadOrderStates(): OrderState[] {
+	const defaults = getDefaultOrderStates();
+	if (typeof localStorage === 'undefined') return defaults;
+	const raw = localStorage.getItem(branchKey('order-states'));
+	if (!raw) return defaults;
+	try {
+		const parsed = JSON.parse(raw);
+		if (Array.isArray(parsed)) return parsed;
+		return defaults;
+	} catch { return defaults; }
+}
+
+function saveOrderStates(states: OrderState[]) {
+	if (typeof localStorage !== 'undefined') {
+		localStorage.setItem(branchKey('order-states'), JSON.stringify(states));
+	}
+}
+
+let orderStates = $state<OrderState[]>(loadOrderStates());
+
+export const orderStatesStore = {
+	get states() { return orderStates; },
+	set states(v: OrderState[]) { orderStates = v; saveOrderStates(v); },
+
+	isEnabled(state: OrderState): boolean {
+		return orderStates.includes(state);
+	},
+
+	toggle(state: OrderState) {
+		if (orderStates.includes(state)) {
+			orderStates = orderStates.filter(s => s !== state);
+		} else {
+			orderStates = [...orderStates, state];
+		}
+		saveOrderStates(orderStates);
 	}
 };
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { branchStore, formatCurrency, purchasesStore } from '$lib/actions-store.svelte';
+	import { branchStore, formatCurrency, purchasesStore, orderStatesStore, type OrderState } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 
 	type OrderStatus = 'reserved' | 'ordering' | 'preparing' | 'served' | 'billing' | 'completed' | 'cancelled';
@@ -102,7 +102,19 @@
 		if (currentStatus === 'cancelled' || currentStatus === 'completed') return null;
 		const currentIndex = STATUS_FLOW.indexOf(currentStatus);
 		if (currentIndex === -1 || currentIndex >= STATUS_FLOW.length - 1) return null;
-		return STATUS_FLOW[currentIndex + 1];
+
+		// Find the next enabled status
+		for (let i = currentIndex + 1; i < STATUS_FLOW.length; i++) {
+			const nextStatus = STATUS_FLOW[i];
+			// 'completed' is always available as final state
+			if (nextStatus === 'completed') return nextStatus;
+			// Check if this intermediate state is enabled
+			if (orderStatesStore.isEnabled(nextStatus as OrderState)) {
+				return nextStatus;
+			}
+		}
+		// If no intermediate states are enabled, go straight to completed
+		return 'completed';
 	}
 
 	function advanceToNextState() {
