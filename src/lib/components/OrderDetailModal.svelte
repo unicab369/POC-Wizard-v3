@@ -45,7 +45,10 @@
 		onclose: () => void;
 	}
 
-	let { open, order, orderIndex, onclose }: Props = $props();
+	let { open, order: initialOrder, orderIndex, onclose }: Props = $props();
+
+	// Derive the actual order from the store so it stays in sync when status changes
+	const order = $derived(orderIndex >= 0 ? purchasesStore.items[orderIndex] as Order | undefined : initialOrder);
 
 	function getStatusStyle(status: OrderStatus): string {
 		if (!status) {

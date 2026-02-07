@@ -81,7 +81,7 @@
 			orderDetailOrder = orderInfo.order;
 			orderDetailIndex = orderInfo.index;
 			tableInUseConfirmOpen = false;
-			tableSelectOpen = false;
+			// Keep tableSelectOpen = true so user can go back to it
 			cartOpen = false;
 			orderDetailOpen = true;
 		}
