@@ -683,6 +683,7 @@
 
 <style>
 	.branches-content {
+		min-height: calc(100dvh - 3.5rem - env(safe-area-inset-top, 0px) - 4rem);
 		padding-bottom: 4rem;
 	}
 
@@ -947,6 +948,7 @@
 		background: #f0eeff;
 		border-top: 1px solid #d8d4ff;
 		padding: 0.5rem 1rem;
+		padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
 		z-index: 50;
 	}
 
