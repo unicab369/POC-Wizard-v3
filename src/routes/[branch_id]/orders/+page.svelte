@@ -2,6 +2,18 @@
 	import { branchStore, formatCurrency } from '$lib/actions-store.svelte';
 	import { getBranchData } from '$lib/test-data/branch-data';
 
+	type OrderStatus = 'reserved' | 'ordering' | 'preparing' | 'served' | 'billing' | 'completed' | 'cancelled';
+
+	const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string }> = {
+		reserved: { label: 'Reserved', color: '#0ea5e9', bg: '#e0f2fe' },
+		ordering: { label: 'Ordering', color: '#8b5cf6', bg: '#ede9fe' },
+		preparing: { label: 'Preparing', color: '#f59e0b', bg: '#fef3c7' },
+		served: { label: 'Served', color: '#10b981', bg: '#d1fae5' },
+		billing: { label: 'Billing', color: '#6366f1', bg: '#e0e7ff' },
+		completed: { label: 'Completed', color: '#059669', bg: '#d1fae5' },
+		cancelled: { label: 'Cancelled', color: '#ef4444', bg: '#fee2e2' }
+	};
+
 	interface OrderItem {
 		id: number;
 		name: string;
@@ -13,6 +25,7 @@
 		items: OrderItem[];
 		total: number;
 		date: string;
+		status: OrderStatus;
 		customer?: { name: string; phone: string };
 		table?: { id: number; label: string };
 	}
@@ -47,6 +60,11 @@
 		return parts[1] || '';
 	}
 
+	function getStatusStyle(status: OrderStatus): string {
+		const config = STATUS_CONFIG[status];
+		return `color: ${config.color}; background: ${config.bg};`;
+	}
+
 	let selectedOrder = $state<Order | null>(null);
 
 	function selectOrder(order: Order) {
@@ -60,7 +78,12 @@
 
 {#if selectedOrder}
 	<div class="order-detail">
-		<h1>Order Details</h1>
+		<div class="detail-header">
+			<h1>Order Details</h1>
+			<span class="status-badge" style={getStatusStyle(selectedOrder.status)}>
+				{STATUS_CONFIG[selectedOrder.status].label}
+			</span>
+		</div>
 		<div class="order-meta">
 			<span class="order-date">{selectedOrder.date}</span>
 			{#if selectedOrder.table}
@@ -118,10 +141,15 @@
 						<button class="order-card" onclick={() => selectOrder(order)}>
 							<div class="order-header">
 								<span class="order-time">{getTime(order.date)}</span>
+								<span class="status-badge" style={getStatusStyle(order.status)}>
+									{STATUS_CONFIG[order.status].label}
+								</span>
 								<span class="order-total-badge">{formatCurrency(order.total)}</span>
 							</div>
 							<div class="order-summary">
-								<span class="order-items-count">{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
+								{#if order.items.length > 0}
+									<span class="order-items-count">{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
+								{/if}
 								{#if order.table}
 									<span class="order-table-badge">{order.table.label}</span>
 								{/if}
@@ -129,9 +157,11 @@
 									<span class="order-customer">{order.customer.name}</span>
 								{/if}
 							</div>
-							<div class="order-items-preview">
-								{order.items.map(i => i.name).join(', ')}
-							</div>
+							{#if order.items.length > 0}
+								<div class="order-items-preview">
+									{order.items.map(i => i.name).join(', ')}
+								</div>
+							{/if}
 						</button>
 					{/each}
 				</div>
@@ -145,6 +175,27 @@
 		margin: 1.25rem 0 0;
 		font-size: 1.5rem;
 		font-weight: 700;
+	}
+
+	.detail-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.detail-header h1 {
+		margin: 0;
+	}
+
+	.status-badge {
+		font-size: 0.7rem;
+		font-weight: 600;
+		padding: 0.2rem 0.5rem;
+		border-radius: 4px;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+		white-space: nowrap;
 	}
 
 	.subtitle {
@@ -222,8 +273,12 @@
 
 	.order-header {
 		display: flex;
-		justify-content: space-between;
 		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.order-header .order-total-badge {
+		margin-left: auto;
 	}
 
 	.order-date {

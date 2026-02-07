@@ -7,6 +7,7 @@
 		],
 		"total": 1850,
 		"date": "2/7/2026, 10:32:15 AM",
+		"status": "served",
 		"customer": { "name": "Alice Johnson", "phone": "1234567890" },
 		"table": { "id": 1, "label": "Table 1" }
 	},
@@ -17,6 +18,7 @@
 		],
 		"total": 1400,
 		"date": "2/7/2026, 9:15:00 AM",
+		"status": "preparing",
 		"customer": { "name": "Bob Smith", "phone": "5551234567" },
 		"table": { "id": 2, "label": "Table 2" }
 	},
@@ -27,6 +29,7 @@
 		],
 		"total": 1300,
 		"date": "2/7/2026, 8:45:30 AM",
+		"status": "ordering",
 		"table": { "id": 3, "label": "Table 3" }
 	},
 	{
@@ -36,6 +39,7 @@
 		],
 		"total": 1150,
 		"date": "2/6/2026, 3:20:00 PM",
+		"status": "billing",
 		"customer": { "name": "Carol Davis", "phone": "5559876543" },
 		"table": { "id": 1, "label": "Table 1" }
 	},
@@ -46,6 +50,7 @@
 		],
 		"total": 2650,
 		"date": "2/6/2026, 12:10:45 PM",
+		"status": "completed",
 		"customer": { "name": "David Wilson", "phone": "5552345678" },
 		"table": { "id": 4, "label": "Table 4" }
 	},
@@ -56,6 +61,7 @@
 		],
 		"total": 750,
 		"date": "2/6/2026, 10:05:20 AM",
+		"status": "cancelled",
 		"table": { "id": 2, "label": "Table 2" }
 	},
 	{
@@ -64,6 +70,7 @@
 		],
 		"total": 350,
 		"date": "2/5/2026, 4:45:00 PM",
+		"status": "completed",
 		"customer": { "name": "Eve Martinez", "phone": "5553456789" }
 	},
 	{
@@ -74,6 +81,7 @@
 		],
 		"total": 1700,
 		"date": "2/5/2026, 11:30:15 AM",
+		"status": "completed",
 		"table": { "id": 5, "label": "Table 5" }
 	},
 	{
@@ -83,7 +91,16 @@
 		],
 		"total": 1750,
 		"date": "2/5/2026, 9:00:00 AM",
+		"status": "completed",
 		"customer": { "name": "Frank Brown", "phone": "5554567890" },
 		"table": { "id": 3, "label": "Table 3" }
+	},
+	{
+		"items": [],
+		"total": 0,
+		"date": "2/8/2026, 7:00:00 PM",
+		"status": "reserved",
+		"customer": { "name": "Grace Lee", "phone": "5556789012" },
+		"table": { "id": 6, "label": "Table 6" }
 	}
 ]
