@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { menuStore, cartStore, tablesStore, menuDisplayStore, menuSettingsStore, branchStore, tableShapeCss, formatCurrency, purchasesStore, type MenuItem, type TableItem, type Purchase } from '$lib/actions-store.svelte';
+	import { menuStore, cartStore, tablesStore, menuDisplayStore, menuSettingsStore, tableShapeCss, formatCurrency, purchasesStore, type MenuItem, type TableItem, type Purchase } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 	import MenuDisplay from '$lib/components/MenuDisplay.svelte';
+	import OrderDetailModal from '$lib/components/OrderDetailModal.svelte';
 	import QRCode from 'qrcode';
 	import { Html5Qrcode } from 'html5-qrcode';
 	import { onDestroy } from 'svelte';
 	import { getBranchData } from '$lib/test-data/branch-data';
+	import { branchStore } from '$lib/actions-store.svelte';
 
 	interface Customer { id: number; name: string; phone: string; }
 	const customers = $derived<Customer[]>(getBranchData(branchStore.id).customers);
@@ -23,16 +25,74 @@
 
 	let tableSelectOpen = $state(false);
 	let selectedTable = $state<TableItem | null>(null);
+	let tableInUseConfirmOpen = $state(false);
+	let pendingTable = $state<TableItem | null>(null);
+	let orderDetailOpen = $state(false);
+	let orderDetailOrder = $state<Order | null>(null);
+	let orderDetailIndex = $state<number>(-1);
+
+	// Get active orders (not completed or cancelled) by table
+	const activeOrdersByTable = $derived.by(() => {
+		const map = new Map<number, { order: Order; index: number }>();
+		purchasesStore.items.forEach((order: Order, index: number) => {
+			if (order.table && order.status !== 'completed' && order.status !== 'cancelled' && order.status) {
+				map.set(order.table.id, { order, index });
+			}
+		});
+		return map;
+	});
+
+	function isTableInUse(tableId: number): boolean {
+		return activeOrdersByTable.has(tableId);
+	}
+
+	function getTableOrder(tableId: number): { order: Order; index: number } | undefined {
+		return activeOrdersByTable.get(tableId);
+	}
+
+	function getTableStatus(tableId: number): string | null {
+		const orderInfo = activeOrdersByTable.get(tableId);
+		if (!orderInfo) return null;
+		const status = orderInfo.order.status;
+		const labels: Record<string, string> = {
+			ordering: 'Ordering',
+			preparing: 'Preparing',
+			served: 'Served',
+			billing: 'Billing'
+		};
+		return labels[status] || status;
+	}
 
 	function selectTable(t: TableItem) {
-		selectedTable = t;
-		tableSelectOpen = false;
-		cartOpen = true;
+		if (isTableInUse(t.id)) {
+			pendingTable = t;
+			tableInUseConfirmOpen = true;
+		} else {
+			selectedTable = t;
+			tableSelectOpen = false;
+			cartOpen = true;
+		}
 	}
 
-	function clearTable() {
-		selectedTable = null;
+	function viewTableOrder() {
+		if (!pendingTable) return;
+		const orderInfo = getTableOrder(pendingTable.id);
+		if (orderInfo) {
+			orderDetailOrder = orderInfo.order;
+			orderDetailIndex = orderInfo.index;
+			tableInUseConfirmOpen = false;
+			tableSelectOpen = false;
+			cartOpen = false;
+			orderDetailOpen = true;
+		}
+		pendingTable = null;
 	}
+
+	function cancelTableInUse() {
+		tableInUseConfirmOpen = false;
+		pendingTable = null;
+	}
+
 	let selected = $state<MenuItem | null>(null);
 	let quantity = $state(1);
 	let cartOpen = $state(false);
@@ -77,6 +137,12 @@
 
 	type Order = Purchase;
 
+	function closeOrderDetail() {
+		orderDetailOpen = false;
+		orderDetailOrder = null;
+		orderDetailIndex = -1;
+	}
+
 	// Generate QR string from order items
 	function generateOrderQrString(items: { id: number; qty: number }[], total: number, tableId: number): string {
 		return `${total},${tableId},` + items.map(i => `${i.id}:${i.qty}`).join(',');
@@ -116,7 +182,7 @@
 
 	async function viewPurchaseQr(order: Order) {
 		const tableId = order.table ? order.table.id : 0;
-		const items = order.items.map(i => ({ id: i.id, qty: i.qty }));
+		const items = order.items.map((i: { id: number; qty: number }) => ({ id: i.id, qty: i.qty }));
 		const orderStr = 'r,' + generateOrderQrString(items, order.total, tableId);
 		purchaseQrUrl = await QRCode.toDataURL(orderStr, { width: 256, margin: 2 });
 		purchaseQrOrder = order;
@@ -332,16 +398,32 @@
 <Popup open={tableSelectOpen} title="Select Table" onclose={() => { tableSelectOpen = false; cartOpen = true; }} fullscreen>
 	<div class="table-grid">
 		{#each tablesStore.items as t (t.id)}
-			<button class="table-card" class:selected={selectedTable?.id === t.id} onclick={() => selectTable(t)}>
+			<button class="table-card" class:selected={selectedTable?.id === t.id} class:in-use={isTableInUse(t.id)} onclick={() => selectTable(t)}>
 				<span class="table-shape-icon table-shape-{tableShapeCss(t.shape)}"></span>
 				<span class="table-label">{t.label}</span>
 				<span class="table-seats">{t.seats} seat{t.seats !== 1 ? 's' : ''}</span>
+				{#if getTableStatus(t.id)}
+					<span class="table-status">{getTableStatus(t.id)}</span>
+				{/if}
 			</button>
 		{/each}
 	</div>
 	{#snippet footer()}
 		<div class="footer-buttons">
 			<button class="btn secondary" onclick={() => { tableSelectOpen = false; cartOpen = true; }}>Back</button>
+		</div>
+	{/snippet}
+</Popup>
+
+<!-- Table in use confirmation modal -->
+<Popup open={tableInUseConfirmOpen} title="Table In Use" onclose={cancelTableInUse} wide>
+	<p class="confirm-text">
+		{pendingTable?.label} has an active order. Would you like to view the current order?
+	</p>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={cancelTableInUse}>Cancel</button>
+			<button class="btn primary" onclick={viewTableOrder}>View Order</button>
 		</div>
 	{/snippet}
 </Popup>
@@ -602,6 +684,14 @@
 		</div>
 	{/snippet}
 </Popup>
+
+<!-- Order Details modal -->
+<OrderDetailModal
+	open={orderDetailOpen}
+	order={orderDetailOrder}
+	orderIndex={orderDetailIndex}
+	onclose={closeOrderDetail}
+/>
 
 <!-- Floating cart button -->
 <button class="cart-fab" onclick={() => (cartOpen = true)}>
@@ -1403,4 +1493,31 @@
 		max-width: 400px;
 	}
 
+	/* Table in-use styles */
+	.table-card.in-use {
+		opacity: 0.7;
+		background: #fffbeb;
+		border-color: #fcd34d;
+	}
+
+	.table-card.in-use .table-shape-icon {
+		border-color: #999;
+	}
+
+	.table-card.in-use:hover {
+		border-color: #f59e0b;
+		box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+	}
+
+	.table-status {
+		font-size: 0.65rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+		color: #f59e0b;
+		background: #fef3c7;
+		padding: 0.2rem 0.5rem;
+		border-radius: 4px;
+		margin-top: 0.25rem;
+	}
 </style>
