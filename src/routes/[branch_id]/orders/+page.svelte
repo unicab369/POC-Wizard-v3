@@ -83,7 +83,13 @@
 
 	function getStatusStyle(status: OrderStatus): string {
 		const config = STATUS_CONFIG[status];
+		if (!config) return 'color: #888; background: #f0f0f0;';
 		return `color: ${config.color}; background: ${config.bg};`;
+	}
+
+	function getStatusLabel(status: OrderStatus): string {
+		const config = STATUS_CONFIG[status];
+		return config?.label ?? status ?? 'Unknown';
 	}
 
 	let selectedOrderIndex = $state<number | null>(null);
@@ -187,7 +193,7 @@
 				{#each getStateHistory(selectedOrder) as entry}
 					<div class="history-entry">
 						<span class="history-status" style={getStatusStyle(entry.status)}>
-							{STATUS_CONFIG[entry.status].label}
+							{getStatusLabel(entry.status)}
 						</span>
 						<span class="history-date">{entry.date}</span>
 					</div>
@@ -201,7 +207,7 @@
 			<button class="btn secondary" onclick={closeModal}>Close</button>
 			{#if nextStatus}
 				<button class="btn primary" onclick={advanceToNextState}>
-					{STATUS_CONFIG[nextStatus].label}
+					{getStatusLabel(nextStatus)}
 				</button>
 			{/if}
 		</div>
@@ -226,7 +232,7 @@
 							<div class="order-header">
 								<span class="order-time">{getTime(order.date)}</span>
 								<span class="status-badge" style={getStatusStyle(order.status)}>
-									{STATUS_CONFIG[order.status].label}
+									{getStatusLabel(order.status)}
 								</span>
 								<span class="order-total-badge">{formatCurrency(order.total)}</span>
 							</div>
