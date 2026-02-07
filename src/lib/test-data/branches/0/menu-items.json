@@ -1,6 +1,15 @@
-[
-	{ "id": 1, "name": "Coffee", "description": "Freshly brewed coffee", "price": 250, "category": "Drinks" },
-	{ "id": 2, "name": "Tea", "description": "Hot brewed tea", "price": 200, "category": "Drinks" },
-	{ "id": 3, "name": "Sandwich", "description": "Daily special sandwich", "price": 600, "category": "Food" },
-	{ "id": 4, "name": "Salad", "description": "Fresh garden salad", "price": 500, "category": "Food" }
-]
+{
+	"menus": [
+		{
+			"id": 1,
+			"name": "Main Menu",
+			"items": [
+				{ "id": 1, "name": "Coffee", "description": "Freshly brewed coffee", "price": 250, "category": "Drinks" },
+				{ "id": 2, "name": "Tea", "description": "Hot brewed tea", "price": 200, "category": "Drinks" },
+				{ "id": 3, "name": "Sandwich", "description": "Daily special sandwich", "price": 600, "category": "Food" },
+				{ "id": 4, "name": "Salad", "description": "Fresh garden salad", "price": 500, "category": "Food" }
+			]
+		}
+	],
+	"enabledMenus": [1]
+}

@@ -39,9 +39,14 @@ export interface BranchInfo {
 	socialMedia: Record<string, string>;
 }
 
+export interface MenuData {
+	menus: { id: number; name: string; items: { id: number; name: string; description: string; price: number; category: string }[] }[];
+	enabledMenus: number[];
+}
+
 export interface BranchData {
 	info: BranchInfo;
-	menu: typeof defaultMenu;
+	menu: MenuData;
 	customers: typeof defaultCustomers;
 	employees: typeof defaultEmployees;
 	purchases: typeof defaultPurchases;
@@ -51,7 +56,7 @@ export interface BranchData {
 const branchDataMap: Record<string, BranchData> = {
 	'1': {
 		info: branch1Info as BranchInfo,
-		menu: branch1Menu,
+		menu: branch1Menu as MenuData,
 		customers: branch1Customers,
 		employees: branch1Employees,
 		purchases: branch1Purchases,
@@ -59,7 +64,7 @@ const branchDataMap: Record<string, BranchData> = {
 	},
 	'2': {
 		info: branch2Info as BranchInfo,
-		menu: branch2Menu,
+		menu: branch2Menu as MenuData,
 		customers: branch2Customers,
 		employees: branch2Employees,
 		purchases: branch2Purchases,
@@ -68,7 +73,7 @@ const branchDataMap: Record<string, BranchData> = {
 	// Legacy name mappings for backwards compatibility
 	'main': {
 		info: branch1Info as BranchInfo,
-		menu: branch1Menu,
+		menu: branch1Menu as MenuData,
 		customers: branch1Customers,
 		employees: branch1Employees,
 		purchases: branch1Purchases,
@@ -76,7 +81,7 @@ const branchDataMap: Record<string, BranchData> = {
 	},
 	'downtown': {
 		info: branch2Info as BranchInfo,
-		menu: branch2Menu,
+		menu: branch2Menu as MenuData,
 		customers: branch2Customers,
 		employees: branch2Employees,
 		purchases: branch2Purchases,
@@ -86,7 +91,7 @@ const branchDataMap: Record<string, BranchData> = {
 
 const defaultData: BranchData = {
 	info: defaultBranchInfo as BranchInfo,
-	menu: defaultMenu,
+	menu: defaultMenu as MenuData,
 	customers: defaultCustomers,
 	employees: defaultEmployees,
 	purchases: defaultPurchases,

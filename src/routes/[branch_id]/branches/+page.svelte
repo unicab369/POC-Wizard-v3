@@ -301,6 +301,7 @@
 	</div>
 {:else}
 
+<div class="branches-content">
 {#if view === 'list'}
 	<h1>My Branches</h1>
 	<p class="subtitle">Select a branch to manage</p>
@@ -469,6 +470,31 @@
 	</div>
 
 	<div class="menu-edit-section">
+		<span class="section-label">Available Menus</span>
+		<p class="section-hint">Select which menus to show on the Menu page</p>
+		{#if menuStore.menus.length === 0}
+			<p class="no-menus">No menus found.</p>
+		{:else}
+			<ul class="menu-list">
+				{#each menuStore.menus as menu (menu.id)}
+					<li class="menu-item">
+						<label class="menu-check">
+							<input
+								type="checkbox"
+								checked={menuStore.enabledMenus.includes(menu.id)}
+								disabled={menuStore.enabledMenus.includes(menu.id) && menuStore.enabledMenus.length === 1}
+								onchange={() => menuStore.toggleMenu(menu.id)}
+							/>
+							<span class="menu-name">{menu.name}</span>
+							<span class="menu-count">{menu.items.length} items</span>
+						</label>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+	</div>
+
+	<div class="menu-edit-section">
 		<span class="section-label">Region Settings</span>
 		<div class="region-fields">
 			<label class="field">
@@ -609,6 +635,7 @@
 	</Popup>
 
 {/if}
+</div>
 
 	<div class="emp-bar">
 		{#if view === 'list'}
@@ -623,6 +650,10 @@
 {/if}
 
 <style>
+	.branches-content {
+		padding-bottom: 4rem;
+	}
+
 	.sign-in-wrapper {
 		display: flex;
 		justify-content: center;
@@ -1443,5 +1474,70 @@
 		font-size: 0.9rem;
 		font-weight: 500;
 		color: #333;
+	}
+
+	/* Available Menus */
+	.section-hint {
+		font-size: 0.8rem;
+		color: #888;
+		margin: 0.25rem 0 0.5rem;
+	}
+
+	.menu-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+
+	.menu-item {
+		background: #fff;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+	}
+
+	.menu-check {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.65rem 0.75rem;
+		cursor: pointer;
+	}
+
+	.menu-check input[type="checkbox"] {
+		width: 1.1rem;
+		height: 1.1rem;
+		accent-color: #6c63ff;
+		flex-shrink: 0;
+	}
+
+	.menu-check input[type="checkbox"]:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.menu-name {
+		flex: 1;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: #333;
+	}
+
+	.menu-count {
+		font-size: 0.75rem;
+		color: #888;
+		background: #f5f5f5;
+		padding: 0.2rem 0.5rem;
+		border-radius: 10px;
+	}
+
+	.no-menus {
+		color: #e74c3c;
+		font-size: 0.85rem;
+		padding: 0.5rem;
+		background: #fdecea;
+		border-radius: 6px;
 	}
 </style>

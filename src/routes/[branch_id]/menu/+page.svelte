@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { menuStore, cartStore, tablesStore, menuDisplayStore, menuSettingsStore, branchStore, tableShapeCss, formatCurrency, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
+	import { menuStore, cartStore, tablesStore, menuDisplayStore, menuSettingsStore, branchStore, tableShapeCss, formatCurrency, type MenuItem, type TableItem, type Menu } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
 	import QRCode from 'qrcode';
 	import { Html5Qrcode } from 'html5-qrcode';
@@ -13,6 +13,24 @@
 	const isEmployee = $derived(
 		typeof sessionStorage !== 'undefined' && sessionStorage.getItem('employee-auth') !== null
 	);
+
+	// Menu selection (for multiple menus)
+	const enabledMenus = $derived(menuStore.enabledMenusList);
+	const hasMultipleMenus = $derived(enabledMenus.length > 1);
+	let selectedMenuId = $state<number | null>(null);
+
+	// Get the active menu (first enabled if not selected)
+	const activeMenu = $derived.by(() => {
+		if (enabledMenus.length === 0) return null;
+		if (selectedMenuId !== null) {
+			const found = enabledMenus.find(m => m.id === selectedMenuId);
+			if (found) return found;
+		}
+		return enabledMenus[0];
+	});
+
+	// Items to display (from active menu)
+	const displayItems = $derived(activeMenu ? activeMenu.items : []);
 
 	let tableSelectOpen = $state(false);
 	let selectedTable = $state<TableItem | null>(null);
@@ -138,7 +156,7 @@
 	}
 
 	const categories = $derived(
-		[...new Set(menuStore.items.map((i: MenuItem) => i.category))]
+		[...new Set(displayItems.map((i: MenuItem) => i.category))]
 	);
 
 	function openItem(item: MenuItem) {
@@ -324,10 +342,25 @@
 	</div>
 </div>
 
+<!-- Menu selector (when multiple menus enabled) -->
+{#if hasMultipleMenus}
+	<div class="menu-selector">
+		{#each enabledMenus as menu (menu.id)}
+			<button
+				class="menu-selector-btn"
+				class:active={activeMenu?.id === menu.id}
+				onclick={() => (selectedMenuId = menu.id)}
+			>
+				{menu.name}
+			</button>
+		{/each}
+	</div>
+{/if}
+
 {#each categories as category}
 	<h2 class="category-title">{category}</h2>
 	<div class="menu-grid" class:two-col={effectiveColumns === 2}>
-		{#each menuStore.items.filter((i: MenuItem) => i.category === category) as item (item.id)}
+		{#each displayItems.filter((i: MenuItem) => i.category === category) as item (item.id)}
 			<button class="menu-card" class:grid-card={effectiveColumns === 2} onclick={() => handleTap(item)}>
 				{#if cartStore.qtyOf(item.id) > 0}
 					<span class="card-qty">{cartStore.qtyOf(item.id)}</span>
@@ -1601,5 +1634,38 @@
 		border-radius: 6px;
 		width: 100%;
 		max-width: 400px;
+	}
+
+	/* Menu selector */
+	.menu-selector {
+		display: flex;
+		gap: 0.5rem;
+		margin: 0.75rem 0;
+		overflow-x: auto;
+		padding-bottom: 0.25rem;
+	}
+
+	.menu-selector-btn {
+		padding: 0.5rem 1rem;
+		background: #fff;
+		border: 1px solid #e0e0e0;
+		border-radius: 20px;
+		font-size: 0.85rem;
+		font-weight: 500;
+		color: #666;
+		cursor: pointer;
+		white-space: nowrap;
+		transition: all 0.15s;
+	}
+
+	.menu-selector-btn:hover {
+		border-color: #6c63ff;
+		color: #6c63ff;
+	}
+
+	.menu-selector-btn.active {
+		background: #6c63ff;
+		border-color: #6c63ff;
+		color: #fff;
 	}
 </style>

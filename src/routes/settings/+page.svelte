@@ -6,6 +6,7 @@
 	let displayName = $state('');
 	let darkMode = $state(false);
 	let saved = $state(false);
+	let cleared = $state(false);
 
 	onMount(() => {
 		const raw = sessionStorage.getItem(STORAGE_KEY);
@@ -26,6 +27,15 @@
 	function handleSave() {
 		sessionStorage.removeItem(STORAGE_KEY);
 		saved = true;
+	}
+
+	function clearAllStorage() {
+		localStorage.clear();
+		sessionStorage.clear();
+		cleared = true;
+		setTimeout(() => {
+			window.location.reload();
+		}, 500);
 	}
 </script>
 
@@ -48,6 +58,17 @@
 		<span class="confirmation">Preferences saved!</span>
 	{/if}
 </form>
+
+<div class="debug-section">
+	<h2>Debug</h2>
+	<p class="debug-hint">Developer tools for testing and troubleshooting.</p>
+	<button class="btn danger" onclick={clearAllStorage}>
+		Clear All Storage
+	</button>
+	{#if cleared}
+		<span class="confirmation">Storage cleared! Reloading...</span>
+	{/if}
+</div>
 
 <style>
 	.form {
@@ -106,5 +127,32 @@
 		color: #2e7d32;
 		font-size: 0.875rem;
 		font-weight: 500;
+	}
+
+	.debug-section {
+		margin-top: 3rem;
+		padding-top: 2rem;
+		border-top: 1px solid #e0e0e0;
+		max-width: 400px;
+	}
+
+	.debug-section h2 {
+		font-size: 1rem;
+		color: #666;
+		margin: 0 0 0.25rem;
+	}
+
+	.debug-hint {
+		font-size: 0.8rem;
+		color: #999;
+		margin: 0 0 1rem;
+	}
+
+	.btn.danger {
+		background: #e74c3c;
+	}
+
+	.btn.danger:hover {
+		background: #c0392b;
 	}
 </style>

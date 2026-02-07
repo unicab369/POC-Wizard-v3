@@ -87,7 +87,7 @@ function branchKey(key: string): string {
 // Helper to reload all stores when branch changes
 function reloadAllStores() {
 	hours = loadHours();
-	menuItems = loadMenu();
+	menuData = loadMenuData();
 	displayMode = loadDisplayMode();
 	menuSettings = loadMenuSettings();
 	tableItems = loadTables();
@@ -157,50 +157,138 @@ export interface MenuItem {
 	category: string;
 }
 
+export interface Menu {
+	id: number;
+	name: string;
+	items: MenuItem[];
+}
+
+export interface MenuData {
+	menus: Menu[];
+	enabledMenus: number[];
+}
+
 import { getBranchData, getBranchInfo } from '$lib/test-data/branch-data';
 
-function getDefaultMenu(): MenuItem[] {
-	return getBranchData(currentBranchId).menu;
+function getDefaultMenuData(): MenuData {
+	const data = getBranchData(currentBranchId).menu;
+	// Ensure we have valid structure
+	if (!data || !data.menus || !Array.isArray(data.menus)) {
+		return { menus: [], enabledMenus: [] };
+	}
+	return data as MenuData;
 }
 
-function loadMenu(): MenuItem[] {
-	const defaultMenu = getDefaultMenu();
-	if (typeof localStorage === 'undefined') return defaultMenu;
-	const raw = localStorage.getItem(branchKey('menu-items'));
-	if (!raw) return defaultMenu;
-	try {
-		const parsed = JSON.parse(raw);
-		if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].name) return parsed;
-		return defaultMenu;
-	} catch { return defaultMenu; }
+function loadMenuData(): MenuData {
+	const defaultData = getDefaultMenuData();
+	if (typeof localStorage === 'undefined') return defaultData;
+
+	// Try new format first
+	const raw = localStorage.getItem(branchKey('menu-data'));
+	if (raw) {
+		try {
+			const parsed = JSON.parse(raw);
+			if (parsed.menus && Array.isArray(parsed.menus)) return parsed;
+		} catch { /* fall through */ }
+	}
+
+	// Clear old format if exists (migration)
+	const oldRaw = localStorage.getItem(branchKey('menu-items'));
+	if (oldRaw) {
+		localStorage.removeItem(branchKey('menu-items'));
+	}
+
+	return defaultData;
 }
 
-function saveMenu(m: MenuItem[]) {
+function saveMenuData(data: MenuData) {
 	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem(branchKey('menu-items'), JSON.stringify(m));
+		localStorage.setItem(branchKey('menu-data'), JSON.stringify(data));
 	}
 }
 
-let menuItems = $state<MenuItem[]>(loadMenu());
+let menuData = $state<MenuData>(loadMenuData());
+
+// Get all items from enabled menus (flat list for cart/order processing)
+function getAllEnabledItems(): MenuItem[] {
+	const enabled = menuData.enabledMenus;
+	return menuData.menus
+		.filter(m => enabled.includes(m.id))
+		.flatMap(m => m.items);
+}
 
 export const menuStore = {
-	get items() { return menuItems; },
-	set items(v: MenuItem[]) { menuItems = v; saveMenu(v); },
+	// All menus (for configuration)
+	get menus() { return menuData.menus || []; },
+	get enabledMenus() { return menuData.enabledMenus || []; },
 
-	add(item: Omit<MenuItem, 'id'>) {
-		const id = menuItems.length > 0 ? Math.max(...menuItems.map(m => m.id)) + 1 : 1;
-		menuItems = [...menuItems, { id, ...item }];
-		saveMenu(menuItems);
+	// Enabled menus only (for display)
+	get enabledMenusList() {
+		const menus = menuData.menus || [];
+		const enabled = menuData.enabledMenus || [];
+		return menus.filter(m => enabled.includes(m.id));
+	},
+
+	// All items from enabled menus (flat list for cart compatibility)
+	get items() { return getAllEnabledItems(); },
+
+	// Get items for a specific menu
+	getMenuItems(menuId: number): MenuItem[] {
+		const menu = menuData.menus.find(m => m.id === menuId);
+		return menu ? menu.items : [];
+	},
+
+	// Toggle menu enabled state
+	toggleMenu(menuId: number) {
+		if (menuData.enabledMenus.includes(menuId)) {
+			// Don't disable if it's the last one
+			if (menuData.enabledMenus.length > 1) {
+				menuData = { ...menuData, enabledMenus: menuData.enabledMenus.filter(id => id !== menuId) };
+			}
+		} else {
+			menuData = { ...menuData, enabledMenus: [...menuData.enabledMenus, menuId] };
+		}
+		saveMenuData(menuData);
+	},
+
+	setEnabledMenus(ids: number[]) {
+		menuData = { ...menuData, enabledMenus: ids.length > 0 ? ids : [menuData.menus[0]?.id || 1] };
+		saveMenuData(menuData);
+	},
+
+	// Item operations (operates on all menus)
+	add(menuId: number, item: Omit<MenuItem, 'id'>) {
+		const allItems = menuData.menus.flatMap(m => m.items);
+		const id = allItems.length > 0 ? Math.max(...allItems.map(m => m.id)) + 1 : 1;
+		menuData = {
+			...menuData,
+			menus: menuData.menus.map(m =>
+				m.id === menuId ? { ...m, items: [...m.items, { id, ...item }] } : m
+			)
+		};
+		saveMenuData(menuData);
 	},
 
 	update(id: number, fields: Partial<Omit<MenuItem, 'id'>>) {
-		menuItems = menuItems.map(m => m.id === id ? { ...m, ...fields } : m);
-		saveMenu(menuItems);
+		menuData = {
+			...menuData,
+			menus: menuData.menus.map(m => ({
+				...m,
+				items: m.items.map(item => item.id === id ? { ...item, ...fields } : item)
+			}))
+		};
+		saveMenuData(menuData);
 	},
 
 	remove(id: number) {
-		menuItems = menuItems.filter(m => m.id !== id);
-		saveMenu(menuItems);
+		menuData = {
+			...menuData,
+			menus: menuData.menus.map(m => ({
+				...m,
+				items: m.items.filter(item => item.id !== id)
+			}))
+		};
+		saveMenuData(menuData);
 	}
 };
 
