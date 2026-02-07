@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { menuStore, cartStore, tablesStore, menuDisplayStore, menuSettingsStore, branchStore, tableShapeCss, formatCurrency, type MenuItem, type TableItem, type Menu } from '$lib/actions-store.svelte';
+	import { menuStore, cartStore, tablesStore, menuDisplayStore, menuSettingsStore, branchStore, tableShapeCss, formatCurrency, type MenuItem, type TableItem } from '$lib/actions-store.svelte';
 	import Popup from '$lib/components/Popup.svelte';
+	import MenuDisplay from '$lib/components/MenuDisplay.svelte';
 	import QRCode from 'qrcode';
 	import { Html5Qrcode } from 'html5-qrcode';
 	import { onDestroy } from 'svelte';
@@ -14,23 +15,10 @@
 		typeof sessionStorage !== 'undefined' && sessionStorage.getItem('employee-auth') !== null
 	);
 
-	// Menu selection (for multiple menus)
+	// Menu display toggle settings
 	const enabledMenus = $derived(menuStore.enabledMenusList);
-	const hasMultipleMenus = $derived(enabledMenus.length > 1);
-	let selectedMenuId = $state<number | null>(null);
-
-	// Get the active menu (first enabled if not selected)
-	const activeMenu = $derived.by(() => {
-		if (enabledMenus.length === 0) return null;
-		if (selectedMenuId !== null) {
-			const found = enabledMenus.find(m => m.id === selectedMenuId);
-			if (found) return found;
-		}
-		return enabledMenus[0];
-	});
-
-	// Items to display (from active menu)
-	const displayItems = $derived(activeMenu ? activeMenu.items : []);
+	const showListButton = $derived(menuDisplayStore.mode === 'list' || menuDisplayStore.mode === 'both');
+	const showGridButton = $derived(menuDisplayStore.mode === 'grid' || menuDisplayStore.mode === 'both');
 
 	let tableSelectOpen = $state(false);
 	let selectedTable = $state<TableItem | null>(null);
@@ -44,9 +32,6 @@
 	function clearTable() {
 		selectedTable = null;
 	}
-
-	let columns = $state(menuDisplayStore.mode === 'grid' ? 2 : 1);
-	const effectiveColumns = $derived(menuDisplayStore.mode === 'list' ? 1 : menuDisplayStore.mode === 'grid' ? 2 : columns);
 	let selected = $state<MenuItem | null>(null);
 	let quantity = $state(1);
 	let cartOpen = $state(false);
@@ -154,10 +139,6 @@
 		checkoutOpen = false;
 		cartOpen = true;
 	}
-
-	const categories = $derived(
-		[...new Set(displayItems.map((i: MenuItem) => i.category))]
-	);
 
 	function openItem(item: MenuItem) {
 		selected = item;
@@ -316,64 +297,14 @@
 	}
 </script>
 
-<div class="page-header">
-	<h1>Menu</h1>
-	<div class="view-toggle">
-		{#if menuDisplayStore.mode === 'list' || menuDisplayStore.mode === 'both'}
-			<button
-				class="toggle-btn"
-				class:active={effectiveColumns === 1}
-				onclick={() => (columns = 1)}
-				aria-label="List view"
-			>
-				<svg viewBox="0 0 24 24"><path d="M3 4h18M3 12h18M3 20h18" /></svg>
-			</button>
-		{/if}
-		{#if menuDisplayStore.mode === 'grid' || menuDisplayStore.mode === 'both'}
-			<button
-				class="toggle-btn"
-				class:active={effectiveColumns === 2}
-				onclick={() => (columns = 2)}
-				aria-label="Grid view"
-			>
-				<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
-			</button>
-		{/if}
-	</div>
-</div>
-
-<!-- Menu selector (when multiple menus enabled) -->
-{#if hasMultipleMenus}
-	<div class="menu-selector">
-		{#each enabledMenus as menu (menu.id)}
-			<button
-				class="menu-selector-btn"
-				class:active={activeMenu?.id === menu.id}
-				onclick={() => (selectedMenuId = menu.id)}
-			>
-				{menu.name}
-			</button>
-		{/each}
-	</div>
-{/if}
-
-{#each categories as category}
-	<h2 class="category-title">{category}</h2>
-	<div class="menu-grid" class:two-col={effectiveColumns === 2}>
-		{#each displayItems.filter((i: MenuItem) => i.category === category) as item (item.id)}
-			<button class="menu-card" class:grid-card={effectiveColumns === 2} onclick={() => handleTap(item)}>
-				{#if cartStore.qtyOf(item.id) > 0}
-					<span class="card-qty">{cartStore.qtyOf(item.id)}</span>
-				{/if}
-				<div class="card-info">
-					<span class="card-name">{item.name}</span>
-					<span class="card-desc">{item.description}</span>
-				</div>
-				<span class="card-price">{formatCurrency(item.price)}</span>
-			</button>
-		{/each}
-	</div>
-{/each}
+<MenuDisplay
+	menus={enabledMenus}
+	onItemTap={handleTap}
+	getQty={(id) => cartStore.qtyOf(id)}
+	{showListButton}
+	{showGridButton}
+	stickyHeader
+/>
 
 <!-- Item detail modal -->
 <Popup open={selected !== null} title={selected?.name ?? ''} onclose={() => (selected = null)} fullscreen>
@@ -686,165 +617,6 @@
 </button>
 
 <style>
-	.page-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-top: 20px;
-		position: sticky;
-		top: 0;
-		background: #f5f5f5;
-		z-index: 10;
-		padding-bottom: 0.5rem;
-	}
-
-	.page-header h1 {
-		margin: 0;
-	}
-
-	.view-toggle {
-		display: flex;
-		background: #f0f0f0;
-		border-radius: 8px;
-		padding: 3px;
-		gap: 2px;
-	}
-
-	.toggle-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		background: none;
-		border: none;
-		border-radius: 6px;
-		cursor: pointer;
-		color: #999;
-		transition: background 0.15s, color 0.15s;
-	}
-
-	.toggle-btn.active {
-		background: #fff;
-		color: #6c63ff;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-	}
-
-	.toggle-btn:hover:not(.active) {
-		color: #666;
-	}
-
-	.toggle-btn svg {
-		width: 1.1rem;
-		height: 1.1rem;
-		fill: none;
-		stroke: currentColor;
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-
-	.category-title {
-		font-size: 0.85rem;
-		font-weight: 600;
-		color: #999;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		margin: 1.25rem 0 0.5rem;
-	}
-
-	.menu-grid {
-		display: grid;
-		grid-template-columns: 1fr;
-		gap: 0.5rem;
-	}
-
-	.menu-grid.two-col {
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-	}
-
-	.menu-card {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem;
-		padding: 0.65rem 0.75rem;
-		background: #fff;
-		border: 1px solid #e8e8e8;
-		border-radius: 10px;
-		transition: border-color 0.15s, box-shadow 0.15s;
-		min-width: 0;
-		width: 100%;
-		cursor: pointer;
-		font-family: inherit;
-		font-size: inherit;
-		text-align: left;
-	}
-
-	.menu-card:hover {
-		border-color: #d0d0d0;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-	}
-
-	.card-info {
-		display: flex;
-		flex-direction: column;
-		gap: 0.15rem;
-		min-width: 0;
-	}
-
-	.card-name {
-		font-weight: 600;
-		font-size: 0.95rem;
-		color: #222;
-	}
-
-	.card-desc {
-		font-size: 0.8rem;
-		color: #888;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.card-price {
-		font-weight: 700;
-		font-size: 0.95rem;
-		color: #6c63ff;
-		white-space: nowrap;
-		flex-shrink: 0;
-	}
-
-	.menu-card {
-		position: relative;
-	}
-
-	.card-qty {
-		position: absolute;
-		top: -0.35rem;
-		left: -0.35rem;
-		background: #6c63ff;
-		color: #fff;
-		font-size: 0.65rem;
-		font-weight: 700;
-		width: 1.2rem;
-		height: 1.2rem;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.menu-card.grid-card {
-		flex-direction: column;
-		align-items: flex-start;
-		padding: 0.75rem;
-	}
-
-	.menu-card.grid-card .card-desc {
-		white-space: normal;
-	}
-
 	/* Detail modal */
 	.detail {
 		display: flex;
@@ -1636,36 +1408,4 @@
 		max-width: 400px;
 	}
 
-	/* Menu selector */
-	.menu-selector {
-		display: flex;
-		gap: 0.5rem;
-		margin: 0.75rem 0;
-		overflow-x: auto;
-		padding-bottom: 0.25rem;
-	}
-
-	.menu-selector-btn {
-		padding: 0.5rem 1rem;
-		background: #fff;
-		border: 1px solid #e0e0e0;
-		border-radius: 20px;
-		font-size: 0.85rem;
-		font-weight: 500;
-		color: #666;
-		cursor: pointer;
-		white-space: nowrap;
-		transition: all 0.15s;
-	}
-
-	.menu-selector-btn:hover {
-		border-color: #6c63ff;
-		color: #6c63ff;
-	}
-
-	.menu-selector-btn.active {
-		background: #6c63ff;
-		border-color: #6c63ff;
-		color: #fff;
-	}
 </style>

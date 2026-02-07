@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import { branchStore, actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, menuSettingsStore, ACTION_TYPES, TABLE_SHAPES, LANGUAGES, CURRENCIES, tableShapeLabel, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode, type Employee } from '$lib/actions-store.svelte';
+	import { branchStore, actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, menuSettingsStore, ACTION_TYPES, TABLE_SHAPES, LANGUAGES, CURRENCIES, tableShapeLabel, formatCurrency, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode, type Employee, type MenuItem, type Menu } from '$lib/actions-store.svelte';
 	import { getAvailableBranches, getBranchInfo, getBranchData } from '$lib/test-data/branch-data';
 	import { auth } from '$lib/auth.svelte';
 	import ActionGrid from '$lib/components/ActionGrid.svelte';
 	import BusinessHours from '$lib/components/BusinessHours.svelte';
 	import Popup from '$lib/components/Popup.svelte';
+	import MenuPreviewModal from '$lib/components/MenuPreviewModal.svelte';
 
 	const branches = getAvailableBranches();
 
@@ -107,6 +108,17 @@
 	let view = $state<View>('list');
 
 	const selectedBranchName = $derived(getBranchInfo(branchStore.id).name);
+
+	// Menu preview modal
+	let previewMenuOpen = $state(false);
+
+	function openMenuPreview() {
+		previewMenuOpen = true;
+	}
+
+	function closeMenuPreview() {
+		previewMenuOpen = false;
+	}
 
 	function selectBranch(branchId: string) {
 		// Navigate to the new branch's URL so the layout effect syncs correctly
@@ -504,6 +516,10 @@
 					</li>
 				{/each}
 			</ul>
+			<button class="btn-menu-edit" onclick={openMenuPreview}>
+				<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+				Edit Menu Items
+			</button>
 		{/if}
 	</div>
 
@@ -661,6 +677,9 @@
 		{/if}
 	</div>
 {/if}
+
+<!-- Menu Preview Modal -->
+<MenuPreviewModal open={previewMenuOpen} onclose={closeMenuPreview} />
 
 <style>
 	.branches-content {
@@ -1593,4 +1612,38 @@
 		background: #fdecea;
 		border-radius: 6px;
 	}
+
+	.btn-menu-edit {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0.65rem 1rem;
+		margin-top: 0.75rem;
+		background: #f0eeff;
+		color: #6c63ff;
+		border: 1px solid #d8d4ff;
+		border-radius: 8px;
+		font-size: 0.9rem;
+		font-weight: 600;
+		cursor: pointer;
+		font-family: inherit;
+		transition: background 0.15s;
+	}
+
+	.btn-menu-edit:hover {
+		background: #e0dcff;
+	}
+
+	.btn-menu-edit svg {
+		width: 1rem;
+		height: 1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
 </style>

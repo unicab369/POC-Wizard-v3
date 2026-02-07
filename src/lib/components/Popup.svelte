@@ -73,6 +73,7 @@
 		left: 0;
 		transform: none;
 		border-radius: 0;
+		background: #f5f5f5;
 	}
 
 	.popup-header {
