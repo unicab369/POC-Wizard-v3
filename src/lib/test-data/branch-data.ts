@@ -7,6 +7,7 @@ import branch1Customers from './branches/1/customers.json';
 import branch1Employees from './branches/1/employees.json';
 import branch1Purchases from './branches/1/purchases.json';
 import branch1Tables from './branches/1/tables.json';
+import branch1Reservations from './branches/1/reservations.json';
 
 // Branch 2 - Downtown Plaza
 import branch2Info from './branches/2/branch.json';
@@ -15,6 +16,7 @@ import branch2Customers from './branches/2/customers.json';
 import branch2Employees from './branches/2/employees.json';
 import branch2Purchases from './branches/2/purchases.json';
 import branch2Tables from './branches/2/tables.json';
+import branch2Reservations from './branches/2/reservations.json';
 
 // Default branch (ID 0) - for new/unknown branches
 import defaultBranchInfo from './branches/0/branch.json';
@@ -23,6 +25,7 @@ import defaultCustomers from './branches/0/customers.json';
 import defaultEmployees from './branches/0/employees.json';
 import defaultPurchases from './branches/0/purchases.json';
 import defaultTables from './branches/0/tables.json';
+import defaultReservations from './branches/0/reservations.json';
 
 export interface BranchInfo {
 	id: string;
@@ -51,6 +54,7 @@ export interface BranchData {
 	employees: typeof defaultEmployees;
 	purchases: typeof defaultPurchases;
 	tables: typeof defaultTables;
+	reservations: typeof defaultReservations;
 }
 
 const branchDataMap: Record<string, BranchData> = {
@@ -60,7 +64,8 @@ const branchDataMap: Record<string, BranchData> = {
 		customers: branch1Customers,
 		employees: branch1Employees,
 		purchases: branch1Purchases,
-		tables: branch1Tables
+		tables: branch1Tables,
+		reservations: branch1Reservations
 	},
 	'2': {
 		info: branch2Info as BranchInfo,
@@ -68,7 +73,8 @@ const branchDataMap: Record<string, BranchData> = {
 		customers: branch2Customers,
 		employees: branch2Employees,
 		purchases: branch2Purchases,
-		tables: branch2Tables
+		tables: branch2Tables,
+		reservations: branch2Reservations
 	},
 	// Legacy name mappings for backwards compatibility
 	'main': {
@@ -77,7 +83,8 @@ const branchDataMap: Record<string, BranchData> = {
 		customers: branch1Customers,
 		employees: branch1Employees,
 		purchases: branch1Purchases,
-		tables: branch1Tables
+		tables: branch1Tables,
+		reservations: branch1Reservations
 	},
 	'downtown': {
 		info: branch2Info as BranchInfo,
@@ -85,7 +92,8 @@ const branchDataMap: Record<string, BranchData> = {
 		customers: branch2Customers,
 		employees: branch2Employees,
 		purchases: branch2Purchases,
-		tables: branch2Tables
+		tables: branch2Tables,
+		reservations: branch2Reservations
 	}
 };
 
@@ -95,7 +103,8 @@ const defaultData: BranchData = {
 	customers: defaultCustomers,
 	employees: defaultEmployees,
 	purchases: defaultPurchases,
-	tables: defaultTables
+	tables: defaultTables,
+	reservations: defaultReservations
 };
 
 export function getBranchData(branchId: string): BranchData {

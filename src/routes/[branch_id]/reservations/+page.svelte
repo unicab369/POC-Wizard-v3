@@ -1,43 +1,39 @@
 <script lang="ts">
-	import { branchStore, formatCurrency } from '$lib/actions-store.svelte';
+	import { branchStore, tablesStore } from '$lib/actions-store.svelte';
 	import { getBranchData } from '$lib/test-data/branch-data';
+	import Popup from '$lib/components/Popup.svelte';
 
-	interface OrderItem {
+	interface Reservation {
 		id: number;
-		name: string;
-		qty: number;
-		price: number;
-	}
-
-	interface Order {
-		items: OrderItem[];
-		total: number;
 		date: string;
-		status: string;
-		customer?: { name: string; phone: string };
+		partySize: number;
+		customer: { name: string; phone: string };
 		table?: { id: number; label: string };
+		notes?: string;
 	}
 
-	const allOrders = $derived<Order[]>(getBranchData(branchStore.id).purchases as Order[]);
+	const baseReservations = $derived<Reservation[]>(getBranchData(branchStore.id).reservations as Reservation[]);
 
-	// Filter to only show reserved orders
-	const reservations = $derived(allOrders.filter(order => order.status === 'reserved'));
+	// Local state for new reservations added during session
+	let addedReservations = $state<Reservation[]>([]);
+
+	const reservations = $derived([...baseReservations, ...addedReservations]);
 
 	// Group reservations by date
 	const reservationsByDate = $derived.by(() => {
-		const groups: { date: string; orders: Order[] }[] = [];
-		const dateMap = new Map<string, Order[]>();
+		const groups: { date: string; items: Reservation[] }[] = [];
+		const dateMap = new Map<string, Reservation[]>();
 
-		for (const order of reservations) {
-			const datePart = order.date.split(',')[0];
+		for (const res of reservations) {
+			const datePart = res.date.split(',')[0];
 			if (!dateMap.has(datePart)) {
 				dateMap.set(datePart, []);
 			}
-			dateMap.get(datePart)!.push(order);
+			dateMap.get(datePart)!.push(res);
 		}
 
-		for (const [date, dateOrders] of dateMap) {
-			groups.push({ date, orders: dateOrders });
+		for (const [date, items] of dateMap) {
+			groups.push({ date, items });
 		}
 
 		return groups;
@@ -48,15 +44,64 @@
 		return parts[1] || '';
 	}
 
-	let selectedReservation = $state<Order | null>(null);
+	let selectedReservation = $state<Reservation | null>(null);
 
-	function selectReservation(order: Order) {
-		selectedReservation = order;
+	function selectReservation(res: Reservation) {
+		selectedReservation = res;
 	}
 
 	function goBack() {
 		selectedReservation = null;
 	}
+
+	// New reservation modal
+	let createOpen = $state(false);
+	let newName = $state('');
+	let newPhone = $state('');
+	let newDate = $state('');
+	let newTime = $state('');
+	let newPartySize = $state(2);
+	let newTableId = $state<number | null>(null);
+	let newNotes = $state('');
+
+	function openCreate() {
+		newName = '';
+		newPhone = '';
+		newDate = '';
+		newTime = '';
+		newPartySize = 2;
+		newTableId = null;
+		newNotes = '';
+		createOpen = true;
+	}
+
+	function createReservation() {
+		if (!newName.trim() || !newDate || !newTime) return;
+
+		const dateStr = `${newDate.replace(/-/g, '/')}, ${formatTime(newTime)}`;
+		const table = newTableId ? tablesStore.items.find(t => t.id === newTableId) : null;
+
+		const newRes: Reservation = {
+			id: Date.now(),
+			date: dateStr,
+			partySize: newPartySize,
+			customer: { name: newName.trim(), phone: newPhone.trim() },
+			table: table ? { id: table.id, label: table.label } : undefined,
+			notes: newNotes.trim() || undefined
+		};
+
+		addedReservations = [...addedReservations, newRes];
+		createOpen = false;
+	}
+
+	function formatTime(time24: string): string {
+		const [h, m] = time24.split(':').map(Number);
+		const ampm = h >= 12 ? 'PM' : 'AM';
+		const hour = h % 12 || 12;
+		return `${hour}:${m.toString().padStart(2, '0')}:00 ${ampm}`;
+	}
+
+	const canCreate = $derived(newName.trim() !== '' && newDate !== '' && newTime !== '');
 </script>
 
 {#if selectedReservation}
@@ -72,32 +117,23 @@
 			{/if}
 		</div>
 
-		{#if selectedReservation.customer}
-			<div class="customer-info">
-				<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-				<span>{selectedReservation.customer.name}</span>
-				{#if selectedReservation.customer.phone}
-					<span class="customer-phone">{selectedReservation.customer.phone}</span>
-				{/if}
-			</div>
-		{/if}
+		<div class="customer-info">
+			<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+			<span>{selectedReservation.customer.name}</span>
+			{#if selectedReservation.customer.phone}
+				<span class="customer-phone">{selectedReservation.customer.phone}</span>
+			{/if}
+		</div>
 
-		{#if selectedReservation.items.length > 0}
-			<div class="items-list">
-				<h2>Pre-ordered Items</h2>
-				{#each selectedReservation.items as item}
-					<div class="item-row">
-						<div class="item-info">
-							<span class="item-name">{item.name}</span>
-							<span class="item-qty">{item.qty} x {formatCurrency(item.price)}</span>
-						</div>
-						<span class="item-total">{formatCurrency(item.qty * item.price)}</span>
-					</div>
-				{/each}
-				<div class="order-total">
-					<span>Total</span>
-					<span class="total-price">{formatCurrency(selectedReservation.total)}</span>
-				</div>
+		<div class="info-row">
+			<span class="info-label">Party Size</span>
+			<span class="info-value">{selectedReservation.partySize} guests</span>
+		</div>
+
+		{#if selectedReservation.notes}
+			<div class="info-row">
+				<span class="info-label">Notes</span>
+				<span class="info-value">{selectedReservation.notes}</span>
 			</div>
 		{/if}
 	</div>
@@ -119,21 +155,22 @@
 			<div class="date-section">
 				<h2 class="date-header">{group.date}</h2>
 				<div class="reservations-list">
-					{#each group.orders as reservation}
+					{#each group.items as reservation}
 						<button class="reservation-card" onclick={() => selectReservation(reservation)}>
 							<div class="reservation-header">
 								<span class="reservation-time">{getTime(reservation.date)}</span>
-								<span class="status-badge">Reserved</span>
+								<span class="party-badge">{reservation.partySize} guests</span>
 								{#if reservation.table}
 									<span class="table-badge">{reservation.table.label}</span>
 								{/if}
 							</div>
-							{#if reservation.customer}
-								<div class="reservation-customer">
-									<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-									<span>{reservation.customer.name}</span>
-									<span class="customer-phone">{reservation.customer.phone}</span>
-								</div>
+							<div class="reservation-customer">
+								<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+								<span>{reservation.customer.name}</span>
+								<span class="customer-phone">{reservation.customer.phone}</span>
+							</div>
+							{#if reservation.notes}
+								<div class="reservation-notes">{reservation.notes}</div>
 							{/if}
 						</button>
 					{/each}
@@ -141,7 +178,59 @@
 			</div>
 		{/each}
 	{/if}
+
+	<!-- FAB for creating new reservation -->
+	<button class="fab" onclick={openCreate} aria-label="Create new reservation">
+		<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+	</button>
 {/if}
+
+<!-- Create Reservation Modal -->
+<Popup open={createOpen} title="New Reservation" onclose={() => (createOpen = false)} fullscreen>
+	<div class="create-form">
+		<label class="field">
+			<span>Customer Name *</span>
+			<input type="text" bind:value={newName} placeholder="Enter name" />
+		</label>
+		<label class="field">
+			<span>Phone</span>
+			<input type="tel" bind:value={newPhone} placeholder="Enter phone number" />
+		</label>
+		<div class="field-row">
+			<label class="field">
+				<span>Date *</span>
+				<input type="date" bind:value={newDate} />
+			</label>
+			<label class="field">
+				<span>Time *</span>
+				<input type="time" bind:value={newTime} />
+			</label>
+		</div>
+		<label class="field">
+			<span>Party Size</span>
+			<input type="number" min="1" bind:value={newPartySize} />
+		</label>
+		<label class="field">
+			<span>Table</span>
+			<select bind:value={newTableId}>
+				<option value={null}>No table assigned</option>
+				{#each tablesStore.items as table}
+					<option value={table.id}>{table.label} ({table.seats} seats)</option>
+				{/each}
+			</select>
+		</label>
+		<label class="field">
+			<span>Notes</span>
+			<textarea bind:value={newNotes} placeholder="Special requests, occasion, etc."></textarea>
+		</label>
+	</div>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={() => (createOpen = false)}>Cancel</button>
+			<button class="btn primary" onclick={createReservation} disabled={!canCreate}>Create</button>
+		</div>
+	{/snippet}
+</Popup>
 
 <style>
 	h1 {
@@ -344,71 +433,6 @@
 		margin-left: auto;
 	}
 
-	.items-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.items-list h2 {
-		font-size: 0.85rem;
-		font-weight: 600;
-		color: #999;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		margin: 0.5rem 0 0;
-	}
-
-	.item-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 0.65rem 0.75rem;
-		background: #fff;
-		border: 1px solid #e8e8e8;
-		border-radius: 8px;
-	}
-
-	.item-info {
-		display: flex;
-		flex-direction: column;
-		gap: 0.1rem;
-	}
-
-	.item-name {
-		font-weight: 600;
-		font-size: 0.9rem;
-		color: #222;
-	}
-
-	.item-qty {
-		font-size: 0.8rem;
-		color: #888;
-	}
-
-	.item-total {
-		font-weight: 700;
-		font-size: 0.9rem;
-		color: #6c63ff;
-	}
-
-	.order-total {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 0.75rem;
-		border-top: 1px solid #e0e0e0;
-		font-weight: 600;
-		font-size: 1rem;
-		margin-top: 0.5rem;
-	}
-
-	.total-price {
-		font-size: 1.25rem;
-		font-weight: 700;
-		color: #6c63ff;
-	}
-
 	.footer-bar {
 		position: fixed;
 		bottom: 0;
@@ -441,6 +465,165 @@
 	}
 
 	.back-btn:hover {
+		background: #f0f0f0;
+	}
+
+	/* Info rows */
+	.info-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.5rem 0.75rem;
+		background: #f9f9fb;
+		border-radius: 8px;
+	}
+
+	.info-label {
+		font-size: 0.85rem;
+		color: #888;
+	}
+
+	.info-value {
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: #333;
+	}
+
+	.party-badge {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: #666;
+		background: #f0f0f0;
+		padding: 0.15rem 0.5rem;
+		border-radius: 4px;
+	}
+
+	.reservation-notes {
+		font-size: 0.8rem;
+		color: #888;
+		font-style: italic;
+	}
+
+	/* FAB */
+	.fab {
+		position: fixed;
+		bottom: 1.5rem;
+		right: 1.5rem;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: 50%;
+		background: #6c63ff;
+		color: #fff;
+		border: none;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
+		z-index: 50;
+		transition: transform 0.15s, box-shadow 0.15s;
+	}
+
+	.fab:hover {
+		transform: scale(1.05);
+		box-shadow: 0 6px 16px rgba(108, 99, 255, 0.5);
+	}
+
+	.fab svg {
+		width: 1.5rem;
+		height: 1.5rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	/* Create form */
+	.create-form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.field span {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: #555;
+	}
+
+	.field input,
+	.field select,
+	.field textarea {
+		padding: 0.5rem 0.75rem;
+		border: 1px solid #ccc;
+		border-radius: 6px;
+		font-size: 0.95rem;
+		font-family: inherit;
+	}
+
+	.field textarea {
+		min-height: 80px;
+		resize: vertical;
+	}
+
+	.field select {
+		background: #fff;
+		cursor: pointer;
+	}
+
+	.field-row {
+		display: flex;
+		gap: 0.75rem;
+	}
+
+	.field-row .field {
+		flex: 1;
+	}
+
+	.footer-buttons {
+		display: flex;
+		width: 100%;
+		gap: 0.5rem;
+	}
+
+	.footer-buttons .btn {
+		flex: 1;
+		padding: 0.55rem 1.2rem;
+		border-radius: 6px;
+		font-size: 1.1rem;
+		cursor: pointer;
+		font-family: inherit;
+	}
+
+	.btn.primary {
+		background: #6c63ff;
+		color: #fff;
+		border: none;
+	}
+
+	.btn.primary:hover:not(:disabled) {
+		background: #5a52d5;
+	}
+
+	.btn.primary:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.btn.secondary {
+		background: none;
+		border: 1px solid #ccc;
+		color: #555;
+	}
+
+	.btn.secondary:hover {
 		background: #f0f0f0;
 	}
 </style>

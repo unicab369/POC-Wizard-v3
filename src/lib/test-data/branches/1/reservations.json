@@ -1,0 +1,42 @@
+[
+	{
+		"id": 1,
+		"date": "2/7/2026, 7:00:00 PM",
+		"partySize": 4,
+		"customer": { "name": "Grace Lee", "phone": "5556789012" },
+		"table": { "id": 6, "label": "Table 6" },
+		"notes": "Birthday celebration"
+	},
+	{
+		"id": 2,
+		"date": "2/7/2026, 8:30:00 PM",
+		"partySize": 2,
+		"customer": { "name": "Michael Brown", "phone": "5551112222" },
+		"table": { "id": 2, "label": "Table 2" },
+		"notes": ""
+	},
+	{
+		"id": 3,
+		"date": "2/8/2026, 12:00:00 PM",
+		"partySize": 6,
+		"customer": { "name": "Sarah Wilson", "phone": "5553334444" },
+		"table": { "id": 8, "label": "Table 8" },
+		"notes": "Business lunch"
+	},
+	{
+		"id": 4,
+		"date": "2/8/2026, 6:00:00 PM",
+		"partySize": 3,
+		"customer": { "name": "James Taylor", "phone": "5555556666" },
+		"table": { "id": 4, "label": "Table 4" },
+		"notes": ""
+	},
+	{
+		"id": 5,
+		"date": "2/9/2026, 1:00:00 PM",
+		"partySize": 2,
+		"customer": { "name": "Emily Davis", "phone": "5557778888" },
+		"table": { "id": 1, "label": "Table 1" },
+		"notes": "Anniversary"
+	}
+]
