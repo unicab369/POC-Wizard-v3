@@ -119,6 +119,14 @@
 		});
 		addingCustomer = false;
 	}
+
+	function addUser() {
+		if (activeTab === 'employees') {
+			startAddEmployee();
+		} else {
+			startAddCustomer();
+		}
+	}
 </script>
 
 <h1>Users</h1>
@@ -137,16 +145,10 @@
 </div>
 
 {#if activeTab === 'employees'}
-	<div class="section-header">
-		<span class="section-title">Employees</span>
-		<button class="btn-add" onclick={startAddEmployee}>+ Add Employee</button>
-	</div>
-
 	{#if employeesStore.items.length === 0}
 		<div class="empty-state">
 			<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>
 			<p>No employees yet</p>
-			<button class="btn primary" onclick={startAddEmployee}>Add First Employee</button>
 		</div>
 	{:else}
 		<ul class="user-list">
@@ -243,16 +245,10 @@
 	</Popup>
 
 {:else}
-	<div class="section-header">
-		<span class="section-title">Customers</span>
-		<button class="btn-add" onclick={startAddCustomer}>+ Add Customer</button>
-	</div>
-
 	{#if customersStore.items.length === 0}
 		<div class="empty-state">
 			<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
 			<p>No customers yet</p>
-			<button class="btn primary" onclick={startAddCustomer}>Add First Customer</button>
 		</div>
 	{:else}
 		<ul class="user-list">
@@ -323,6 +319,11 @@
 	</Popup>
 {/if}
 
+<!-- Floating add button -->
+<button class="add-fab" onclick={addUser}>
+	<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+</button>
+
 <style>
 	h1 { margin: 1rem 0 1.25rem; }
 
@@ -380,34 +381,39 @@
 		color: #fff;
 	}
 
-	.section-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-bottom: 1rem;
-	}
-
-	.section-title {
-		font-size: 0.85rem;
-		font-weight: 600;
-		color: #999;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-	}
-
-	.btn-add {
-		padding: 0.4rem 0.75rem;
+	.add-fab {
+		position: fixed;
+		bottom: 1.5rem;
+		right: 1.5rem;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: 50%;
 		background: #6c63ff;
 		color: #fff;
 		border: none;
-		border-radius: 6px;
-		font-size: 0.8rem;
-		font-weight: 600;
 		cursor: pointer;
-		font-family: inherit;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
+		z-index: 50;
+		transition: transform 0.15s, box-shadow 0.15s;
 	}
 
-	.btn-add:hover { background: #5a52d5; }
+	.add-fab:hover {
+		transform: scale(1.05);
+		box-shadow: 0 6px 16px rgba(108, 99, 255, 0.5);
+	}
+
+	.add-fab svg {
+		width: 1.5rem;
+		height: 1.5rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
 
 	.user-list {
 		list-style: none;
