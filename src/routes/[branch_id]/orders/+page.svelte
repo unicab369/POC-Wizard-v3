@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { branchStore, formatCurrency } from '$lib/actions-store.svelte';
 	import { getBranchData } from '$lib/test-data/branch-data';
+	import Popup from '$lib/components/Popup.svelte';
 
 	type OrderStatus = 'reserved' | 'ordering' | 'preparing' | 'served' | 'billing' | 'completed' | 'cancelled';
+
+	const STATUS_FLOW: OrderStatus[] = ['reserved', 'ordering', 'preparing', 'served', 'billing', 'completed'];
 
 	const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string }> = {
 		reserved: { label: 'Reserved', color: '#0ea5e9', bg: '#e0f2fe' },
@@ -13,6 +16,11 @@
 		completed: { label: 'Completed', color: '#059669', bg: '#d1fae5' },
 		cancelled: { label: 'Cancelled', color: '#ef4444', bg: '#fee2e2' }
 	};
+
+	interface StateHistoryEntry {
+		status: OrderStatus;
+		date: string;
+	}
 
 	interface OrderItem {
 		id: number;
@@ -28,9 +36,19 @@
 		status: OrderStatus;
 		customer?: { name: string; phone: string };
 		table?: { id: number; label: string };
+		stateHistory?: StateHistoryEntry[];
 	}
 
-	const allOrders = $derived<Order[]>(getBranchData(branchStore.id).purchases as Order[]);
+	const baseOrders = $derived<Order[]>(getBranchData(branchStore.id).purchases as Order[]);
+
+	// Store order updates by index to persist changes
+	let orderUpdates = $state<Map<number, Partial<Order>>>(new Map());
+
+	// Merge base orders with any updates
+	const allOrders = $derived(baseOrders.map((order, index) => {
+		const updates = orderUpdates.get(index);
+		return updates ? { ...order, ...updates } : order;
+	}));
 
 	// Exclude reserved orders (shown in Reservations page)
 	const orders = $derived(allOrders.filter(order => order.status !== 'reserved'));
@@ -68,66 +86,129 @@
 		return `color: ${config.color}; background: ${config.bg};`;
 	}
 
-	let selectedOrder = $state<Order | null>(null);
+	let selectedOrderIndex = $state<number | null>(null);
+
+	const selectedOrder = $derived(selectedOrderIndex !== null ? allOrders[selectedOrderIndex] : null);
 
 	function selectOrder(order: Order) {
-		selectedOrder = order;
+		// Find the index in allOrders (not filtered orders)
+		const index = allOrders.findIndex(o => o === order || (o.date === order.date && o.total === order.total && o.customer?.name === order.customer?.name));
+		selectedOrderIndex = index >= 0 ? index : null;
 	}
 
-	function goBack() {
-		selectedOrder = null;
+	function closeModal() {
+		selectedOrderIndex = null;
 	}
+
+	const modalOpen = $derived(selectedOrderIndex !== null);
+
+	function getNextStatus(currentStatus: OrderStatus): OrderStatus | null {
+		if (currentStatus === 'cancelled' || currentStatus === 'completed') return null;
+		const currentIndex = STATUS_FLOW.indexOf(currentStatus);
+		if (currentIndex === -1 || currentIndex >= STATUS_FLOW.length - 1) return null;
+		return STATUS_FLOW[currentIndex + 1];
+	}
+
+	function advanceToNextState() {
+		if (selectedOrderIndex === null || !selectedOrder) return;
+		const nextStatus = getNextStatus(selectedOrder.status);
+		if (!nextStatus) return;
+
+		const now = new Date().toLocaleString();
+		const newHistoryEntry: StateHistoryEntry = { status: nextStatus, date: now };
+
+		// Get existing history or initialize it
+		const existingHistory = selectedOrder.stateHistory || [{ status: selectedOrder.status, date: selectedOrder.date }];
+		const newHistory = [...existingHistory, newHistoryEntry];
+
+		// Save update to persist across modal close/open
+		const existingUpdates = orderUpdates.get(selectedOrderIndex) || {};
+		orderUpdates.set(selectedOrderIndex, {
+			...existingUpdates,
+			status: nextStatus,
+			stateHistory: newHistory
+		});
+		orderUpdates = new Map(orderUpdates); // Trigger reactivity
+	}
+
+	function getStateHistory(order: Order): StateHistoryEntry[] {
+		if (order.stateHistory && order.stateHistory.length > 0) {
+			return order.stateHistory;
+		}
+		// If no history, return current state with order date
+		return [{ status: order.status, date: order.date }];
+	}
+
+	const nextStatus = $derived(selectedOrder ? getNextStatus(selectedOrder.status) : null);
 </script>
 
-{#if selectedOrder}
-	<div class="order-detail">
-		<div class="detail-header">
-			<h1>Order Details</h1>
-			<span class="status-badge" style={getStatusStyle(selectedOrder.status)}>
-				{STATUS_CONFIG[selectedOrder.status].label}
-			</span>
-		</div>
-		<div class="order-meta">
-			<span class="order-date">{selectedOrder.date}</span>
-			{#if selectedOrder.table}
-				<span class="order-table">{selectedOrder.table.label}</span>
-			{/if}
-		</div>
-
-		{#if selectedOrder.customer}
-			<div class="customer-info">
-				<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-				<span>{selectedOrder.customer.name}</span>
-				{#if selectedOrder.customer.phone}
-					<span class="customer-phone">{selectedOrder.customer.phone}</span>
+<Popup open={modalOpen} title="Order Details" onclose={closeModal} fullscreen>
+	{#if selectedOrder}
+		<div class="order-detail">
+			<div class="order-meta">
+				<span class="order-date">{selectedOrder.date}</span>
+				{#if selectedOrder.table}
+					<span class="order-table">{selectedOrder.table.label}</span>
 				{/if}
 			</div>
-		{/if}
 
-		<div class="items-list">
-			<h2>Items</h2>
-			{#each selectedOrder.items as item}
-				<div class="item-row">
-					<div class="item-info">
-						<span class="item-name">{item.name}</span>
-						<span class="item-qty">{item.qty} x {formatCurrency(item.price)}</span>
-					</div>
-					<span class="item-total">{formatCurrency(item.qty * item.price)}</span>
+			{#if selectedOrder.customer}
+				<div class="customer-info">
+					<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+					<span>{selectedOrder.customer.name}</span>
+					{#if selectedOrder.customer.phone}
+						<span class="customer-phone">{selectedOrder.customer.phone}</span>
+					{/if}
 				</div>
-			{/each}
-		</div>
+			{/if}
 
-		<div class="order-total">
-			<span>Total</span>
-			<span class="total-price">{formatCurrency(selectedOrder.total)}</span>
-		</div>
-	</div>
+			{#if selectedOrder.items.length > 0}
+				<div class="items-list">
+					<h2>Items</h2>
+					{#each selectedOrder.items as item}
+						<div class="item-row">
+							<div class="item-info">
+								<span class="item-name">{item.name}</span>
+								<span class="item-qty">{item.qty} x {formatCurrency(item.price)}</span>
+							</div>
+							<span class="item-total">{formatCurrency(item.qty * item.price)}</span>
+						</div>
+					{/each}
+				</div>
 
-	<div class="footer-bar">
-		<button class="btn secondary back-btn" onclick={goBack}>Back</button>
-	</div>
-{:else}
-	<h1>Orders</h1>
+				<div class="order-total">
+					<span>Total</span>
+					<span class="total-price">{formatCurrency(selectedOrder.total)}</span>
+				</div>
+			{/if}
+
+			<div class="state-history">
+				<h2>Status History</h2>
+				{#each getStateHistory(selectedOrder) as entry}
+					<div class="history-entry">
+						<span class="history-status" style={getStatusStyle(entry.status)}>
+							{STATUS_CONFIG[entry.status].label}
+						</span>
+						<span class="history-date">{entry.date}</span>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={closeModal}>Close</button>
+			{#if nextStatus}
+				<button class="btn primary" onclick={advanceToNextState}>
+					{STATUS_CONFIG[nextStatus].label}
+				</button>
+			{/if}
+		</div>
+	{/snippet}
+</Popup>
+
+<h1>Orders</h1>
 	<p class="subtitle">Purchase history</p>
 
 	{#if orders.length === 0}
@@ -171,24 +252,12 @@
 			</div>
 		{/each}
 	{/if}
-{/if}
 
 <style>
 	h1 {
 		margin: 1.25rem 0 0;
 		font-size: 1.5rem;
 		font-weight: 700;
-	}
-
-	.detail-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-	}
-
-	.detail-header h1 {
-		margin: 0;
 	}
 
 	.status-badge {
@@ -336,16 +405,11 @@
 		text-overflow: ellipsis;
 	}
 
-	/* Order Detail View */
+	/* Order Detail Modal */
 	.order-detail {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
-		padding-bottom: 4rem;
-	}
-
-	.order-detail h1 {
-		margin-bottom: 0;
 	}
 
 	.order-meta {
@@ -356,6 +420,7 @@
 
 	.order-meta .order-date {
 		font-size: 0.9rem;
+		color: #888;
 	}
 
 	.order-meta .order-table {
@@ -372,7 +437,8 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.5rem 0.75rem;
-		background: #f9f9fb;
+		background: #fff;
+		border: 1px solid #e8e8e8;
 		border-radius: 8px;
 		font-size: 0.9rem;
 		color: #555;
@@ -405,7 +471,7 @@
 		color: #999;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		margin: 0.5rem 0 0;
+		margin: 0;
 	}
 
 	.item-row {
@@ -458,38 +524,80 @@
 		color: #6c63ff;
 	}
 
-	.footer-bar {
-		position: fixed;
-		bottom: 0;
-		left: 250px;
-		right: 0;
+	.footer-buttons {
 		display: flex;
-		align-items: center;
-		background: #f0eeff;
-		border-top: 1px solid #d8d4ff;
-		padding: 0.5rem 1rem;
-		padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
-		z-index: 50;
-	}
-
-	@media (max-width: 768px) {
-		.footer-bar { left: 0; }
-	}
-
-	.back-btn {
+		gap: 0.5rem;
 		width: 100%;
+	}
+
+	.footer-buttons .btn {
+		flex: 1;
 		padding: 0.6rem 1.2rem;
-		background: none;
-		border: 1px solid #ccc;
 		border-radius: 6px;
 		font-size: 1rem;
 		cursor: pointer;
-		color: #555;
 		font-family: inherit;
 		transition: background 0.15s;
 	}
 
-	.back-btn:hover {
+	.footer-buttons .btn.secondary {
+		background: none;
+		border: 1px solid #ccc;
+		color: #555;
+	}
+
+	.footer-buttons .btn.secondary:hover {
 		background: #f0f0f0;
+	}
+
+	.footer-buttons .btn.primary {
+		background: #6c63ff;
+		border: none;
+		color: #fff;
+	}
+
+	.footer-buttons .btn.primary:hover {
+		background: #5b54e0;
+	}
+
+	/* State History */
+	.state-history {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+	}
+
+	.state-history h2 {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: #999;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin: 0;
+	}
+
+	.history-entry {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.5rem 0.75rem;
+		background: #fff;
+		border: 1px solid #e8e8e8;
+		border-radius: 8px;
+	}
+
+	.history-status {
+		font-size: 0.7rem;
+		font-weight: 600;
+		padding: 0.2rem 0.5rem;
+		border-radius: 4px;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.history-date {
+		font-size: 0.8rem;
+		color: #888;
 	}
 </style>
