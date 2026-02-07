@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { afterNavigate, goto } from '$app/navigation';
+	import { afterNavigate, beforeNavigate, goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { branchStore, actionsStore, pageStore, hoursStore, tablesStore, menuDisplayStore, menuStore, menuSettingsStore, ACTION_TYPES, TABLE_SHAPES, LANGUAGES, CURRENCIES, tableShapeLabel, type ActionType, type BusinessDay, type TableItem, type MenuDisplayMode, type Employee } from '$lib/actions-store.svelte';
 	import { getAvailableBranches, getBranchInfo, getBranchData } from '$lib/test-data/branch-data';
@@ -28,6 +28,13 @@
 			view = 'select';
 			pendingSelect = false;
 		} else {
+			view = 'list';
+		}
+	});
+
+	// Reset to list view when clicking Branches link while already on branches page
+	beforeNavigate(({ to }) => {
+		if (to?.route.id?.endsWith('/branches')) {
 			view = 'list';
 		}
 	});

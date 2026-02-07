@@ -55,9 +55,11 @@
 			);
 		}
 
-		// Branches always visible - has its own sign-in (no sublinks - it manages its own navigation)
+		// Branches always visible - has its own sign-in
 		allLinks.push(
-			{ label: 'Branches', href: `/${branchId}/branches`, icon: icons.admin, sublinks: [] },
+			{ label: 'Branches', href: `/${branchId}/branches`, icon: icons.admin, sublinks: [
+				{ label: 'Branches', href: `/${branchId}/branches` }
+			] },
 			{ label: 'Settings', href: '/settings', icon: icons.settings, sublinks: [
 				{ label: 'General', href: '/settings' }
 			]}
