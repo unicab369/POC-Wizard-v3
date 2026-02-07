@@ -11,6 +11,7 @@
 		showListButton?: boolean;
 		showGridButton?: boolean;
 		stickyHeader?: boolean;
+		defaultView?: 'list' | 'grid';
 	}
 
 	let {
@@ -21,12 +22,13 @@
 		showTitle = true,
 		showListButton = true,
 		showGridButton = true,
-		stickyHeader = false
+		stickyHeader = false,
+		defaultView = 'grid'
 	}: Props = $props();
 
 	// Menu selection
 	let selectedMenuId = $state<number | null>(null);
-	let columns = $state(2);
+	let columns = $state(defaultView === 'list' ? 1 : 2);
 
 	const hasMultipleMenus = $derived(menus.length > 1);
 

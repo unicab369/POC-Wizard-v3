@@ -19,6 +19,7 @@
 	const enabledMenus = $derived(menuStore.enabledMenusList);
 	const showListButton = $derived(menuDisplayStore.mode === 'list' || menuDisplayStore.mode === 'both');
 	const showGridButton = $derived(menuDisplayStore.mode === 'grid' || menuDisplayStore.mode === 'both');
+	const defaultView = $derived(menuDisplayStore.mode === 'both' ? menuDisplayStore.defaultView : (menuDisplayStore.mode === 'list' ? 'list' : 'grid'));
 
 	let tableSelectOpen = $state(false);
 	let selectedTable = $state<TableItem | null>(null);
@@ -303,6 +304,7 @@
 	getQty={(id) => cartStore.qtyOf(id)}
 	{showListButton}
 	{showGridButton}
+	{defaultView}
 	stickyHeader
 />
 

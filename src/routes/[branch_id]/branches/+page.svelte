@@ -555,6 +555,12 @@
 				</label>
 			{/each}
 		</div>
+		{#if menuDisplayStore.mode === 'both'}
+			<label class="checkbox-option default-view-option">
+				<input type="checkbox" checked={menuDisplayStore.defaultView === 'list'} onchange={(e) => (menuDisplayStore.defaultView = (e.target as HTMLInputElement).checked ? 'list' : 'grid')} />
+				<span>Default to List view</span>
+			</label>
+		{/if}
 	</div>
 
 	<div class="menu-edit-section">

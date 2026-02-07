@@ -39,19 +39,19 @@
 				{ label: 'Orders', href: `/${branchId}/orders` },
 				{ label: 'Reservations', href: `/${branchId}/reservations` }
 			]},
-			{ label: 'QR Barcode', href: '/scanner', icon: icons.barcode, filled: true, sublinks: [
-				{ label: 'Scan', href: '/scanner' },
-				{ label: 'History', href: '/scanner/history' },
-				{ label: 'Cards', href: '/scanner/cards' }
-			]}
+			{ label: 'Dashboard', href: '/dashboard', icon: icons.dashboard, sublinks: [
+				{ label: 'Overview', href: '/dashboard' },
+				{ label: 'Analytics', href: '/dashboard/analytics' }
+			]},
 		];
 
 		// Manager-only sections
 		if (isManager) {
 			allLinks.push(
-				{ label: 'Dashboard', href: '/dashboard', icon: icons.dashboard, sublinks: [
-					{ label: 'Overview', href: '/dashboard' },
-					{ label: 'Analytics', href: '/dashboard/analytics' }
+				{ label: 'QR Barcode', href: '/scanner', icon: icons.barcode, filled: true, sublinks: [
+					{ label: 'Scan', href: '/scanner' },
+					{ label: 'History', href: '/scanner/history' },
+					{ label: 'Cards', href: '/scanner/cards' }
 				]},
 				{ label: 'divider', href: '', icon: '', sublinks: [] },
 				{ label: 'Users', href: `/${branchId}/users`, icon: icons.profile, sublinks: [

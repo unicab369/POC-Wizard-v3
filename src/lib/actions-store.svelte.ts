@@ -302,11 +302,21 @@ function loadDisplayMode(): MenuDisplayMode {
 	return 'both';
 }
 
+function loadDefaultView(): 'list' | 'grid' {
+	if (typeof localStorage === 'undefined') return 'list';
+	const raw = localStorage.getItem(branchKey('menu-default-view'));
+	if (raw === 'list' || raw === 'grid') return raw;
+	return 'list';
+}
+
 let displayMode = $state<MenuDisplayMode>(loadDisplayMode());
+let defaultView = $state<'list' | 'grid'>(loadDefaultView());
 
 export const menuDisplayStore = {
 	get mode() { return displayMode; },
-	set mode(v: MenuDisplayMode) { displayMode = v; if (typeof localStorage !== 'undefined') localStorage.setItem(branchKey('menu-display-mode'), v); }
+	set mode(v: MenuDisplayMode) { displayMode = v; if (typeof localStorage !== 'undefined') localStorage.setItem(branchKey('menu-display-mode'), v); },
+	get defaultView() { return defaultView; },
+	set defaultView(v: 'list' | 'grid') { defaultView = v; if (typeof localStorage !== 'undefined') localStorage.setItem(branchKey('menu-default-view'), v); }
 };
 
 // Menu settings (language/currency/checkout options)
