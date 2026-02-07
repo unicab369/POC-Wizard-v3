@@ -6,9 +6,19 @@
 			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": 650 }
 		],
 		"total": 1850,
-		"date": "2/4/2026, 10:32:15 AM",
+		"date": "2/7/2026, 10:32:15 AM",
 		"customer": { "name": "Alice Johnson", "phone": "1234567890" },
 		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 2, "price": 350 },
+			{ "id": 8, "name": "Muffin", "qty": 2, "price": 350 }
+		],
+		"total": 1400,
+		"date": "2/7/2026, 9:15:00 AM",
+		"customer": { "name": "Bob Smith", "phone": "5551234567" },
+		"table": { "id": 2, "label": "Table 2" }
 	},
 	{
 		"items": [
@@ -16,7 +26,64 @@
 			{ "id": 7, "name": "Bagel", "qty": 2, "price": 400 }
 		],
 		"total": 1300,
-		"date": "2/3/2026, 2:15:40 PM",
+		"date": "2/7/2026, 8:45:30 AM",
+		"table": { "id": 3, "label": "Table 3" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 1, "price": 550 },
+			{ "id": 6, "name": "Croissant", "qty": 2, "price": 300 }
+		],
+		"total": 1150,
+		"date": "2/6/2026, 3:20:00 PM",
+		"customer": { "name": "Carol Davis", "phone": "5559876543" },
+		"table": { "id": 1, "label": "Table 1" }
+	},
+	{
+		"items": [
+			{ "id": 2, "name": "Cappuccino", "qty": 3, "price": 450 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 2, "price": 650 }
+		],
+		"total": 2650,
+		"date": "2/6/2026, 12:10:45 PM",
+		"customer": { "name": "David Wilson", "phone": "5552345678" },
+		"table": { "id": 4, "label": "Table 4" }
+	},
+	{
+		"items": [
+			{ "id": 5, "name": "Americano", "qty": 1, "price": 400 },
+			{ "id": 8, "name": "Muffin", "qty": 1, "price": 350 }
+		],
+		"total": 750,
+		"date": "2/6/2026, 10:05:20 AM",
+		"table": { "id": 2, "label": "Table 2" }
+	},
+	{
+		"items": [
+			{ "id": 1, "name": "Espresso", "qty": 1, "price": 350 }
+		],
+		"total": 350,
+		"date": "2/5/2026, 4:45:00 PM",
+		"customer": { "name": "Eve Martinez", "phone": "5553456789" }
+	},
+	{
+		"items": [
+			{ "id": 3, "name": "Latte", "qty": 2, "price": 500 },
+			{ "id": 6, "name": "Croissant", "qty": 1, "price": 300 },
+			{ "id": 7, "name": "Bagel", "qty": 1, "price": 400 }
+		],
+		"total": 1700,
+		"date": "2/5/2026, 11:30:15 AM",
+		"table": { "id": 5, "label": "Table 5" }
+	},
+	{
+		"items": [
+			{ "id": 4, "name": "Mocha", "qty": 2, "price": 550 },
+			{ "id": 9, "name": "Avocado Toast", "qty": 1, "price": 650 }
+		],
+		"total": 1750,
+		"date": "2/5/2026, 9:00:00 AM",
+		"customer": { "name": "Frank Brown", "phone": "5554567890" },
 		"table": { "id": 3, "label": "Table 3" }
 	}
 ]
