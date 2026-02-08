@@ -18,8 +18,28 @@
 	// Local state for new reservations added during session
 	let addedReservations = $state<Reservation[]>([]);
 
-	// Track cancelled reservation IDs
-	let cancelledIds = $state<Set<number>>(new Set());
+	// Track cancelled reservation IDs (persisted to localStorage)
+	const CANCELLED_KEY = 'cancelled-reservations';
+
+	function loadCancelledIds(): Set<number> {
+		if (typeof localStorage === 'undefined') return new Set();
+		try {
+			const stored = localStorage.getItem(CANCELLED_KEY);
+			if (stored) {
+				return new Set(JSON.parse(stored) as number[]);
+			}
+		} catch {
+			// ignore parse errors
+		}
+		return new Set();
+	}
+
+	function saveCancelledIds(ids: Set<number>) {
+		if (typeof localStorage === 'undefined') return;
+		localStorage.setItem(CANCELLED_KEY, JSON.stringify([...ids]));
+	}
+
+	let cancelledIds = $state<Set<number>>(loadCancelledIds());
 
 	const reservations = $derived([...baseReservations, ...addedReservations].map(r => ({
 		...r,
@@ -52,7 +72,9 @@
 
 	function getTime(dateStr: string): string {
 		const parts = dateStr.split(', ');
-		return parts[1] || '';
+		const time = parts[1] || '';
+		// Remove seconds (e.g., "12:30:00 PM" -> "12:30 PM")
+		return time.replace(/:\d{2}(\s)/, '$1');
 	}
 
 	let selectedReservation = $state<Reservation | null>(null);
@@ -78,7 +100,9 @@
 
 	function confirmDelete() {
 		if (selectedReservation) {
-			cancelledIds = new Set([...cancelledIds, selectedReservation.id]);
+			const newIds = new Set([...cancelledIds, selectedReservation.id]);
+			cancelledIds = newIds;
+			saveCancelledIds(newIds);
 			confirmDeleteOpen = false;
 			goBack();
 		}

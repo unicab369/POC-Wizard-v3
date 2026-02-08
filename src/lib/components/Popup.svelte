@@ -53,7 +53,7 @@
 		position: fixed;
 		inset: 0;
 		background: rgba(0, 0, 0, 0.3);
-		z-index: 100;
+		z-index: 1000;
 	}
 
 	.popup {
@@ -64,7 +64,7 @@
 		background: #fff;
 		border-radius: 10px;
 		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-		z-index: 101;
+		z-index: 1001;
 		min-width: 260px;
 		max-width: 90vw;
 		display: flex;
@@ -100,6 +100,7 @@
 
 	.popup.fullscreen .popup-header {
 		padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+		background: #fff;
 	}
 
 	.popup-title {
@@ -132,6 +133,7 @@
 
 	.popup.fullscreen .popup-footer {
 		padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+		background: #fff;
 	}
 
 	.popup-close {
