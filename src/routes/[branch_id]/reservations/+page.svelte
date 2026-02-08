@@ -10,6 +10,7 @@
 		customer: { name: string; phone: string };
 		table?: { id: number; label: string };
 		notes?: string;
+		status?: 'active' | 'cancelled';
 	}
 
 	const baseReservations = $derived<Reservation[]>(getBranchData(branchStore.id).reservations as Reservation[]);
@@ -17,7 +18,17 @@
 	// Local state for new reservations added during session
 	let addedReservations = $state<Reservation[]>([]);
 
-	const reservations = $derived([...baseReservations, ...addedReservations]);
+	// Track cancelled reservation IDs
+	let cancelledIds = $state<Set<number>>(new Set());
+
+	const reservations = $derived([...baseReservations, ...addedReservations].map(r => ({
+		...r,
+		status: cancelledIds.has(r.id) ? 'cancelled' as const : (r.status || 'active' as const)
+	})));
+
+	function isReservationCancelled(id: number): boolean {
+		return cancelledIds.has(id);
+	}
 
 	// Group reservations by date
 	const reservationsByDate = $derived.by(() => {
@@ -52,6 +63,25 @@
 
 	function goBack() {
 		selectedReservation = null;
+	}
+
+	// Delete confirmation
+	let confirmDeleteOpen = $state(false);
+
+	function openDeleteConfirm() {
+		confirmDeleteOpen = true;
+	}
+
+	function cancelDelete() {
+		confirmDeleteOpen = false;
+	}
+
+	function confirmDelete() {
+		if (selectedReservation) {
+			cancelledIds = new Set([...cancelledIds, selectedReservation.id]);
+			confirmDeleteOpen = false;
+			goBack();
+		}
 	}
 
 	// New reservation modal
@@ -118,10 +148,14 @@
 			<h2 class="date-header">{group.date}</h2>
 			<div class="reservations-list">
 				{#each group.items as reservation}
-					<button class="reservation-card" onclick={() => selectReservation(reservation)}>
+					<button class="reservation-card" class:cancelled={reservation.status === 'cancelled'} onclick={() => selectReservation(reservation)}>
 						<div class="reservation-header">
 							<span class="reservation-time">{getTime(reservation.date)}</span>
-							<span class="party-badge">{reservation.partySize} guests</span>
+							{#if reservation.status === 'cancelled'}
+								<span class="cancelled-badge">Cancelled</span>
+							{:else}
+								<span class="party-badge">{reservation.partySize} guests</span>
+							{/if}
 							{#if reservation.table}
 								<span class="table-badge">{reservation.table.label}</span>
 							{/if}
@@ -147,10 +181,7 @@
 </button>
 
 <!-- Reservation Detail Modal -->
-<Popup open={selectedReservation !== null} title="Reservation Details" onclose={goBack} fullscreen>
-	{#snippet headerAction()}
-		<span class="status-badge">Reserved</span>
-	{/snippet}
+<Popup open={selectedReservation !== null} title="Reservation Details" onclose={goBack} ondelete={selectedReservation?.status !== 'cancelled' ? openDeleteConfirm : undefined} fullscreen>
 	{#if selectedReservation}
 		<div class="reservation-detail">
 			<div class="reservation-meta">
@@ -184,6 +215,17 @@
 	{#snippet footer()}
 		<div class="footer-buttons">
 			<button class="btn secondary" onclick={goBack}>Close</button>
+		</div>
+	{/snippet}
+</Popup>
+
+<!-- Delete Confirmation Modal -->
+<Popup open={confirmDeleteOpen} title="Cancel Reservation" onclose={cancelDelete} wide>
+	<p class="confirm-text">Are you sure you want to cancel this reservation?</p>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={cancelDelete}>Back</button>
+			<button class="btn danger" onclick={confirmDelete}>Cancel Reservation</button>
 		</div>
 	{/snippet}
 </Popup>
@@ -240,18 +282,6 @@
 		margin: 1.25rem 0 0;
 		font-size: 1.5rem;
 		font-weight: 700;
-	}
-
-	.status-badge {
-		font-size: 0.7rem;
-		font-weight: 600;
-		padding: 0.2rem 0.5rem;
-		border-radius: 4px;
-		text-transform: uppercase;
-		letter-spacing: 0.03em;
-		white-space: nowrap;
-		color: #0ea5e9;
-		background: #e0f2fe;
 	}
 
 	.subtitle {
@@ -325,6 +355,22 @@
 	.reservation-card:hover {
 		border-color: #d0d0d0;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	}
+
+	.reservation-card.cancelled {
+		opacity: 0.6;
+		background: #f9f9f9;
+	}
+
+	.cancelled-badge {
+		font-size: 0.7rem;
+		font-weight: 600;
+		padding: 0.15rem 0.5rem;
+		background: #fee2e2;
+		color: #ef4444;
+		border-radius: 4px;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
 	}
 
 	.reservation-header {
@@ -581,5 +627,23 @@
 
 	.btn.secondary:hover {
 		background: #f0f0f0;
+	}
+
+	.btn.danger {
+		background: #e74c3c;
+		color: #fff;
+		border: none;
+	}
+
+	.btn.danger:hover {
+		background: #c0392b;
+	}
+
+	.confirm-text {
+		text-align: center;
+		color: #555;
+		font-size: 0.95rem;
+		margin: 1rem 0;
+		line-height: 1.5;
 	}
 </style>
