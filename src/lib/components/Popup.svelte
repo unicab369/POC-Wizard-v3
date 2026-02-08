@@ -8,22 +8,29 @@
 		children: Snippet;
 		footer?: Snippet;
 		headerAction?: Snippet;
+		ondelete?: () => void;
 		fullscreen?: boolean;
 		wide?: boolean;
 	}
 
-	let { open, title, onclose, children, footer, headerAction, fullscreen = false, wide = false }: Props = $props();
+	let { open, title, onclose, children, footer, headerAction, ondelete, fullscreen = false, wide = false }: Props = $props();
 </script>
 
 {#if open}
 	<div class="popup-overlay" role="presentation" onclick={onclose}></div>
 	<div class="popup" class:fullscreen class:wide role="dialog" aria-modal="true">
-		{#if title || headerAction}
+		{#if title || headerAction || ondelete}
 			<div class="popup-header">
 				<span class="popup-title">{title ?? ''}</span>
-				{#if headerAction}
+				{#if headerAction || ondelete}
 					<div class="popup-header-action">
-						{@render headerAction()}
+						{#if headerAction}
+							{@render headerAction()}
+						{:else if ondelete}
+							<button class="delete-btn" onclick={ondelete} aria-label="Delete">
+								<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" /></svg>
+							</button>
+						{/if}
 					</div>
 				{/if}
 			</div>
@@ -140,4 +147,32 @@
 	}
 
 	.popup-close:hover { color: #333; background: #f0f0f0; }
+
+	.delete-btn {
+		padding: 0.4rem;
+		background: none;
+		border: 1px solid #e74c3c;
+		border-radius: 6px;
+		color: #e74c3c;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: background 0.15s, color 0.15s;
+	}
+
+	.delete-btn:hover {
+		background: #e74c3c;
+		color: #fff;
+	}
+
+	.delete-btn svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
 </style>

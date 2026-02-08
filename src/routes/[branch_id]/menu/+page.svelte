@@ -429,24 +429,16 @@
 </Popup>
 
 <!-- Cart modal -->
-<Popup open={cartOpen} title="Cart" onclose={() => (cartOpen = false)} fullscreen>
-	<!-- Top action bar -->
-	<div class="cart-action-bar">
-		{#if isEmployee}
+<Popup open={cartOpen} title="Cart" onclose={() => (cartOpen = false)} ondelete={cartStore.items.length > 0 ? () => (confirmClearOpen = true) : undefined} fullscreen>
+	<!-- Table selector (employees only) -->
+	{#if isEmployee}
+		<div class="cart-action-bar">
 			<button class="btn-table" onclick={() => { cartOpen = false; tableSelectOpen = true; }}>
 				<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 16v4M17 16v4" /></svg>
 				{selectedTable ? selectedTable.label : 'Select Table'}
 			</button>
-		{:else}
-			<span></span>
-		{/if}
-		{#if cartStore.items.length > 0}
-			<button class="btn-clear" onclick={() => (confirmClearOpen = true)}>
-				<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z" /></svg>
-				Clear
-			</button>
-		{/if}
-	</div>
+		</div>
+	{/if}
 
 	<!-- Cart content -->
 	{#if cartStore.items.length === 0}
@@ -1013,36 +1005,6 @@
 		border-bottom: 1px solid #f0f0f0;
 		margin-bottom: 0.5rem;
 		gap: 0.5rem;
-	}
-
-	.btn-clear {
-		display: flex;
-		align-items: center;
-		gap: 0.35rem;
-		padding: 0.4rem 0.75rem;
-		background: none;
-		border: 1px solid #e74c3c;
-		border-radius: 6px;
-		color: #e74c3c;
-		font-size: 0.8rem;
-		font-weight: 600;
-		cursor: pointer;
-		transition: background 0.15s, color 0.15s;
-	}
-
-	.btn-clear:hover {
-		background: #e74c3c;
-		color: #fff;
-	}
-
-	.btn-clear svg {
-		width: 0.9rem;
-		height: 0.9rem;
-		fill: none;
-		stroke: currentColor;
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
 	}
 
 	.cart-empty-state {

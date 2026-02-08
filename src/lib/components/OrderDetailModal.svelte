@@ -166,14 +166,7 @@
 	const nextStatus = $derived(order ? getNextStatus(order.status as OrderStatus) : null);
 </script>
 
-<Popup {open} title="Order Details" {onclose} fullscreen>
-	{#snippet headerAction()}
-		{#if canDelete()}
-			<button class="delete-btn" onclick={openDeleteConfirm} aria-label="Remove order">
-				<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" /></svg>
-			</button>
-		{/if}
-	{/snippet}
+<Popup {open} title="Order Details" {onclose} ondelete={canDelete() ? openDeleteConfirm : undefined} fullscreen>
 	{#if order}
 		<div class="order-detail">
 			<div class="order-meta">
@@ -262,34 +255,6 @@
 		align-items: center;
 		gap: 0.75rem;
 		flex-wrap: wrap;
-	}
-
-	.delete-btn {
-		padding: 0.4rem;
-		background: none;
-		border: 1px solid #e74c3c;
-		border-radius: 6px;
-		color: #e74c3c;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		transition: background 0.15s, color 0.15s;
-	}
-
-	.delete-btn:hover {
-		background: #e74c3c;
-		color: #fff;
-	}
-
-	.delete-btn svg {
-		width: 1.1rem;
-		height: 1.1rem;
-		fill: none;
-		stroke: currentColor;
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
 	}
 
 	.order-date {
