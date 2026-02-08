@@ -104,86 +104,89 @@
 	const canCreate = $derived(newName.trim() !== '' && newDate !== '' && newTime !== '');
 </script>
 
-{#if selectedReservation}
-	<div class="reservation-detail">
-		<div class="detail-header">
-			<h1>Reservation Details</h1>
-			<span class="status-badge">Reserved</span>
-		</div>
-		<div class="reservation-meta">
-			<span class="reservation-date">{selectedReservation.date}</span>
-			{#if selectedReservation.table}
-				<span class="reservation-table">{selectedReservation.table.label}</span>
-			{/if}
-		</div>
+<h1>Reservations</h1>
+<p class="subtitle">Upcoming table reservations</p>
 
-		<div class="customer-info">
-			<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-			<span>{selectedReservation.customer.name}</span>
-			{#if selectedReservation.customer.phone}
-				<span class="customer-phone">{selectedReservation.customer.phone}</span>
-			{/if}
-		</div>
-
-		<div class="info-row">
-			<span class="info-label">Party Size</span>
-			<span class="info-value">{selectedReservation.partySize} guests</span>
-		</div>
-
-		{#if selectedReservation.notes}
-			<div class="info-row">
-				<span class="info-label">Notes</span>
-				<span class="info-value">{selectedReservation.notes}</span>
-			</div>
-		{/if}
-	</div>
-
-	<div class="footer-bar">
-		<button class="btn secondary back-btn" onclick={goBack}>Back</button>
+{#if reservations.length === 0}
+	<div class="empty-state">
+		<svg viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+		<p>No reservations</p>
 	</div>
 {:else}
-	<h1>Reservations</h1>
-	<p class="subtitle">Upcoming table reservations</p>
-
-	{#if reservations.length === 0}
-		<div class="empty-state">
-			<svg viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-			<p>No reservations</p>
-		</div>
-	{:else}
-		{#each reservationsByDate as group}
-			<div class="date-section">
-				<h2 class="date-header">{group.date}</h2>
-				<div class="reservations-list">
-					{#each group.items as reservation}
-						<button class="reservation-card" onclick={() => selectReservation(reservation)}>
-							<div class="reservation-header">
-								<span class="reservation-time">{getTime(reservation.date)}</span>
-								<span class="party-badge">{reservation.partySize} guests</span>
-								{#if reservation.table}
-									<span class="table-badge">{reservation.table.label}</span>
-								{/if}
-							</div>
-							<div class="reservation-customer">
-								<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-								<span>{reservation.customer.name}</span>
-								<span class="customer-phone">{reservation.customer.phone}</span>
-							</div>
-							{#if reservation.notes}
-								<div class="reservation-notes">{reservation.notes}</div>
+	{#each reservationsByDate as group}
+		<div class="date-section">
+			<h2 class="date-header">{group.date}</h2>
+			<div class="reservations-list">
+				{#each group.items as reservation}
+					<button class="reservation-card" onclick={() => selectReservation(reservation)}>
+						<div class="reservation-header">
+							<span class="reservation-time">{getTime(reservation.date)}</span>
+							<span class="party-badge">{reservation.partySize} guests</span>
+							{#if reservation.table}
+								<span class="table-badge">{reservation.table.label}</span>
 							{/if}
-						</button>
-					{/each}
-				</div>
+						</div>
+						<div class="reservation-customer">
+							<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+							<span>{reservation.customer.name}</span>
+							<span class="customer-phone">{reservation.customer.phone}</span>
+						</div>
+						{#if reservation.notes}
+							<div class="reservation-notes">{reservation.notes}</div>
+						{/if}
+					</button>
+				{/each}
 			</div>
-		{/each}
-	{/if}
-
-	<!-- FAB for creating new reservation -->
-	<button class="fab" onclick={openCreate} aria-label="Create new reservation">
-		<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
-	</button>
+		</div>
+	{/each}
 {/if}
+
+<!-- FAB for creating new reservation -->
+<button class="fab" onclick={openCreate} aria-label="Create new reservation">
+	<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+</button>
+
+<!-- Reservation Detail Modal -->
+<Popup open={selectedReservation !== null} title="Reservation Details" onclose={goBack} fullscreen>
+	{#snippet headerAction()}
+		<span class="status-badge">Reserved</span>
+	{/snippet}
+	{#if selectedReservation}
+		<div class="reservation-detail">
+			<div class="reservation-meta">
+				<span class="reservation-date">{selectedReservation.date}</span>
+				{#if selectedReservation.table}
+					<span class="reservation-table">{selectedReservation.table.label}</span>
+				{/if}
+			</div>
+
+			<div class="customer-info">
+				<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+				<span>{selectedReservation.customer.name}</span>
+				{#if selectedReservation.customer.phone}
+					<span class="customer-phone">{selectedReservation.customer.phone}</span>
+				{/if}
+			</div>
+
+			<div class="info-row">
+				<span class="info-label">Party Size</span>
+				<span class="info-value">{selectedReservation.partySize} guests</span>
+			</div>
+
+			{#if selectedReservation.notes}
+				<div class="info-row">
+					<span class="info-label">Notes</span>
+					<span class="info-value">{selectedReservation.notes}</span>
+				</div>
+			{/if}
+		</div>
+	{/if}
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={goBack}>Close</button>
+		</div>
+	{/snippet}
+</Popup>
 
 <!-- Create Reservation Modal -->
 <Popup open={createOpen} title="New Reservation" onclose={() => (createOpen = false)} fullscreen>
@@ -237,17 +240,6 @@
 		margin: 1.25rem 0 0;
 		font-size: 1.5rem;
 		font-weight: 700;
-	}
-
-	.detail-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-	}
-
-	.detail-header h1 {
-		margin: 0;
 	}
 
 	.status-badge {
@@ -385,7 +377,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
-		padding-bottom: 4rem;
 	}
 
 	.reservation-meta {
@@ -431,41 +422,6 @@
 
 	.customer-info .customer-phone {
 		margin-left: auto;
-	}
-
-	.footer-bar {
-		position: fixed;
-		bottom: 0;
-		left: 250px;
-		right: 0;
-		display: flex;
-		align-items: center;
-		background: #f0eeff;
-		border-top: 1px solid #d8d4ff;
-		padding: 0.5rem 1rem;
-		padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
-		z-index: 50;
-	}
-
-	@media (max-width: 768px) {
-		.footer-bar { left: 0; }
-	}
-
-	.back-btn {
-		width: 100%;
-		padding: 0.6rem 1.2rem;
-		background: none;
-		border: 1px solid #ccc;
-		border-radius: 6px;
-		font-size: 1rem;
-		cursor: pointer;
-		color: #555;
-		font-family: inherit;
-		transition: background 0.15s;
-	}
-
-	.back-btn:hover {
-		background: #f0f0f0;
 	}
 
 	/* Info rows */
