@@ -2,7 +2,7 @@
 	import { formatCurrency, purchasesStore } from '$lib/actions-store.svelte';
 	import OrderDetailModal from '$lib/components/OrderDetailModal.svelte';
 
-	type OrderStatus = 'reserved' | 'ordering' | 'preparing' | 'served' | 'billing' | 'completed' | 'cancelled';
+	type OrderStatus = 'reserved' | 'ordering' | 'preparing' | 'served' | 'billing' | 'completed' | 'cancelled' | 'removed';
 
 	const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string }> = {
 		reserved: { label: 'Reserved', color: '#0ea5e9', bg: '#e0f2fe' },
@@ -11,7 +11,8 @@
 		served: { label: 'Served', color: '#f59e0b', bg: '#fef3c7' },
 		billing: { label: 'Billing', color: '#f59e0b', bg: '#fef3c7' },
 		completed: { label: 'Completed', color: '#059669', bg: '#d1fae5' },
-		cancelled: { label: 'Cancelled', color: '#ef4444', bg: '#fee2e2' }
+		cancelled: { label: 'Cancelled', color: '#ef4444', bg: '#fee2e2' },
+		removed: { label: 'Removed', color: '#6b7280', bg: '#f3f4f6' }
 	};
 
 	interface OrderItem {

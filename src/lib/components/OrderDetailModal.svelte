@@ -2,7 +2,7 @@
 	import { formatCurrency, purchasesStore, orderStatesStore, type OrderState } from '$lib/actions-store.svelte';
 	import Popup from './Popup.svelte';
 
-	type OrderStatus = 'reserved' | 'ordering' | 'preparing' | 'served' | 'billing' | 'completed' | 'cancelled';
+	type OrderStatus = 'reserved' | 'ordering' | 'preparing' | 'served' | 'billing' | 'completed' | 'cancelled' | 'removed';
 
 	const STATUS_FLOW: OrderStatus[] = ['reserved', 'ordering', 'preparing', 'served', 'billing', 'completed'];
 
@@ -13,8 +13,30 @@
 		served: { label: 'Served', color: '#f59e0b', bg: '#fef3c7' },
 		billing: { label: 'Billing', color: '#f59e0b', bg: '#fef3c7' },
 		completed: { label: 'Completed', color: '#059669', bg: '#d1fae5' },
-		cancelled: { label: 'Cancelled', color: '#ef4444', bg: '#fee2e2' }
+		cancelled: { label: 'Cancelled', color: '#ef4444', bg: '#fee2e2' },
+		removed: { label: 'Removed', color: '#6b7280', bg: '#f3f4f6' }
 	};
+
+	// Check if user is a manager
+	function isManager(): boolean {
+		if (typeof sessionStorage === 'undefined') return false;
+		const auth = sessionStorage.getItem('employee-auth');
+		if (!auth) return false;
+		try {
+			const employee = JSON.parse(auth);
+			return employee.role === 'Manager';
+		} catch {
+			return false;
+		}
+	}
+
+	// Check if order is from today
+	function isOrderFromToday(orderDate: string): boolean {
+		const today = new Date();
+		const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+		const orderDatePart = orderDate.split(',')[0];
+		return orderDatePart === todayStr;
+	}
 
 	interface StateHistoryEntry {
 		status: OrderStatus;
@@ -49,6 +71,35 @@
 
 	// Derive the actual order from the store so it stays in sync when status changes
 	const order = $derived(orderIndex >= 0 ? purchasesStore.items[orderIndex] as Order | undefined : initialOrder);
+
+	// Delete confirmation
+	let confirmDeleteOpen = $state(false);
+
+	// Check if user can delete this order
+	const canDelete = $derived(() => {
+		if (!order) return false;
+		// Managers can delete any order
+		if (isManager()) return true;
+		// Others can only delete orders from today
+		return isOrderFromToday(order.date);
+	});
+
+	function openDeleteConfirm() {
+		confirmDeleteOpen = true;
+	}
+
+	function cancelDelete() {
+		confirmDeleteOpen = false;
+	}
+
+	function confirmDelete() {
+		if (orderIndex >= 0) {
+			// Mark as removed instead of actually deleting
+			purchasesStore.update(orderIndex, { status: 'removed' });
+			confirmDeleteOpen = false;
+			onclose();
+		}
+	}
 
 	function getStatusStyle(status: OrderStatus): string {
 		if (!status) {
@@ -116,6 +167,13 @@
 </script>
 
 <Popup {open} title="Order Details" {onclose} fullscreen>
+	{#snippet headerAction()}
+		{#if canDelete()}
+			<button class="delete-btn" onclick={openDeleteConfirm} aria-label="Remove order">
+				<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" /></svg>
+			</button>
+		{/if}
+	{/snippet}
 	{#if order}
 		<div class="order-detail">
 			<div class="order-meta">
@@ -181,6 +239,17 @@
 	{/snippet}
 </Popup>
 
+<!-- Remove confirmation popup -->
+<Popup open={confirmDeleteOpen} title="Remove Order" onclose={cancelDelete} wide>
+	<p class="confirm-text">Are you sure you want to remove this order? The order will be marked as removed.</p>
+	{#snippet footer()}
+		<div class="footer-buttons">
+			<button class="btn secondary" onclick={cancelDelete}>Cancel</button>
+			<button class="btn danger" onclick={confirmDelete}>Remove</button>
+		</div>
+	{/snippet}
+</Popup>
+
 <style>
 	.order-detail {
 		display: flex;
@@ -192,6 +261,35 @@
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
+
+	.delete-btn {
+		padding: 0.4rem;
+		background: none;
+		border: 1px solid #e74c3c;
+		border-radius: 6px;
+		color: #e74c3c;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: background 0.15s, color 0.15s;
+	}
+
+	.delete-btn:hover {
+		background: #e74c3c;
+		color: #fff;
+	}
+
+	.delete-btn svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 
 	.order-date {
@@ -374,5 +472,23 @@
 	.history-date {
 		font-size: 0.8rem;
 		color: #888;
+	}
+
+	.confirm-text {
+		text-align: center;
+		color: #555;
+		font-size: 0.95rem;
+		margin: 1rem 0;
+		line-height: 1.5;
+	}
+
+	.footer-buttons .btn.danger {
+		background: #e74c3c;
+		border: none;
+		color: #fff;
+	}
+
+	.footer-buttons .btn.danger:hover {
+		background: #c0392b;
 	}
 </style>

@@ -640,6 +640,11 @@ export interface PurchaseItem {
 	price: number;
 }
 
+export interface StateHistoryEntry {
+	status: string;
+	date: string;
+}
+
 export interface Purchase {
 	items: PurchaseItem[];
 	total: number;
@@ -647,6 +652,8 @@ export interface Purchase {
 	status: string;
 	customer?: { name: string; phone: string };
 	table?: { id: number; label: string };
+	reservationId?: number;
+	stateHistory?: StateHistoryEntry[];
 }
 
 function getDefaultPurchases(): Purchase[] {
@@ -684,6 +691,11 @@ export const purchasesStore = {
 
 	update(index: number, fields: Partial<Purchase>) {
 		purchaseItems = purchaseItems.map((p, i) => i === index ? { ...p, ...fields } : p);
+		savePurchases(purchaseItems);
+	},
+
+	remove(index: number) {
+		purchaseItems = purchaseItems.filter((_, i) => i !== index);
 		savePurchases(purchaseItems);
 	}
 };

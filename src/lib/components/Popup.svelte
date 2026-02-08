@@ -7,19 +7,25 @@
 		onclose: () => void;
 		children: Snippet;
 		footer?: Snippet;
+		headerAction?: Snippet;
 		fullscreen?: boolean;
 		wide?: boolean;
 	}
 
-	let { open, title, onclose, children, footer, fullscreen = false, wide = false }: Props = $props();
+	let { open, title, onclose, children, footer, headerAction, fullscreen = false, wide = false }: Props = $props();
 </script>
 
 {#if open}
 	<div class="popup-overlay" role="presentation" onclick={onclose}></div>
 	<div class="popup" class:fullscreen class:wide role="dialog" aria-modal="true">
-		{#if title}
+		{#if title || headerAction}
 			<div class="popup-header">
-				<span class="popup-title">{title}</span>
+				<span class="popup-title">{title ?? ''}</span>
+				{#if headerAction}
+					<div class="popup-header-action">
+						{@render headerAction()}
+					</div>
+				{/if}
 			</div>
 		{/if}
 		<div class="popup-body">
@@ -79,7 +85,10 @@
 	.popup-header {
 		padding: 0.75rem 1rem;
 		border-bottom: 1px solid #e0e0e0;
-		text-align: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
 	}
 
 	.popup.fullscreen .popup-header {
@@ -89,6 +98,17 @@
 	.popup-title {
 		font-weight: 600;
 		font-size: 0.95rem;
+	}
+
+	.popup-header-action {
+		position: absolute;
+		right: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+	}
+
+	.popup.fullscreen .popup-header-action {
+		top: calc(50% + env(safe-area-inset-top, 0px) / 2);
 	}
 
 	.popup-body {
