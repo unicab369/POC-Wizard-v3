@@ -53,8 +53,10 @@
 		position: fixed;
 		inset: 0;
 		background: rgba(0, 0, 0, 0.3);
-		z-index: 1000;
+		z-index: 9998;
 		touch-action: none;
+		-webkit-transform: translateZ(0);
+		transform: translateZ(0);
 	}
 
 	.popup {
@@ -65,11 +67,12 @@
 		background: #fff;
 		border-radius: 10px;
 		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-		z-index: 1001;
+		z-index: 9999;
 		min-width: 260px;
 		max-width: 90vw;
 		display: flex;
 		flex-direction: column;
+		-webkit-transform: translate(-50%, -50%) translateZ(0);
 	}
 
 	.popup.wide {
@@ -85,7 +88,8 @@
 		max-height: 100dvh;
 		top: 0;
 		left: 0;
-		transform: none;
+		transform: translateZ(0);
+		-webkit-transform: translateZ(0);
 		border-radius: 0;
 		background: #f5f5f5;
 	}
