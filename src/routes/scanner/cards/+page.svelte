@@ -19,6 +19,7 @@
 	let listRef: { closePopup: () => void } | undefined;
 
 	// Form fields
+	let urlName = $state('');
 	let urlValue = $state('');
 	let vcardName = $state('');
 	let vcardPhone = $state('');
@@ -34,6 +35,7 @@
 	}
 
 	function resetFields() {
+		urlName = '';
 		urlValue = '';
 		vcardName = '';
 		vcardPhone = '';
@@ -52,7 +54,7 @@
 
 	function buildData(): { label: string; data: string } {
 		if (formType === 'url') {
-			return { label: urlValue, data: urlValue };
+			return { label: urlName || urlValue, data: urlValue };
 		} else if (formType === 'vcard') {
 			return {
 				label: vcardName || 'Unnamed',
@@ -76,6 +78,7 @@
 	function loadFieldsFromCard(card: Card) {
 		formType = card.type;
 		if (card.type === 'url') {
+			urlName = card.label;
 			urlValue = card.data;
 		} else if (card.type === 'vcard') {
 			const lines = card.data.split('\n');
@@ -146,6 +149,9 @@
 		</h2>
 
 		{#if formType === 'url'}
+			<label class="field"><span>Name</span>
+				<input type="text" bind:value={urlName} placeholder="My Website" />
+			</label>
 			<label class="field"><span>URL</span>
 				<input type="url" bind:value={urlValue} placeholder="https://example.com" />
 			</label>

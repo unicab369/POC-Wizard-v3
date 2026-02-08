@@ -176,11 +176,14 @@
 		height: 100dvh;
 		overflow: hidden;
 		overscroll-behavior: none;
-		touch-action: pan-x pan-y;
+		touch-action: pan-y;
 		font-family: system-ui, sans-serif;
 		background: #f5f5f5;
 		color: #333;
 		-webkit-overflow-scrolling: touch;
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		user-select: none;
 	}
 
 	.sidebar {
@@ -311,7 +314,16 @@
 	.topbar-links a.active { background: rgba(108, 99, 255, 0.1); color: #6c63ff; }
 	.topbar-links a svg { width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-	.content { margin-left: 250px; padding: calc(3.5rem + env(safe-area-inset-top, 0px)) 2rem 2rem; height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+	.content {
+		margin-left: 250px;
+		padding: calc(3.5rem + env(safe-area-inset-top, 0px)) 2rem 2rem;
+		height: 100dvh;
+		overflow-y: auto;
+		overflow-x: hidden;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+		touch-action: pan-y;
+	}
 
 	.hamburger {
 		display: none;

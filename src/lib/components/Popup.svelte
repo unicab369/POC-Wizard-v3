@@ -54,6 +54,7 @@
 		inset: 0;
 		background: rgba(0, 0, 0, 0.3);
 		z-index: 1000;
+		touch-action: none;
 	}
 
 	.popup {
@@ -123,6 +124,8 @@
 		padding: 0.5rem;
 		flex: 1;
 		overflow-y: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	.popup-footer {

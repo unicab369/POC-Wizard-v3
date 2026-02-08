@@ -2,13 +2,15 @@
 	{
 		"id": 1,
 		"type": "url",
+		"name": "Company Website",
 		"label": "Company Website",
-		"data": "https://example.com",
+		"data": "https://unicab369.github.io/POC-Wizard-v3/2",
 		"timestamp": 1738540800000
 	},
 	{
 		"id": 2,
 		"type": "url",
+		"name": "Online Menu",
 		"label": "Online Menu",
 		"data": "https://example.com/menu",
 		"timestamp": 1738540700000
